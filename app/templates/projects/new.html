@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block title %}Create New Project - SDG Assessment Tool{% endblock %}
+
+{% block head %}
+{{ super() }} {# Include head content from base.html #}
+<style>
+    .form-legend {
+        font-size: 1.2rem; /* Slightly larger legend */
+        font-weight: 600;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem; /* More space below legend */
+        border-bottom: 1px solid #dee2e6;
+        color: #495057;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #0d6efd; /* Standard Bootstrap primary color */
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    .character-counter {
+        font-size: 0.8rem; /* Slightly smaller counter */
+        color: #6c757d;
+        text-align: right;
+        margin-top: 0.25rem;
+    }
+    .form-text {
+        font-size: 0.875rem; /* Standard help text size */
+    }
+    .card {
+        border: none; /* Remove default card border if using shadow */
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1); /* Softer shadow */
+        border-radius: 0.75rem; /* Slightly larger radius */
+    }
+    .card-header {
+        background-color: #f8f9fa; /* Lighter header */
+        border-bottom: 1px solid #dee2e6;
+        padding: 1rem 1.5rem;
+    }
+    .card-header h2 {
+        font-size: 1.5rem; /* Adjust header size */
+        margin-bottom: 0;
+        font-weight: 500; /* Less heavy font */
+        color: #212529;
+    }
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem; /* Space between buttons */
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #dee2e6; /* Separator line */
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4 my-md-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-9 col-xl-8">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                 <h1 class="h3 mb-0">Create New Project</h1>
+                 <a href="{{ url_for('projects.index') }}" class="btn btn-sm btn-outline-secondary">
+                     Back to Projects
+                 </a>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Project Details</h2>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <form id="project-form" method="POST" action="{{ url_for('projects.new_project') }}" class="needs-validation" novalidate>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    
+                        <fieldset class="mb-4">
+                            <legend class="form-legend">Basic Information</legend>
+
+                            {# --- Project Name --- #}
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Project Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name"
+                                       placeholder="e.g., Maple Street Community Center" required
+                                       maxlength="100" aria-describedby="nameHelp nameCounter">
+                                <div class="invalid-feedback">Please provide a project name.</div>
+                                <div class="character-counter" id="nameCounter">
+                                    <span id="nameCount">0</span>/100 characters
+                                </div>
+                                <small id="nameHelp" class="form-text text-muted">
+                                    A clear, descriptive name for your project.
+                                </small>
+                            </div>
+
+                            {# --- Description --- #}
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="4"
+                                          placeholder="Provide a brief overview of the project scope, goals, and key features..."
+                                          maxlength="500" aria-describedby="descHelp descCounter"></textarea>
+                                <div class="character-counter" id="descCounter">
+                                    <span id="descCount">0</span>/500 characters
+                                </div>
+                                <small id="descHelp" class="form-text text-muted">
+                                    Helps provide context for the SDG assessment. Include aspects relevant to sustainability if possible.
+                                </small>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend class="form-legend">Project Specifications</legend>
+                            <div class="row">
+                                {# --- Project Type (Using Select) --- #}
+                                <div class="col-md-6 mb-3">
+                                    <label for="project_type" class="form-label">Project Type <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="project_type" name="project_type" required aria-describedby="typeHelp">
+                                        <option value="" selected disabled>Select a type...</option>
+                                        <option value="residential">Residential</option>
+                                        <option value="commercial">Commercial</option>
+                                        <option value="industrial">Industrial</option>
+                                        <option value="institutional">Institutional</option>
+                                        <option value="mixed_use">Mixed Use</option>
+                                        <option value="landscape">Landscape</option>
+                                        <option value="urban_planning">Urban Planning</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                    <div class="invalid-feedback">Please select a project type.</div>
+                                    <small id="typeHelp" class="form-text text-muted">
+                                        Choose the category that best fits your project.
+                                    </small>
+                                </div>
+
+                                {# --- Location --- #}
+                                <div class="col-md-6 mb-3">
+                                    <label for="location" class="form-label">Location</label>
+                                    <input type="text" class="form-control" id="location" name="location"
+                                           placeholder="e.g., City, State/Province, Country" aria-describedby="locationHelp">
+                                    <small id="locationHelp" class="form-text text-muted">
+                                        Helps identify relevant regional factors.
+                                    </small>
+                                </div>
+                            </div> {# End row #}
+
+                            {# --- Size (Simplified) --- #}
+                            <div class="mb-3">
+                                <label for="size_sqm" class="form-label">Approximate Project Area</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="size_sqm" name="size_sqm"
+                                           step="any" min="0" placeholder="Enter area" aria-describedby="sizeHelp">
+                                    <span class="input-group-text">sqm</span>
+                                </div>
+                                <small id="sizeHelp" class="form-text text-muted">
+                                     Enter the approximate gross floor area or site area in square meters.
+                                </small>
+                            </div>
+                        </fieldset>
+
+                        {# --- Form Actions --- #}
+                        <div class="form-actions">
+                            <a href="{{ url_for('projects.index') }}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                Create Project
+                            </button>
+                        </div>
+                    </form>
+                </div> {# End card-body #}
+            </div> {# End card #}
+        </div> {# End col #}
+    </div> {# End row #}
+</div> {# End container #}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }} {# Include scripts from base.html #}
+<script>
+    // Function to update character counters
+    function updateCharCounter(inputId, counterId, maxLength) {
+        const input = document.getElementById(inputId);
+        const counterDisplay = document.getElementById(counterId); // The span showing the count
+        if (!input || !counterDisplay) return; // Exit if elements don't exist
+
+        const currentLength = input.value.length;
+        counterDisplay.textContent = currentLength; // Update the count display
+
+        // Optional: Add color feedback (adjust thresholds as needed)
+        const counterWrapper = document.getElementById(counterId.replace('Count', 'Counter')); // Assumes ID like 'nameCounter'
+        if (counterWrapper) {
+            if (currentLength >= maxLength) {
+                counterWrapper.style.color = '#dc3545'; // Red at limit
+            } else if (currentLength >= maxLength * 0.9) {
+                counterWrapper.style.color = '#fd7e14'; // Orange when nearing limit
+            } else {
+                counterWrapper.style.color = '#6c757d'; // Default color
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize character counters on page load
+        updateCharCounter('name', 'nameCount', 100);
+        updateCharCounter('description', 'descCount', 500);
+
+        // Add event listeners for typing in fields with counters
+        const nameInput = document.getElementById('name');
+        const descriptionInput = document.getElementById('description');
+
+        if (nameInput) {
+            nameInput.addEventListener('input', () => updateCharCounter('name', 'nameCount', 100));
+        }
+        if (descriptionInput) {
+            descriptionInput.addEventListener('input', () => updateCharCounter('description', 'descCount', 500));
+        }
+
+        // Bootstrap form validation script
+        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+        var forms = document.querySelectorAll('.needs-validation');
+
+        // Loop over them and prevent submission
+        Array.prototype.slice.call(forms)
+            .forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+
+                    form.classList.add('was-validated');
+                }, false);
+            });
+
+        // Optional: Add entry animation
+        const mainCard = document.querySelector('.card');
+        if (mainCard) {
+            mainCard.style.opacity = '0';
+            mainCard.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                mainCard.style.transition = 'opacity 0.4s ease-out, transform 0.4s ease-out';
+                mainCard.style.opacity = '1';
+                mainCard.style.transform = 'translateY(0)';
+            }, 50); // Short delay
+        }
+    });
+</script>
+
+<!-- Client-side validation script -->
+<script src="{{ url_for('static', filename='js/validation.js') }}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('project-form');
+    if (form) {
+      form.addEventListener('submit', function(event) {
+        if (!window.FormValidation.validateProjectForm()) {
+          event.preventDefault();
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}

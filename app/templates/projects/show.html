@@ -1,0 +1,527 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.name }} - SDG Assessment Tool{% endblock %}
+
+{% block head %}
+<style>
+    /* Project Detail Styles */
+    .project-header {
+        background: linear-gradient(135deg, #0056b3, #004494);
+        color: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .project-header::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'%3E%3Cpath d='M0 38.59l2.83-2.83 1.41 1.41L1.41 40H0v-1.41zM0 20.83l2.83-2.83 1.41 1.41L1.41 22.24H0v-1.41zM0 3.07l2.83-2.83 1.41 1.41L1.41 4.48H0V3.07zM17.17 0l2.83 2.83-1.41 1.41L15.76 1.41V0h1.41zM38.59 0l2.83 2.83-1.41 1.41L37.17 1.41V0h1.41zM20.83 0l2.83 2.83-1.41 1.41L19.42 1.41V0h1.41zM3.07 0l2.83 2.83-1.41 1.41L1.66 1.41V0h1.41zM39.9 18.17l-2.83 2.83-1.41-1.41 2.83-2.83h1.41v1.41zM39.9 35.93l-2.83 2.83-1.41-1.41 2.83-2.83h1.41v1.41zM22.74 40l-2.83-2.83 1.41-1.41 2.83 2.83V40h-1.41zM39.9.907l-2.83 2.83-1.41-1.41L38.49 0h1.41v.907zM2.83 21.66L0 24.49v-1.41l1.41-1.41 1.42 1.41zM2.83 38.42L0 41.25v-1.41l1.41-1.41 1.42 1.41zM2.83 4.9L0 7.73v-1.41l1.41-1.41 1.42 1.41zM36.76 20.83l2.83 2.83v1.41l-2.83-2.83-1.41 1.41 2.83 2.83h-1.41l-2.83-2.83-1.41 1.41 2.83 2.83v1.41l-2.83-2.83-1.41 1.41 2.83 2.83h-1.41l-2.83-2.83-1.41 1.41 2.83 2.83v1.41l-4.24-4.24 1.41-1.41 2.83 2.83 1.41-1.41-2.83-2.83 1.41-1.41 2.83 2.83 1.41-1.41-2.83-2.83 1.41-1.41 2.83 2.83 1.41-1.41-2.83-2.83L36.76 20.83zM36.76 38.92l2.83 2.83v-1.41l-1.41-1.41-1.42 1.41zM36.76 22.24l2.83 2.83v-1.41l-1.41-1.41-1.42 1.41zM36.76 5.48l2.83 2.83V6.9l-1.41-1.41-1.42 1.41zM22.66 40l2.83-2.83v-1.41l-1.41 1.41-1.42-1.41 1.41-1.41-1.41-1.41-1.41 1.41-1.42-1.41 1.41-1.41-1.41-1.41-1.41 1.41-1.42-1.41 1.41-1.41-1.41-1.41-1.41 1.41-1.42-1.41 1.41-1.41-1.41-1.41-4.24 4.24 1.41 1.41 2.83-2.83 1.41 1.41-2.83 2.83 1.41 1.41 2.83-2.83 1.41 1.41-2.83 2.83 1.41 1.41 2.83-2.83 1.41 1.41-2.83 2.83h-1.43l2.83-2.83 1.41 1.41-2.83 2.83h1.42z'/%3E%3C/g%3E%3C/svg%3E");
+        opacity: 0.1;
+        pointer-events: none;
+        z-index: 1;
+    }
+    
+    .project-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .project-actions {
+        margin-top: 1.5rem;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .project-actions .btn {
+        padding: 0.6rem 1.25rem;
+        margin-right: 0.5rem;
+        position: relative;
+    }
+    
+    .project-card {
+        border-radius: 1rem;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .project-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+    
+    .project-card .card-header {
+        background-color: white;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        font-weight: 600;
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .project-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .assessment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .assessment-table {
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+    }
+    
+    .assessment-table th,
+    .assessment-table td {
+        padding: 1rem 1.25rem;
+        vertical-align: middle;
+    }
+    
+    .assessment-table thead th {
+        background-color: #f8f9fa;
+        border-bottom: none;
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .assessment-table tbody tr {
+        border-bottom: 1px solid #e9ecef;
+        transition: all 0.2s ease;
+    }
+    
+    .assessment-table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .assessment-table tbody tr:last-child {
+        border-bottom: none;
+    }
+    
+    /* Badge styling */
+    .badge-draft {
+        background-color: #6c757d;
+    }
+    
+    .badge-completed {
+        background-color: #28a745;
+    }
+    
+    /* Progress bar styling */
+    .progress {
+        height: 8px;
+        border-radius: 4px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .progress-bar {
+        background-color: #0056b3;
+    }
+    
+    /* Project info styling */
+    .info-list {
+        list-style: none;
+        padding-left: 0;
+        margin-bottom: 0;
+    }
+    
+    .info-list li {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .info-list li:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        color: #6c757d;
+        font-weight: 500;
+    }
+    
+    .info-value {
+        font-weight: 500;
+        text-align: right;
+    }
+    
+    /* Empty state styling */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+    }
+    
+    .empty-state-icon {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 1.5rem;
+    }
+    
+    .empty-state-text {
+        color: #6c757d;
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Confirmation modal styling */
+    .modal-content {
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+    }
+    
+    .modal-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .modal-footer {
+        border-top: 1px solid #e9ecef;
+    }
+    
+    /* New assessment card styling */
+    .assessment-cta-card {
+        background: linear-gradient(135deg, #4BB543, #2D8A28);
+        color: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .assessment-cta-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    }
+    
+    .assessment-cta-card .btn-light {
+        background: white;
+        color: #2D8A28;
+        border: none;
+        font-weight: 600;
+        padding: 0.8rem 1.5rem;
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .assessment-cta-card .btn-light:hover {
+        background: #f8f9fa;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="mb-3">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+    <!-- Back button and breadcrumbs -->
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ url_for('projects.index') }}" class="btn btn-outline-secondary btn-sm rounded-circle me-3">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ url_for('projects.index') }}">Projects</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ project.name }}</li>
+            </ol>
+        </nav>
+    </div>
+    
+    <!-- Project Header -->
+    <div class="project-header">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="project-title">{{ project.name }}</h1>
+                <p class="mb-0 text-white-50">
+                    <i class="bi bi-geo-alt-fill me-2"></i>{{ project.location or 'Location not specified' }}
+                    {% if project.project_type %}
+                    <span class="mx-2">|</span>
+                    <i class="bi bi-building me-2"></i>{{ project.project_type|capitalize }}
+                    {% endif %}
+                </p>
+                {% if project.size_sqm %}
+                <p class="mb-0 text-white-50">
+                    <i class="bi bi-rulers me-2"></i>{{ project.size_sqm|round(2) }} sq. m
+                </p>
+                {% endif %}
+                <div class="project-actions">
+                    <a href="{{ url_for('projects.new_assessment', id=project.id) }}" class="btn btn-light">
+                        <i class="bi bi-clipboard-check me-2"></i> Sustainability Assessment
+                    </a>
+                    <a href="{{ url_for('projects.edit', id=project.id) }}" class="btn btn-outline-light">
+                        <i class="bi bi-pencil me-2"></i> Edit Project
+                    </a>
+                    <button type="button" class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#deleteProjectModal">
+                        <i class="bi bi-trash me-2"></i> Delete
+                    </button>
+                </div>
+            </div>
+            <div class="col-lg-4 d-none d-lg-block">
+                <div class="project-icon text-center">
+                    {% if project.project_type == 'residential' %}
+                        <i class="bi bi-house" style="font-size: 8rem; opacity: 0.5;"></i>
+                    {% elif project.project_type == 'commercial' %}
+                        <i class="bi bi-building" style="font-size: 8rem; opacity: 0.5;"></i>
+                    {% elif project.project_type == 'industrial' %}
+                        <i class="bi bi-factory" style="font-size: 8rem; opacity: 0.5;"></i>
+                    {% elif project.project_type == 'institutional' %}
+                        <i class="bi bi-bank" style="font-size: 8rem; opacity: 0.5;"></i>
+                    {% elif project.project_type == 'mixed_use' %}
+                        <i class="bi bi-buildings" style="font-size: 8rem; opacity: 0.5;"></i>
+                    {% elif project.project_type == 'landscape' %}
+                        <i class="bi bi-tree" style="font-size: 8rem; opacity: 0.5;"></i>
+                    {% elif project.project_type == 'urban_planning' %}
+                        <i class="bi bi-map" style="font-size: 8rem; opacity: 0.5;"></i>
+                    {% else %}
+                        <i class="bi bi-building-fill-check" style="font-size: 8rem; opacity: 0.5;"></i>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- New Sustainability Assessment CTA Card -->
+    <div class="assessment-cta-card mb-4">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h3><i class="bi bi-clipboard-check me-2"></i> Comprehensive Sustainability Assessment</h3>
+                <p class="mb-0">Complete our detailed questionnaire to discover your project's sustainability profile and learn how it aligns with global sustainability goals.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <a href="{{ url_for('projects.new_assessment', id=project.id) }}" class="btn btn-light btn-lg">
+                    <i class="bi bi-arrow-right-circle me-2"></i> Start Assessment
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Project Details Card -->
+        <div class="col-lg-4 mb-4">
+            <div class="card project-card">
+                <div class="card-header d-flex align-items-center">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <h5 class="mb-0">Project Details</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="info-list">
+                        <li>
+                            <span class="info-label">Description</span>
+                            <span class="info-value">{{ project.description or 'No description provided.' }}</span>
+                        </li>
+                        <li>
+                            <span class="info-label">Project Type</span>
+                            <span class="info-value">{{ project.project_type|capitalize if project.project_type else 'Not specified' }}</span>
+                        </li>
+                        <li>
+                            <span class="info-label">Location</span>
+                            <span class="info-value">{{ project.location or 'Not specified' }}</span>
+                        </li>
+                        <li>
+                            <span class="info-label">Size</span>
+                            <span class="info-value">{{ project.size_sqm|round(2) if project.size_sqm else 'Not specified' }} sq. m</span>
+                        </li>
+                        <li>
+                            <span class="info-label">Status</span>
+                            <span class="info-value">
+                                <span class="badge bg-{{ 'success' if project.status == 'active' else 'secondary' }}">
+                                    {{ project.status|capitalize }}
+                                </span>
+                            </span>
+                        </li>
+                        <li>
+                            <span class="info-label">Created</span>
+                            <span class="info-value">{{ project.created_at|format_date }}</span>
+                        </li>
+                        <li>
+                            <span class="info-label">Last Updated</span>
+                            <span class="info-value">{{ project.updated_at|format_date }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Assessments Card -->
+        <div class="col-lg-8 mb-4">
+            <div class="card project-card">
+                <div class="card-header">
+                    <div class="assessment-header">
+                        <h5 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Assessments</h5>
+                        <a href="{{ url_for('projects.new_assessment', id=project.id) }}" class="btn btn-sm btn-primary">
+                            <i class="bi bi-plus-lg me-1"></i>
+                            New Assessment
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if assessments|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="assessment-table">
+                            <thead>
+                                <tr>
+                                    <th>Version</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Overall Score</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for assessment in assessments %}
+                                <tr>
+                                    <td>{{ assessment.version or loop.index }}</td>
+                                    <td>
+                                        {% if assessment.status == 'draft' %}
+                                            <span class="badge bg-warning">Draft</span>
+                                        {% elif assessment.status == 'completed' %}
+                                            <span class="badge bg-success">Completed</span>
+                                        {% else %}
+                                            <span class="badge bg-{{ 'success' if assessment.status == 'completed' else 'secondary' }}">
+                                                {{ assessment.status|capitalize }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ assessment.created_at|format_date }}</td>
+                                    <td>
+                                        {% if assessment.overall_score %}
+                                            {{ "%.1f"|format(assessment.overall_score) }}/10
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <a href="{{ url_for('assessments.results', project_id=project.id, assessment_id=assessment.id) }}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-bar-chart-fill me-1"></i>Results
+                                            </a>
+                                            <a href="{{ url_for('assessments.recalculate_direct_scores', assessment_id=assessment.id) }}" class="btn btn-sm btn-outline-success">
+                                                <i class="bi bi-arrow-repeat me-1"></i>Recalculate
+                                            </a>
+                                            <form method="POST" action="{{ url_for('assessments.delete', assessment_id=assessment.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this assessment?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <i class="bi bi-trash me-1"></i>Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="bi bi-clipboard"></i>
+                        </div>
+                        <h4>No Assessments Yet</h4>
+                        <p class="empty-state-text">Start by creating your first sustainability assessment for this project.</p>
+                        <a href="{{ url_for('projects.new_assessment', id=project.id) }}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i>New Assessment
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Project Confirmation Modal -->
+<div class="modal fade" id="deleteProjectModal" tabindex="-1" aria-labelledby="deleteProjectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteProjectModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 3rem;"></i>
+                </div>
+                <p class="mb-1">Are you sure you want to delete this project?</p>
+                <p class="text-danger fw-bold mb-0">This action cannot be undone and will also delete all associated assessments.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('projects.delete', id=project.id) }}" method="POST">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-2"></i>Delete Project
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add subtle animation to the project header
+        const projectHeader = document.querySelector('.project-header');
+        projectHeader.style.transform = 'translateY(20px)';
+        projectHeader.style.opacity = '0';
+        
+        setTimeout(() => {
+            projectHeader.style.transition = 'all 0.5s ease';
+            projectHeader.style.transform = 'translateY(0)';
+            projectHeader.style.opacity = '1';
+        }, 100);
+        
+        // Add staggered animations to the cards
+        const cards = document.querySelectorAll('.project-card');
+        cards.forEach((card, index) => {
+            card.style.transform = 'translateY(20px)';
+            card.style.opacity = '0';
+            
+            setTimeout(() => {
+                card.style.transition = 'all 0.5s ease';
+                card.style.transform = 'translateY(0)';
+                card.style.opacity = '1';
+            }, 200 + (index * 100));
+        });
+        
+        // Animate the CTA card
+        const ctaCard = document.querySelector('.assessment-cta-card');
+        if (ctaCard) {
+            ctaCard.style.transform = 'translateY(20px)';
+            ctaCard.style.opacity = '0';
+            
+            setTimeout(() => {
+                ctaCard.style.transition = 'all 0.5s ease';
+                ctaCard.style.transform = 'translateY(0)';
+                ctaCard.style.opacity = '1';
+            }, 150);
+        }
+    });
+</script>
+{% endblock %}

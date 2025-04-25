@@ -1,0 +1,405 @@
+{% extends "base.html" %}
+
+{% block title %}My Projects - SDG Assessment Tool{% endblock %}
+
+{% block head %}
+{{ super() }} {# Include head content from base.html #}
+<style>
+    /* Project list page styles (keeping previous styles) */
+    .projects-header {
+        background: linear-gradient(135deg, #0056b3, #004494);
+        color: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        z-index: 1; /* Ensure header content is clickable */
+    }
+    
+    .projects-header::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'%3E%3Cpath d='M0 38.59l2.83-2.83 1.41 1.41L1.41 40H0v-1.41zM0 20.83l2.83-2.83 1.41 1.41L1.41 22.24H0v-1.41zM0 3.07l2.83-2.83 1.41 1.41L1.41 4.48H0V3.07zM17.17 0l2.83 2.83-1.41 1.41L15.76 1.41V0h1.41zM38.59 0l2.83 2.83-1.41 1.41L37.17 1.41V0h1.41zM20.83 0l2.83 2.83-1.41 1.41L19.42 1.41V0h1.41zM3.07 0l2.83 2.83-1.41 1.41L1.66 1.41V0h1.41zM39.9 18.17l-2.83 2.83-1.41-1.41 2.83-2.83h1.41v1.41zM39.9 35.93l-2.83 2.83-1.41-1.41 2.83-2.83h1.41v1.41z'/%3E%3C/g%3E%3C/svg%3E");
+        opacity: 0.1;
+        z-index: -1; /* Make sure pseudo-element is behind content */
+    }
+    
+    .projects-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .projects-subtitle {
+        opacity: 0.8;
+        margin-bottom: 1.5rem;
+    }
+    
+    .project-card {
+        border-radius: 1rem;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        height: 100%;
+        overflow: hidden;
+        display: flex; 
+        flex-direction: column; 
+    }
+    
+    .project-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+    
+    .project-card .card-body {
+        padding: 1.5rem;
+        flex-grow: 1; 
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .project-card .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #212529;
+    }
+    
+    .project-card .card-subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+    
+    .project-card .card-text {
+        color: #6c757d;
+        margin-bottom: 1.5rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        line-clamp: 3; /* Standard property for compatibility */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 4.5rem; 
+    }
+    
+    .project-card .card-footer {
+        background-color: rgba(0, 0, 0, 0.02);
+        font-size: 0.875rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        padding: 1rem 1.5rem;
+        margin-top: auto; 
+    }
+    
+    .project-type-badge {
+        display: inline-block;
+        padding: 0.35em 0.65em;
+        font-size: 0.75em;
+        font-weight: 500;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 0.5rem;
+        background-color: #f8f9fa;
+        color: #495057;
+        margin-bottom: 1rem;
+    }
+    
+    .project-icon {
+        font-size: 2.5rem;
+        color: rgba(0, 86, 179, 0.1);
+        margin-bottom: 1rem;
+    }
+    
+    .project-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: auto; 
+    }
+    
+    .btn-new-project {
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-new-project:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-view-details {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-view-details:hover {
+        transform: translateY(-2px);
+    }
+    
+    /* Empty state styling */
+    .empty-state {
+        background-color: #f8f9fa;
+        border-radius: 1rem;
+        padding: 3rem 2rem;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        margin-top: 2rem;
+    }
+    
+    .empty-state-icon {
+        font-size: 4rem;
+        color: #dee2e6;
+        margin-bottom: 1.5rem;
+    }
+    
+    .empty-state-text {
+        color: #6c757d;
+        margin-bottom: 1.5rem;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    /* Project count summary */
+    .project-count {
+        display: inline-block;
+        background-color: rgba(255, 255, 255, 0.2);
+        padding: 0.25rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.9rem;
+        margin-left: 1rem;
+    }
+        
+    /* Search and sort styles */
+    .projects-search-form {
+        max-width: 300px; 
+    }
+    
+    .projects-search-bar {
+        position: relative;
+    }
+    
+    .projects-search-input {
+        padding-left: 2.5rem;
+        border-radius: 2rem;
+        border: none;
+        height: 45px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .projects-search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        z-index: 10; 
+        pointer-events: none; 
+    }
+    
+    .sort-dropdown-toggle {
+        border-radius: 2rem; 
+        padding: 0.5rem 1.25rem;
+        font-weight: 500;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        background-color: white; /* Ensure background for visibility */
+        color: #495057; /* Ensure text color */
+        border: none; /* Remove default border */
+    }
+    .sort-dropdown-menu {
+        border: none;
+        border-radius: 1rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        padding: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Projects Header -->
+<div class="projects-header">
+    <div class="row align-items-center">
+        <div class="col-lg-8 mb-4 mb-lg-0">
+            <h1 class="projects-title">My Projects <span class="project-count">{{ projects|length }}</span></h1>
+            <p class="projects-subtitle">Manage and assess your architectural projects' sustainability impact</p>
+            
+            <div class="d-flex flex-wrap gap-3 align-items-center">
+                {# --- CORRECTED New Project Button Link --- #}
+                <a href="{{ url_for('projects.new_project') }}" class="btn btn-light btn-new-project">
+                    <i class="bi bi-plus-circle me-2"></i>New Project
+                </a>
+                
+                {# --- Sort Dropdown (Mechanism via Bootstrap JS, action via custom JS below) --- #}
+                {% if projects|length > 0 %}
+                <div class="dropdown">
+                    <button class="btn dropdown-toggle sort-dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                      <i class="bi bi-sort-down me-1"></i>Sort By: {{ current_sort|default('Name')|title }} 
+                    </button>
+                    <ul class="dropdown-menu sort-dropdown-menu" aria-labelledby="sortDropdown">
+                      <li><a class="dropdown-item sort-option" href="#" data-sort="name">Name</a></li>
+                      <li><a class="dropdown-item sort-option" href="#" data-sort="date">Date Created</a></li>
+                      <li><a class="dropdown-item sort-option" href="#" data-sort="assessment_count">Assessment Count</a></li>
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        {# --- Search Form (Submits to backend for server-side search) --- #}
+        {% if projects|length > 0 %}
+        <div class="col-lg-4">
+            {# --- CORRECTED Search Form --- #}
+            <form action="{{ url_for('projects.index') }}" method="GET" class="projects-search-form ms-lg-auto">
+                <div class="projects-search-bar">
+                    <i class="bi bi-search projects-search-icon"></i>
+                    <input type="search" class="form-control projects-search-input" 
+                           id="projectSearchInput" name="search" placeholder="Search projects..." 
+                           value="{{ search_term|default('') }}">
+                     {# Optional: Add a visible submit button if desired #}
+                     {# <button type="submit" class="btn btn-outline-light ms-2">Search</button> #}
+                </div>
+                 <button type="submit" class="visually-hidden">Search</button> {# For accessibility and hitting Enter #}
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if projects|length > 0 %}
+<!-- Projects Grid -->
+<div class="row g-4" id="projectsGrid"> {# Use grid gap for spacing #}
+    {% for project in projects %}
+    <div class="col-md-6 col-lg-4 project-item"> 
+        <div class="card project-card h-100"> 
+            <div class="card-body"> 
+                <div class="project-icon">
+                    {# Existing icon logic #}
+                    {% if project.project_type == 'residential' %}<i class="bi bi-house"></i>{% elif project.project_type == 'commercial' %}<i class="bi bi-building"></i>{% elif project.project_type == 'industrial' %}<i class="bi bi-factory"></i>{% elif project.project_type == 'institutional' %}<i class="bi bi-bank"></i>{% elif project.project_type == 'mixed_use' %}<i class="bi bi-buildings"></i>{% elif project.project_type == 'landscape' %}<i class="bi bi-tree"></i>{% elif project.project_type == 'urban_planning' %}<i class="bi bi-map"></i>{% else %}<i class="bi bi-building-fill-check"></i>{% endif %}
+                </div>
+                
+                <h5 class="card-title">{{ project.name }}</h5>
+                
+                {% if project.project_type %}
+                <div class="project-type-badge">
+                     <i class="bi {% if project.project_type == 'residential' %}bi-house{% elif project.project_type == 'commercial' %}bi-building{% elif project.project_type == 'industrial' %}bi-factory{% elif project.project_type == 'institutional' %}bi-bank{% elif project.project_type == 'mixed_use' %}bi-buildings{% elif project.project_type == 'landscape' %}bi-tree{% elif project.project_type == 'urban_planning' %}bi-map{% else %}bi-asterisk{% endif %} me-1"></i>
+                    {{ project.project_type.replace('_', ' ')|title }} 
+                </div>
+                {% endif %}
+                
+                <p class="card-text">{{ project.description|default('No description provided.')|truncate(100) }}</p>
+                
+                {% if project.location %}
+                <div class="mb-3">
+                    <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ project.location }}</small>
+                </div>
+                {% endif %}
+                
+                <div class="project-actions"> 
+                    {# --- CORRECTED View Details Link --- #}
+                    <a href="{{ url_for('projects.show', id=project.id) }}" class="btn btn-primary btn-sm btn-view-details"> 
+                        <i class="bi bi-eye me-1"></i>Details
+                    </a>
+                    {# --- Correct Edit Link --- #}
+                    <a href="{{ url_for('projects.edit', id=project.id) }}" class="btn btn-outline-secondary btn-sm btn-view-details"> 
+                        <i class="bi bi-pencil me-1"></i>Edit
+                    </a>
+                </div>
+            </div>
+            <div class="card-footer d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-calendar2 me-1"></i>{{ project.created_at|format_date }}</span>
+                
+                {# Correct Assessment count display #}
+                {% if project.assessment_count > 0 %}
+                <span class="badge bg-primary rounded-pill">{{ project.assessment_count }} Assessment{{ 's' if project.assessment_count != 1 }}</span>
+                {% else %}
+                <span class="badge bg-secondary rounded-pill">No Assessments</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<!-- Empty state when no projects exist -->
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <i class="bi bi-folder-plus"></i>
+    </div>
+    <h3>No Projects Yet</h3>
+    <p class="empty-state-text">
+        Projects help you organize and assess your architectural work against the UN Sustainable Development Goals. 
+        Start by creating your first project.
+    </p>
+    {# --- CORRECTED Empty State Button --- #}
+    <a href="{{ url_for('projects.new_project') }}" class="btn btn-lg btn-success btn-new-project"> 
+        <i class="bi bi-plus-circle me-2"></i>Create Your First Project
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }} {# Include scripts from base.html #}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // --- CORRECTED Server-Side Sort Handler ---
+        const sortLinks = document.querySelectorAll('.sort-option'); // Target the links
+        sortLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault(); // Prevent default link behavior (going to #)
+                const sortBy = this.getAttribute('data-sort');
+                const currentUrl = new URL(window.location.href);
+                const searchTerm = currentUrl.searchParams.get('search'); // Preserve search term
+                
+                // Build new URL
+                const newUrl = new URL(currentUrl.origin + currentUrl.pathname); // Base URL
+                newUrl.searchParams.set('sort', sortBy); 
+                if (searchTerm) {
+                    newUrl.searchParams.set('search', searchTerm); // Add search back if it exists
+                }
+                
+                window.location.href = newUrl.toString(); // Redirect to trigger backend sort/filter
+            });
+        });
+
+        // --- REMOVED client-side search JS ---
+        // Search is now handled by submitting the form to the backend.
+
+        // --- Keep existing animations ---
+        const projectsHeader = document.querySelector('.projects-header');
+        const projectCards = document.querySelectorAll('.project-card');
+        
+        if (projectsHeader) {
+            projectsHeader.style.opacity = '0';
+            projectsHeader.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                projectsHeader.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                projectsHeader.style.opacity = '1';
+                projectsHeader.style.transform = 'translateY(0)';
+            }, 100);
+        }
+        
+        if (projectCards.length > 0) {
+            projectCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 200 + (index * 50)); 
+            });
+        }
+    });
+</script>
+{% endblock %}

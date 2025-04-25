@@ -1,0 +1,91 @@
+/* Assessment Educational Content Styling */
+.educational-container {
+  border: 1px solid rgba(0,0,0,0.125);
+  box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+}
+
+.sdg-header {
+  transition: transform 0.2s ease;
+}
+
+.sdg-header:hover {
+  transform: translateX(5px);
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: rgba(0,0,0,0.03);
+}
+
+/* SDG Card Styling */
+.sdg-card {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+  margin-bottom: 1.5rem;
+}
+
+.sdg-card-header {
+  padding: 0.75rem 1rem;
+  color: white;
+}
+
+/* Evidence Field Styling */
+.evidence-field {
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.evidence-field:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+}
+
+/* Rating Options Styling */
+.rating-options .btn {
+  min-width: 3rem;
+}
+
+.rating-options .btn-check:checked + .btn-outline-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+/* Evidence Quality Meter */
+.evidence-meter {
+  transition: width 0.3s ease;
+}
+
+/* Cross-cutting Section */
+.cross-cutting-section .card {
+  transition: transform 0.2s ease;
+}
+
+.cross-cutting-section .card:hover {
+  transform: translateY(-5px);
+}
+
+/* Resource Links */
+.resource-links a {
+  transition: color 0.15s ease-in-out;
+}
+
+.resource-links a:hover {
+  color: #0056b3;
+  text-decoration: none;
+}
+
+/* SDG Icons */
+.sdg-icon {
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .sdg-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .sdg-header img {
+    margin-bottom: 0.5rem;
+  }
+} 

@@ -1,0 +1,87 @@
+/* ==========================
+   Landing Page Specific Styles
+   ========================== */
+
+/* Enhanced Hero Section */
+.hero-section-enhanced {
+    /* Example Gradient - Replace with your preference */
+    background: linear-gradient(135deg, #00689d, #3f7e44); /* Example: SDG Blue to Green */
+    /* Or use a background image:
+    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('../images/sustainable-architecture-bg.jpg');
+    background-size: cover;
+    background-position: center center;
+    */
+    min-height: 70vh; /* Ensure it takes significant height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Adjust padding for different screen sizes if needed */
+.py-6 {
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+}
+
+/* Enhanced Feature Cards */
+.card-feature-hover {
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.card-feature-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important; /* Use !important carefully if needed */
+}
+
+.feature-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 4rem; /* Adjust size */
+    width: 4rem;  /* Adjust size */
+}
+
+/* How It Works - Step Indicator */
+.step-indicator {
+    color: var(--bs-primary); /* Use Bootstrap primary color */
+    background-color: var(--bs-white);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Optional: Hover effect for steps */
+/* .col-md-4:hover .step-indicator {
+    background-color: var(--bs-primary);
+    color: var(--bs-white);
+} */
+
+
+/* Optional: Timeline connector lines for 'How it Works' */
+/* .steps-timeline::before {
+    content: '';
+    position: absolute;
+    top: 35px; 
+    left: calc(16.66% + 15px);  /* Adjust based on column setup & icon size */
+/*    right: calc(16.66% + 15px); /* Adjust based on column setup & icon size */
+/*    height: 3px; 
+    background-color: #e0e0e0; 
+    z-index: -1; 
+} */
+
+/* Final CTA Section */
+.final-cta-enhanced {
+     /* Example Gradient - Match Hero or use another */
+    background: linear-gradient(135deg, #3f7e44, #00689d); /* Example: Green to Blue */
+     /* Or solid color:
+     background-color: #19486A; /* Dark SDG Blue */
+}
+
+
+/* General Typography Refinements */
+h1, h2, h3, h4, h5, h6 {
+    /* Consider importing a specific font in base.html or here */
+    /* font-family: 'Your Preferred Font', sans-serif; */
+}
+
+.display-3, .display-4, .display-5, .display-6 {
+    margin-bottom: 1.5rem; /* Consistent heading bottom margin */
+}

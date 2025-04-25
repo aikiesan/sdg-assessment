@@ -1,0 +1,89 @@
+/* Main styles for SDG Assessment Tool */
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+footer {
+    margin-top: auto;
+}
+
+/* SDG colors */
+.sdg-1 { background-color: #E5243B; }
+.sdg-2 { background-color: #DDA63A; }
+.sdg-3 { background-color: #4C9F38; }
+.sdg-4 { background-color: #C5192D; }
+.sdg-5 { background-color: #FF3A21; }
+.sdg-6 { background-color: #26BDE2; }
+.sdg-7 { background-color: #FCC30B; }
+.sdg-8 { background-color: #A21942; }
+.sdg-9 { background-color: #FD6925; }
+.sdg-10 { background-color: #DD1367; }
+.sdg-11 { background-color: #FD9D24; }
+.sdg-12 { background-color: #BF8B2E; }
+.sdg-13 { background-color: #3F7E44; }
+.sdg-14 { background-color: #0A97D9; }
+.sdg-15 { background-color: #56C02B; }
+.sdg-16 { background-color: #00689D; }
+.sdg-17 { background-color: #19486A; }
+
+/* SDG badge */
+.sdg-badge {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: white;
+    text-align: center;
+    line-height: 40px;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+/* Assessment form styles */
+.assessment-form .form-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.assessment-form .sdg-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.assessment-form .sdg-title {
+    margin: 0;
+    color: #333;
+}
+
+.assessment-form .rating-options {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.assessment-form .rating-option input[type="radio"] {
+    display: none;
+}
+
+.assessment-form .rating-option label {
+    display: block;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #ddd;
+    text-align: center;
+    line-height: 36px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.assessment-form .rating-option input[type="radio"]:checked + label {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: white;
+}

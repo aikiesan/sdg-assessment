@@ -1,0 +1,567 @@
+{% extends "base.html" %}
+
+{% block title %}SDG Information Hub{% endblock %}
+
+{% block head %}
+<style>
+    /* Sidebar Styles */
+    .sidebar {
+        position: sticky;
+        top: 70px; /* Adjust based on your header height */
+        height: calc(100vh - 70px);
+        overflow-y: auto;
+        max-width: 100%;
+        z-index: 1; /* Lower z-index to prevent overlap */
+    }
+    
+    @media (max-width: 767.98px) {
+        .sidebar {
+            position: static; /* On mobile, don't make it sticky */
+            height: auto;
+            margin-bottom: 1rem;
+        }
+    }
+
+    .sidebar-heading {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    #sdg-sidebar-nav .nav-link {
+        font-weight: 500;
+        color: #333;
+        padding: 0.5rem 1rem; /* Adjust padding */
+        border-radius: 0.25rem;
+        margin-bottom: 2px;
+        transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    #sdg-sidebar-nav .nav-link .sdg-nav-text {
+        margin-left: 5px; /* Space between icon and text */
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    #sdg-sidebar-nav .nav-link:hover {
+        background-color: #e9ecef;
+        color: #0056b3;
+    }
+
+    #sdg-sidebar-nav .nav-link.active {
+        color: #fff;
+        background-color: var(--bs-primary); /* Use Bootstrap primary color */
+    }
+
+    /* SDG Card Styles */
+    .sdg-card {
+        border-left: 5px solid transparent;
+        transition: box-shadow 0.3s ease;
+        overflow: hidden;
+    }
+    .sdg-card:hover {
+         box-shadow: 0 .5rem 1.5rem rgba(0,0,0,.12);
+    }
+    
+    .sdg-card-header img.sdg-icon {
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 5px;
+        width: 60px; /* Consistent icon size */
+        height: 60px;
+        flex-shrink: 0; /* Prevent shrinking */
+    }
+
+    .sdg-summary {
+        font-size: 1rem;
+        background-color: #f8f9fa;
+        padding: 1.25rem;
+        border-radius: 0.25rem;
+    }
+    .sdg-summary .alert-heading {
+        font-weight: 600;
+        color: #343a40;
+    }
+
+    /* Accordion Styles */
+    .accordion-button {
+        font-weight: 500;
+        color: #212529;
+    }
+    .accordion-button:not(.collapsed) {
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        color: var(--bs-primary);
+    }
+    .accordion-button:focus {
+        box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+    }
+    .accordion-button i {
+        transition: transform 0.3s ease;
+    }
+    .accordion-button:not(.collapsed) i {
+         color: var(--bs-primary);
+    }
+    .accordion-button::after {
+        background-image: var(--bs-accordion-btn-icon);
+    }
+    .accordion-button:not(.collapsed)::after {
+        background-image: var(--bs-accordion-btn-active-icon);
+    }
+
+    /* List Group Styles inside Accordion */
+    .list-group-item {
+        border: none;
+        padding-left: 0;
+        padding-right: 0;
+        background-color: transparent;
+    }
+    .list-group-item strong {
+        color: #343a40;
+    }
+
+    /* Resource Link Specific Styles */
+    .resource-link {
+        border: 1px solid #dee2e6;
+        margin-bottom: 0.5rem;
+        border-radius: 0.25rem;
+        transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+    .resource-link:hover {
+        background-color: #f8f9fa;
+        border-left: 3px solid var(--bs-primary);
+    }
+    .resource-link .external-link-icon {
+        transition: transform 0.2s ease-in-out;
+    }
+    .resource-link:hover .external-link-icon {
+        transform: scale(1.1);
+    }
+
+    /* Scrollbar styling for sidebar (optional, WebKit browsers) */
+    #sdg-sidebar-nav::-webkit-scrollbar {
+      width: 8px;
+    }
+    #sdg-sidebar-nav::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    #sdg-sidebar-nav::-webkit-scrollbar-thumb {
+      background: #ced4da;
+      border-radius: 10px;
+    }
+    #sdg-sidebar-nav::-webkit-scrollbar-thumb:hover {
+      background: #adb5bd;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar Navigation -->
+        <nav id="sdg-sidebar-nav" class="col-md-3 col-lg-2 d-md-block bg-light sidebar pt-3">
+            <div class="position-sticky pt-3">
+                <h4 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-2 text-muted">
+                    <span>SDG Navigation</span>
+                </h4>
+                <ul class="nav flex-column nav-pills">
+                    {% for i in range(1, 18) %}
+                        {# Check if data exists for this SDG before creating link #}
+                        {% if i in sdg_targets or i in sdg_applications or i in sdg_resources %}
+                            <li class="nav-item">
+                                <a class="nav-link d-flex align-items-center" href="#sdg{{ i }}">
+                                    <img src="{{ url_for('static', filename='img/sdg-icons/E-WEB-Goal-{:02d}.png'.format(i)) }}" alt="SDG {{ i }} Icon" class="me-2" style="width: 20px; height: 20px; flex-shrink: 0;">
+                                    <span class="sdg-nav-text">SDG {{ i }}</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                     <li class="nav-item mt-3">
+                        <a class="nav-link back-to-top" href="#page-top">
+                            <i class="bi bi-arrow-up-circle me-2"></i>Back to Top
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4" id="page-top">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">Sustainable Development Goals (SDGs)</h1>
+                {# Optional: Add breadcrumbs or other top-level info here #}
+            </div>
+
+            <div class="alert alert-info mb-4" role="alert">
+                <h4 class="alert-heading"><i class="bi bi-info-circle-fill me-2"></i>Welcome to the SDG Information Hub</h4>
+                <p>This page provides a consolidated overview of the 17 Sustainable Development Goals, focusing on their relevance to architecture and the built environment. Use the sidebar navigation to jump directly to a specific SDG.</p>
+                <hr>
+                <p class="mb-0">Each section includes official UN targets, potential architectural strategies, and links to further resources.</p>
+            </div>
+
+            {# Define SDG Colors and Titles (or pass these from Flask) #}
+            {% set sdg_config = {
+                1: {'color': '#E5243B', 'title': 'No Poverty', 'subtitle': 'End poverty in all its forms everywhere'},
+                2: {'color': '#DDA63A', 'title': 'Zero Hunger', 'subtitle': 'End hunger, achieve food security and improved nutrition'},
+                3: {'color': '#4C9F38', 'title': 'Good Health and Well-being', 'subtitle': 'Ensure healthy lives and promote well-being for all'},
+                4: {'color': '#C5192D', 'title': 'Quality Education', 'subtitle': 'Ensure inclusive and equitable quality education'},
+                5: {'color': '#FF3A21', 'title': 'Gender Equality', 'subtitle': 'Achieve gender equality and empower all women and girls'},
+                6: {'color': '#26BDE2', 'title': 'Clean Water and Sanitation', 'subtitle': 'Ensure availability and sustainable management of water'},
+                7: {'color': '#FCC30B', 'title': 'Affordable and Clean Energy', 'subtitle': 'Ensure access to affordable, reliable, sustainable energy'},
+                8: {'color': '#8F1838', 'title': 'Decent Work and Economic Growth', 'subtitle': 'Promote sustainable economic growth and decent work'},
+                9: {'color': '#F36D25', 'title': 'Industry, Innovation and Infrastructure', 'subtitle': 'Build resilient infrastructure and foster innovation'},
+                10: {'color': '#DD1367', 'title': 'Reduced Inequalities', 'subtitle': 'Reduce inequality within and among countries'},
+                11: {'color': '#F99D26', 'title': 'Sustainable Cities and Communities', 'subtitle': 'Make cities inclusive, safe, resilient and sustainable'},
+                12: {'color': '#CF8D2A', 'title': 'Responsible Consumption and Production', 'subtitle': 'Ensure sustainable consumption and production patterns'},
+                13: {'color': '#3F7E44', 'title': 'Climate Action', 'subtitle': 'Take urgent action to combat climate change'},
+                14: {'color': '#0A97D9', 'title': 'Life Below Water', 'subtitle': 'Conserve and sustainably use marine resources'},
+                15: {'color': '#56C02B', 'title': 'Life on Land', 'subtitle': 'Protect, restore and promote sustainable use of terrestrial ecosystems'},
+                16: {'color': '#00689D', 'title': 'Peace, Justice and Strong Institutions', 'subtitle': 'Promote peaceful and inclusive societies and institutions'},
+                17: {'color': '#19486A', 'title': 'Partnerships for the Goals', 'subtitle': 'Strengthen implementation means and global partnerships'}
+            } %}
+
+            <!-- Loop through SDGs 1 to 17 -->
+            {% for sdg_num in range(1, 18) %}
+                {% if sdg_num in sdg_config %} {# Check if config exists #}
+                    {% set config = sdg_config[sdg_num] %}
+                    {% set targets = sdg_targets.get(sdg_num, []) %}
+                    {% set applications = sdg_applications.get(sdg_num, []) %}
+                    {% set resources = sdg_resources.get(sdg_num, []) %}
+
+                    <!-- SDG {{ sdg_num }} Card -->
+                    <div class="sdg-card card shadow-sm mb-5" id="sdg{{ sdg_num }}">
+                        <div class="sdg-card-header card-header d-flex align-items-center text-white p-3" style="background-color: {{ config.color }};">
+                            <img src="{{ url_for('static', filename='img/sdg-icons/E-WEB-Goal-{:02d}.png'.format(sdg_num)) }}" alt="SDG {{ sdg_num }} Icon" class="me-3 sdg-icon">
+                            <div>
+                                <h2 class="h4 mb-1">SDG {{ sdg_num }}: {{ config.title }}</h2>
+                                <p class="mb-0 opacity-75">{{ config.subtitle }}</p>
+                            </div>
+                        </div>
+
+                        <div class="card-body p-4">
+                            {# --- Fetching Summary Text ---
+                               You'll need a way to get the summary text for each SDG.
+                               Option 1: Add it to the sdg_config dictionary above.
+                               Option 2: Pass another dictionary from Flask, e.g., sdg_summaries[sdg_num]
+                               Let's assume Option 2 for now.
+                            #}
+                            {% set summary = sdg_summaries.get(sdg_num, "Summary information for this SDG is not available.") %}
+                            <div class="sdg-summary mb-4 alert alert-secondary border-start border-5 border-secondary">
+                                <h5 class="alert-heading"><i class="bi bi-text-paragraph me-2"></i>Summary</h5>
+                                <p>{{ summary }}</p>
+                            </div>
+
+                            <div class="accordion mb-3" id="sdg{{ sdg_num }}Accordion">
+                                <!-- Key Targets -->
+                                {% if targets %}
+                                <div class="accordion-item">
+                                    <h4 class="accordion-header" id="headingTargets{{ sdg_num }}">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sdg{{ sdg_num }}Targets" aria-expanded="false" aria-controls="sdg{{ sdg_num }}Targets">
+                                            <i class="bi bi-bullseye me-2 text-primary"></i>Key UN Targets
+                                        </button>
+                                    </h4>
+                                    <div id="sdg{{ sdg_num }}Targets" class="accordion-collapse collapse" aria-labelledby="headingTargets{{ sdg_num }}" data-bs-parent="#sdg{{ sdg_num }}Accordion">
+                                        <div class="accordion-body">
+                                            <ul class="list-group list-group-flush">
+                                                {% for target in targets %}
+                                                    <li class="list-group-item">
+                                                        {% if target.code %}<strong>{{ target.code }}:</strong> {% endif %}{{ target.text }}
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Architectural Applications -->
+                                {% if applications %}
+                                <div class="accordion-item">
+                                    <h4 class="accordion-header" id="headingApps{{ sdg_num }}">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sdg{{ sdg_num }}Applications" aria-expanded="false" aria-controls="sdg{{ sdg_num }}Applications">
+                                            <i class="bi bi-building me-2 text-primary"></i>Architectural Strategies
+                                        </button>
+                                    </h4>
+                                    <div id="sdg{{ sdg_num }}Applications" class="accordion-collapse collapse" aria-labelledby="headingApps{{ sdg_num }}" data-bs-parent="#sdg{{ sdg_num }}Accordion">
+                                        <div class="accordion-body">
+                                            <ul class="list-group list-group-flush">
+                                                {% for app in applications %}
+                                                    <li class="list-group-item">{{ app }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                                <!-- Resources -->
+                                {% if resources %}
+                                <div class="accordion-item">
+                                    <h4 class="accordion-header" id="headingResources{{ sdg_num }}">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sdg{{ sdg_num }}Resources" aria-expanded="false" aria-controls="sdg{{ sdg_num }}Resources">
+                                            <i class="bi bi-collection me-2 text-primary"></i>Resources & Further Reading
+                                        </button>
+                                    </h4>
+                                    <div id="sdg{{ sdg_num }}Resources" class="accordion-collapse collapse" aria-labelledby="headingResources{{ sdg_num }}" data-bs-parent="#sdg{{ sdg_num }}Accordion">
+                                        <div class="accordion-body">
+                                            <div class="list-group">
+                                                {% for resource in resources %}
+                                                <a href="{{ resource.url }}" target="_blank" rel="noopener noreferrer" class="list-group-item list-group-item-action d-flex align-items-center resource-link">
+                                                    <i class="bi bi-{{ resource.icon | default('link-45deg') }} me-2 fs-5 text-muted"></i>
+                                                    <div>
+                                                        {{ resource.title }}
+                                                        {% if resource.source %}
+                                                            <small class="d-block text-muted">Source: {{ resource.source }}</small>
+                                                        {% endif %}
+                                                    </div>
+                                                    <i class="bi bi-box-arrow-up-right ms-auto text-muted external-link-icon"></i>
+                                                </a>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div> {# End Accordion #}
+                        </div> {# End Card Body #}
+                    </div> {# End SDG Card #}
+                {% endif %} {# End check for config #}
+            {% endfor %} {# End SDG loop #}
+
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Smooth scrolling for internal links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            const targetId = this.getAttribute('href');
+            // Ensure it's an actual ID reference, not just "#"
+            if (targetId.length > 1 && document.querySelector(targetId)) {
+                e.preventDefault();
+                document.querySelector(targetId).scrollIntoView({
+                    behavior: 'smooth'
+                });
+                // Optionally update URL hash without page jump
+                // history.pushState(null, null, targetId);
+            }
+        });
+    });
+
+    // Active state highlighting for sidebar navigation links
+    const sdgSections = document.querySelectorAll('.sdg-card');
+    const sidebarLinks = document.querySelectorAll('#sdg-sidebar-nav .nav-link:not(.back-to-top)');
+
+    function highlightActiveLink() {
+        let currentSectionId = '';
+        
+        // Determine which section is currently in view
+        sdgSections.forEach(section => {
+            const sectionTop = section.getBoundingClientRect().top;
+            const sectionBottom = section.getBoundingClientRect().bottom;
+            
+            // If the section is in the viewport (with some buffer for usability)
+            if (sectionTop < 200 && sectionBottom > 0) {
+                currentSectionId = section.getAttribute('id');
+            }
+        });
+
+        // Update active class on nav links
+        sidebarLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === `#${currentSectionId}`) {
+                link.classList.add('active');
+            }
+        });
+    }
+    
+    window.addEventListener('scroll', highlightActiveLink);
+    highlightActiveLink(); // Initial check when page loads
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Sidebar Styles */
+    .sidebar {
+        /* Default state: stays in document flow */
+        top: 0; /* Relative top for normal flow */
+        height: calc(100vh - 70px); /* Adjust 70px based on header height */
+        overflow-y: auto;
+        z-index: 100; /* Keep below main content potentially */
+        transition: top 0.3s ease-in-out, margin-top 0.3s ease-in-out; /* Smooth transitions */
+    }
+
+    .sidebar.fixed-top {
+        position: fixed !important; /* Override Bootstrap */
+        /* top value set by JS based on header height */
+        left: 0; /* Adjust if your layout needs */
+        width: inherit; /* Maintain width from grid system */
+        height: calc(100vh - 70px); /* Fixed height when sticky, adjust 70px based on header */
+    }
+
+    .sidebar.bottom-stop {
+        position: absolute; /* Stop sticking at the bottom */
+        /* margin-top set by JS to align bottom */
+        bottom: auto; /* Let margin-top control position */
+        left: 0;
+         width: inherit;
+    }
+
+
+    /* Adjust main content padding when sidebar is fixed */
+    @media (min-width: 768px) {
+      /* .main-content-shifted {
+            margin-left: YOUR_SIDEBAR_WIDTH; /* e.g., 250px or adjust based on col-* classes
+        } */
+        /* You might not need margin shift if using Bootstrap grid correctly */
+    }
+
+    .sidebar-heading {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    #sdg-sidebar-nav .nav-link {
+        font-weight: 500;
+        color: #333;
+        padding: 0.5rem 1rem; /* Adjust padding */
+        border-radius: 0.25rem;
+        margin-bottom: 2px;
+        transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    #sdg-sidebar-nav .nav-link .sdg-nav-text {
+        margin-left: 5px; /* Space between icon and text */
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    #sdg-sidebar-nav .nav-link:hover {
+        background-color: #e9ecef;
+        color: #0056b3;
+    }
+
+    #sdg-sidebar-nav .nav-link.active {
+        color: #fff;
+        background-color: var(--bs-primary); /* Use Bootstrap primary color */
+    }
+
+    /* SDG Card Styles */
+    .sdg-card {
+        border-left: 5px solid transparent;
+        transition: box-shadow 0.3s ease;
+        overflow: hidden;
+    }
+    .sdg-card:hover {
+         box-shadow: 0 .5rem 1.5rem rgba(0,0,0,.12);
+    }
+    /* Match border color dynamically based on ID */
+    {% for sdg_num, config in sdg_config.items() %}
+    #sdg{{ sdg_num }} { border-left-color: {{ config.color }}; }
+    {% endfor %}
+
+    .sdg-card-header img.sdg-icon {
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 5px;
+        width: 60px; /* Consistent icon size */
+        height: 60px;
+        flex-shrink: 0; /* Prevent shrinking */
+    }
+
+    .sdg-summary {
+        font-size: 1rem;
+        background-color: #f8f9fa;
+        padding: 1.25rem;
+        border-radius: 0.25rem;
+    }
+    .sdg-summary .alert-heading {
+        font-weight: 600;
+        color: #343a40;
+    }
+
+    /* Accordion Styles */
+    .accordion-button {
+        font-weight: 500;
+        color: #212529;
+    }
+    .accordion-button:not(.collapsed) {
+        background-color: rgba(var(--bs-primary-rgb), 0.1);
+        color: var(--bs-primary);
+    }
+    .accordion-button:focus {
+        box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+    }
+    .accordion-button i {
+        transition: transform 0.3s ease;
+    }
+    .accordion-button:not(.collapsed) i {
+         color: var(--bs-primary);
+    }
+    .accordion-button::after {
+        background-image: var(--bs-accordion-btn-icon);
+    }
+    .accordion-button:not(.collapsed)::after {
+        background-image: var(--bs-accordion-btn-active-icon);
+    }
+
+    /* List Group Styles inside Accordion */
+    .list-group-item {
+        border: none;
+        padding-left: 0;
+        padding-right: 0;
+        background-color: transparent;
+    }
+    .list-group-item strong {
+        color: #343a40;
+    }
+
+    /* Resource Link Specific Styles */
+    .resource-link {
+        border: 1px solid #dee2e6;
+        margin-bottom: 0.5rem;
+        border-radius: 0.25rem;
+        transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+    .resource-link:hover {
+        background-color: #f8f9fa;
+        border-left: 3px solid var(--bs-primary);
+    }
+    .resource-link .external-link-icon {
+        transition: transform 0.2s ease-in-out;
+    }
+    .resource-link:hover .external-link-icon {
+        transform: scale(1.1);
+    }
+
+    /* Scrollbar styling for sidebar (optional, WebKit browsers) */
+    #sdg-sidebar-nav::-webkit-scrollbar {
+      width: 8px;
+    }
+    #sdg-sidebar-nav::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    #sdg-sidebar-nav::-webkit-scrollbar-thumb {
+      background: #ced4da;
+      border-radius: 10px;
+    }
+    #sdg-sidebar-nav::-webkit-scrollbar-thumb:hover {
+      background: #adb5bd;
+    }
+
+</style>
+{% endblock %}
