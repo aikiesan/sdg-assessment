@@ -13,6 +13,10 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    WTF_CSRF_ENABLED = False
+    LOGIN_DISABLED = False
+    SERVER_NAME = 'localhost.test'
+    MAIL_SUPPRESS_SEND = True  # Disable actual email sending during tests
 
 class ProductionConfig(Config):
     DEBUG = False

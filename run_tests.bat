@@ -27,16 +27,16 @@ call venv\Scripts\activate.bat || (
 )
 
 :: Set Flask Environment for Testing
-set FLASK_APP=app:create_app(TestingConfig)  :: Point to your app factory and use TestingConfig
-set FLASK_ENV=testing                 :: Use 'testing' or 'development' if needed by config loading
+set FLASK_APP=app:create_app(TestingConfig)
+set FLASK_ENV=testing
 
 :: Pytest Command Base
 set "pytest_cmd=python -m pytest -v --cov=app --cov-report=term-missing"
-set "test_target=tests" :: Default to run all tests in the tests directory
+set "test_target=tests"
 
-:: Handle Arguments
+:: Handle Arguments (Keep this section as is)
 if "%~1"=="html" (
-    set "pytest_cmd=!pytest_cmd! --cov-report=html:coverage_report" :: Changed output dir
+    set "pytest_cmd=!pytest_cmd! --cov-report=html:coverage_report"
     echo HTML coverage report requested.
 ) else if "%~1"=="auth" (
     set "test_target=tests/test_auth.py"
@@ -54,24 +54,42 @@ if "%~1"=="html" (
     echo Unknown argument: %1. Running all tests.
 )
 
-:: Run Tests
-echo Cleaning up old coverage data...
+:: --- Output File Configuration ---
+set "output_dir=debug_output"
+set "output_file=%output_dir%\test_results.txt"
+
+:: Ensure output directory exists
+mkdir %output_dir% 2>nul
+
+:: --- Run Tests with Redirection ---
+echo Cleaning up old coverage data and log file...
 if exist .coverage del .coverage
 if exist coverage_report rd /s /q coverage_report
+if exist %output_file% del %output_file%
 
-echo Running: !pytest_cmd! !test_target!
-!pytest_cmd! !test_target!
+echo Running: !pytest_cmd! !test_target! ^> %output_file% 2^>^&1
+:: Execute pytest and redirect Standard Output (>) and Standard Error (2>&1) to the file
+!pytest_cmd! !test_target! > %output_file% 2>&1
+
+:: Check the exit code from pytest
+if %errorlevel% neq 0 (
+    echo ****************************
+    echo *** PYTEST FAILED! ***
+    echo ****************************
+    echo Check %output_file% for details.
+) else (
+    echo Pytest completed successfully.
+)
+
 
 :: Check for HTML report and display path
 if exist coverage_report\index.html (
     echo Coverage report generated: file:///%cd%/coverage_report/index.html
 )
 
-echo Test run complete.
-
-:: Deactivate (optional)
-rem call venv\Scripts\deactivate.bat
-
-if "%~1"=="keepopen" pause
+echo Test run complete. Full output saved to %output_file%
 
 endlocal
+
+:: Optional: Pause to keep window open
+rem pause

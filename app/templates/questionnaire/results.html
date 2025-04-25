@@ -872,10 +872,8 @@
                     </thead>
                     <tbody>
                         <!-- Iterate over sdg_scores passed from Flask -->
+                        <!-- DEBUG: sdg_scores type = {{ sdg_scores.__class__ }}, length = {{ sdg_scores | length }} -->
                         {% for score in sdg_scores %}
-                        <p style="background:yellow; color:black; padding: 5px; margin: 5px; border: 1px solid red;">
-                            DEBUG - SDG {{ score.number }}: Total={{ score.total_score }}, Direct={{ score.direct_score }}, Bonus={{ score.bonus_score }}
-                        </p>
                         <tr>
                             <td class="text-center">
                                 <span class="sdg-badge" style="background-color: {{ score.color_code }};">

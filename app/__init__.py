@@ -31,16 +31,26 @@ def create_app(config_name=None):
         config_class = config_name
     app.config.from_object(config_class)
 
-    # ---> FORCE LOGGING LEVEL <---
-    app.logger.setLevel(logging.INFO)  # Set to INFO to see INFO and CRITICAL
-    # Or set to logging.DEBUG if you want to see DEBUG level messages too
-    if not app.logger.handlers:
+    # --- FORCE LOG LEVEL FOR TESTING ---
+    import logging
+    if app.config.get('TESTING'):
+        print(f"!!! Setting Logger Level to INFO for Testing !!!")
+        log_level = logging.INFO
+        # Or use DEBUG for maximum verbosity:
+        # log_level = logging.DEBUG
+    else:
+        log_level = logging.INFO # Or your default production level
+
+    if not app.logger.handlers: # Only add handler if none exist
         handler = logging.StreamHandler()
-        # handler.setLevel(logging.INFO) # Match app level or set lower if needed
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s [%(funcName)s:%(lineno)d]')
         handler.setFormatter(formatter)
         app.logger.addHandler(handler)
         app.logger.propagate = False  # Prevent duplicate logs if root logger also has handler
+
+    app.logger.setLevel(log_level) # Set the determined level
+    # --- END LOG LEVEL ---
+
     app.logger.critical("Flask App Logger Initialized with Level: %s", app.logger.getEffectiveLevel())
 
     # --- Custom CLI command to update schema ---

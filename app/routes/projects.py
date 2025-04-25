@@ -6,6 +6,7 @@ Handles creating, viewing, editing, and deleting projects.
 from flask import Blueprint, render_template, redirect, url_for, request, flash, abort, jsonify
 from flask_login import login_required, current_user
 from app.models.project import Project
+from app.models.assessment import Assessment
 from app import db
 
 projects_bp = Blueprint('projects', __name__)
@@ -22,21 +23,17 @@ def index():
         project.assessment_count = len(project.assessments)
     return render_template('projects/index.html', projects=projects)
 
-@projects_bp.route('/<int:id>', methods=['GET'], strict_slashes=False)
+@projects_bp.route('/<int:id>')
 @login_required
 def show(id):
-    """Show project details."""
-    user_id = current_user.id
-    project = Project.query.filter_by(id=id, user_id=user_id).first()
-    if not project:
-        flash('Project not found or permission denied', 'danger')
-        return redirect(url_for('projects.index'))
-    # Keep assessments raw SQL for now
-    from app.utils.db import get_db
-    conn = get_db()
-    assessments = conn.execute('SELECT * FROM assessments WHERE project_id = ? ORDER BY created_at DESC', (id,)).fetchall()
-    assessments_list = [dict(a) for a in assessments]
-    return render_template('projects/show.html', project=project, assessments=assessments_list)
+    # --- Use get_or_404 ---
+    project = Project.query.get_or_404(id)
+    # --- END ---
+    if project.user_id != current_user.id:
+        abort(403)
+    assessments = Assessment.query.filter_by(project_id=id).order_by(Assessment.created_at.desc()).all()
+    return render_template('projects/show.html', project=project, assessments=assessments)
+
 
 @projects_bp.route('/new', methods=['GET', 'POST'])
 @login_required
@@ -100,25 +97,32 @@ def edit(id):
             flash(f'Error updating project: {str(e)}', 'danger')
     return render_template('projects/edit.html', project=project)
 
-@projects_bp.route('/<int:id>/assessments/new', strict_slashes=False)
+@projects_bp.route('/<int:id>/assessments/new', methods=['GET', 'POST'], strict_slashes=False)
 @login_required
 def new_assessment(id):
-    """Create a new assessment for a project."""
+    """Create a new assessment for a project. Handles GET (show form) and POST (create or show errors)."""
     from app.models.assessment import Assessment
     project = Project.query.filter_by(id=id, user_id=current_user.id).first()
     if not project:
         flash('Project not found or you don\'t have permission to access it', 'danger')
         return redirect(url_for('projects.index'))
-    # Create or find a draft assessment for this project and user
-    assessment = Assessment.query.filter_by(project_id=id, user_id=current_user.id, status='draft').first()
-    if not assessment:
-        assessment = Assessment(project_id=id, user_id=current_user.id, status='draft')
+
+    if request.method == 'POST':
+        # Example: validate a required field (e.g., 'assessment_name')
+        assessment_name = request.form.get('assessment_name')
+        if not assessment_name:
+            flash('Assessment name is required.', 'danger')
+            # Render a template for the assessment creation form with error
+            return render_template('assessments/new.html', project=project), 200
+        # You can add more validation here as needed
+        assessment = Assessment(project_id=id, user_id=current_user.id, status='draft', name=assessment_name)
         db.session.add(assessment)
         db.session.commit()
         assessment_id = assessment.id
-    else:
-        assessment_id = assessment.id
-    return redirect(url_for('assessments.questionnaire_step', project_id=id, assessment_id=assessment_id, step=1))
+        return redirect(url_for('assessments.questionnaire_step', project_id=id, assessment_id=assessment_id, step=1))
+
+    # GET: show the form for creating an assessment
+    return render_template('assessments/new.html', project=project)
 
 @projects_bp.route('/<int:id>/delete', methods=['POST'])
 @login_required
@@ -133,7 +137,7 @@ def delete(id):
         # Example: Assessment.query.filter_by(project_id=id).delete()
         db.session.delete(project)
         db.session.commit()
-        flash('Project and all related assessments have been deleted', 'success')
+        flash('Project deleted successfully', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Error deleting project: {str(e)}', 'danger')

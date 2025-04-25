@@ -722,6 +722,7 @@ def validate_questions_database():
 
 def populate_questions():
     """Populate the sdg_questions table with all required questions."""
+    final_success = False
     try:
         conn = get_db()
 
@@ -759,49 +760,42 @@ def populate_questions():
                 })
 
         if not questions_to_add:
-             current_app.logger.info("No missing questions (1-31) found to add.")
-             return True
-
-        current_app.logger.info(f"Found {len(questions_to_add)} missing questions to add.")
-
-        # Ensure this matches your table and the data prepared above
-        # Add any other necessary columns here
-        insert_sql = f'''
-            INSERT INTO sdg_questions ({COL_ID}, {COL_TEXT}, {COL_TYPE}, {COL_SDG_ID}, {COL_MAX_SCORE})
-            VALUES (?, ?, ?, ?, ?)
-        '''
-        # If you have 'options' or 'display_order' etc., add them:
-        # insert_sql = f'''
-        #     INSERT INTO sdg_questions ({COL_ID}, {COL_TEXT}, {COL_TYPE}, {COL_SDG_ID}, {COL_MAX_SCORE}, {COL_OPTIONS}, {COL_DISPLAY_ORDER})
-        #     VALUES (?, ?, ?, ?, ?, ?, ?)
-        # '''
-
-        current_app.logger.info(f"Executing INSERT SQL: {insert_sql}")
-        added_count = 0
-        for q_data in questions_to_add:
-             try:
-                 # Make sure the tuple matches the columns in insert_sql EXACTLY
-                 conn.execute(insert_sql, (
-                     q_data[COL_ID],
-                     q_data[COL_TEXT],
-                     q_data[COL_TYPE],
-                     q_data[COL_SDG_ID],
-                     q_data[COL_MAX_SCORE]
-                     # Add other values if columns added to INSERT:
-                     # q_data.get(COL_OPTIONS, None),
-                     # q_data.get(COL_DISPLAY_ORDER, q_data[COL_ID]),
-                 ))
-                 added_count += 1
-             except Exception as insert_e:
-                  current_app.logger.error(f"Failed to insert question {q_data[COL_ID]}: {insert_e}")
-
-        conn.commit()
-        current_app.logger.info(f"Added {added_count} questions to the database.")
-        return added_count == len(questions_to_add)
+             current_app.logger.info("No missing questions (1-31) found to add. Table already populated.")
+             final_success = True
+        else:
+            current_app.logger.info(f"Found {len(questions_to_add)} missing questions to add.")
+            insert_sql = f'''
+                INSERT INTO sdg_questions ({COL_ID}, {COL_TEXT}, {COL_TYPE}, {COL_SDG_ID}, {COL_MAX_SCORE})
+                VALUES (?, ?, ?, ?, ?)
+            '''
+            current_app.logger.info(f"Executing INSERT SQL: {insert_sql}")
+            added_count = 0
+            for q_data in questions_to_add:
+                 try:
+                     conn.execute(insert_sql, (
+                         q_data[COL_ID],
+                         q_data[COL_TEXT],
+                         q_data[COL_TYPE],
+                         q_data[COL_SDG_ID],
+                         q_data[COL_MAX_SCORE]
+                     ))
+                     added_count += 1
+                 except Exception as insert_e:
+                      current_app.logger.error(f"Failed to insert question {q_data[COL_ID]}: {insert_e}")
+            conn.commit()
+            current_app.logger.info(f"Added {added_count} questions to the database.")
+            final_success = added_count == len(questions_to_add)
     except Exception as e:
         current_app.logger.error(f"Error populating questions: {str(e)}")
-        conn.rollback()
-        return False
+        if conn:
+            conn.rollback()
+        final_success = False
+    finally:
+        if final_success:
+            print("populate_questions: Succeeded.")
+        else:
+            print("populate_questions: Failed.")
+    return final_success
 
 
 def populate_sdg_relationships():
