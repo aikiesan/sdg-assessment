@@ -437,8 +437,7 @@
         </div>
 
         <!-- THE FORM -->
-        <form id="sustainability-form" method="POST"
-              action="{{ url_for('assessments.submit_assessment', project_id=project.id, assessment_id=assessment_id) }}">
+        <form id="sustainability-form" method="POST">
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     var autofillBtn = document.getElementById('autofill-btn');
@@ -1944,6 +1943,14 @@
 
             // Form Submission
             if (form) {
+                // --- Add projectId and assessmentId extraction ---
+                const projectIdInput = document.querySelector('input[name="project_id"]');
+                const assessmentIdInput = document.querySelector('input[name="assessment_id"]');
+                const projectId = projectIdInput ? projectIdInput.value : null;
+                const assessmentId = assessmentIdInput ? assessmentIdInput.value : null;
+                const submitUrl = projectId && assessmentId ? `/assessments/projects/${projectId}/assessments/${assessmentId}/submit` : null;
+                console.log("Submit URL constructed:", submitUrl);
+
                 form.addEventListener('submit', function(e) {
                     e.preventDefault(); // Prevent default initially
                     console.log("Form submission initiated...");
@@ -1996,6 +2003,8 @@
                     saveFormData((success) => {
                          // Regardless of save success (it might fail if offline), attempt the final submission
                          console.log("Final save attempted. Proceeding with form.submit().");
+                         // Set form action dynamically after validation
+                         form.setAttribute('action', submitUrl);
                          // Use the native form submission
                          form.submit();
 

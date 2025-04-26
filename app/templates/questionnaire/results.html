@@ -13,946 +13,458 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Main CSS -->
+    <!-- Main Application CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    <style>
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --info: #0ea5e9;
-            --dark: #1f2937;
-            --light: #f9fafb;
-            --gray: #6b7280;
-        }
+    <!-- Specific CSS for the Results Page -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/results.css') }}">
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            color: var(--dark);
-            background-color: #f8fafc;
-            line-height: 1.6;
-        }
+    <!-- REMOVED THE ENTIRE <style> ... </style> BLOCK FROM HERE -->
 
-        /* Layout improvements */
-        .page-container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .section-container {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        /* Typography */
-        h1, h2, h3, h4, h5, h6 {
-            font-weight: 600;
-            line-height: 1.3;
-        }
-
-        .section-title {
-            color: var(--dark);
-            font-size: 1.5rem;
-            margin-bottom: 1.25rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-        }
-
-        .section-title i {
-            margin-right: 0.5rem;
-            color: var(--primary);
-        }
-
-        /* Chart improvements */
-        .chart-container {
-            position: relative;
-            height: 350px;
-            width: 100%;
-            background-color: white;
-            border-radius: 6px;
-            padding: 1rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 1.5rem;
-            overflow: hidden; /* Prevent overflow issues */
-        }
-
-        .chart-container canvas {
-            width: 100% !important;
-            height: 100% !important;
-            max-height: 280px;
-        }
-
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .chart-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin: 0;
-        }
-
-        .chart-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        /* SDG Badge styling */
-        .sdg-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            color: white;
-            font-weight: 600;
-            font-size: 0.85rem;
-            margin-right: 8px;
-        }
-
-        .sdg-badge-sm {
-            width: 28px;
-            height: 28px;
-            font-size: 0.75rem;
-        }
-
-        /* Table improvements */
-        .data-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            border-radius: 6px;
-            overflow: hidden;
-        }
-
-        .data-table th {
-            background-color: rgba(37, 99, 235, 0.05);
-            font-weight: 600;
-            padding: 0.8rem 1rem;
-            text-align: left;
-            color: var(--dark);
-        }
-
-        .data-table th, .data-table td {
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-        }
-
-        .data-table tbody tr:hover {
-            background-color: rgba(37, 99, 235, 0.03);
-        }
-
-        .data-table td {
-            padding: 0.8rem 1rem;
-            vertical-align: middle;
-        }
-
-        /* Scorecard styles */
-        .score-card {
-            border-radius: 8px;
-            padding: 1.25rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            background-color: white;
-            transition: transform 0.2s ease;
-            height: 100%; /* Ensure all cards have same height */
-        }
-
-        .score-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .score-card-title {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .score-value {
-            font-size: 2rem;
-            font-weight: 700;
-            margin: 0.5rem 0;
-            color: var(--primary);
-        }
-
-        .score-label {
-            font-size: 0.9rem;
-            color: var(--gray);
-        }
-
-        /* Progress bar improvements */
-        .score-progress {
-            height: 8px;
-            background-color: rgba(0,0,0,0.05);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 0.5rem;
-        }
-
-        .score-progress-bar {
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.5s ease;
-        }
-
-        /* Category pill styles */
-        .category-pill {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: white;
-            margin-right: 0.5rem;
-        }
-
-        /* Top strengths and areas to improve */
-        .strength-item, .improve-item {
-            padding: 0.75rem;
-            margin-bottom: 0.75rem;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-        }
-
-        .strength-item {
-            background-color: rgba(16, 185, 129, 0.1);
-            border-left: 4px solid var(--success);
-        }
-
-        .improve-item {
-            background-color: rgba(245, 158, 11, 0.1);
-            border-left: 4px solid var(--warning);
-        }
-
-        /* Recommendations */
-        .recommendation-card {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 1rem;
-            overflow: hidden;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .recommendation-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .recommendation-header {
-            padding: 1rem;
-            background-color: rgba(37, 99, 235, 0.05);
-            border-bottom: 1px solid rgba(0,0,0,0.1);
-            display: flex;
-            align-items: center;
-        }
-
-        .recommendation-content {
-            padding: 1rem;
-        }
-
-        .recommendation-list {
-            margin: 0;
-            padding-left: 1.5rem;
-        }
-
-        .recommendation-list li {
-            margin-bottom: 0.5rem;
-        }
-
-        .recommendation-list li:last-child {
-            margin-bottom: 0;
-        }
-
-        /* Action buttons */
-        .action-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        .action-btn-primary {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-        }
-
-        .action-btn-primary:hover {
-            background-color: var(--primary-dark);
-            color: white;
-        }
-
-        .action-btn-outline {
-            background-color: transparent;
-            color: var(--primary);
-            border: 1px solid var(--primary);
-        }
-
-        .action-btn-outline:hover {
-            background-color: rgba(37, 99, 235, 0.05);
-        }
-
-        .action-btn i {
-            margin-right: 0.35rem;
-        }
-
-        /* Tooltip improvements */
-        .custom-tooltip {
-            position: relative;
-            display: inline-block;
-            cursor: help;
-        }
-
-        .tooltiptext {
-            visibility: hidden;
-            width: 180px;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 6px;
-            padding: 8px 10px;
-            position: absolute;
-            z-index: 100;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -90px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            font-size: 0.8rem;
-            pointer-events: none; /* Prevent tooltip from interfering with mouse events */
-        }
-
-        .custom-tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
-        }
-
-        .tooltip-icon {
-            color: var(--primary);
-            font-size: 0.85rem;
-            opacity: 0.75;
-        }
-
-        /* Animation for charts */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-in {
-            animation: fadeInUp 0.5s ease forwards;
-        }
-
-        /* Print-specific styles */
-        @media print {
-            body {
-                background-color: white;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-
-            .section-container {
-                break-inside: avoid;
-                box-shadow: none;
-                border: 1px solid #eee;
-                page-break-inside: avoid;
-            }
-
-            .no-print {
-                display: none !important;
-            }
-
-            a {
-                text-decoration: none !important;
-                color: inherit !important;
-            }
-
-            .page-break {
-                page-break-before: always;
-            }
-
-            .tooltiptext {
-                 display: none !important;
-            }
-            
-            /* Ensure charts print properly */
-            .chart-container {
-                height: auto !important;
-                max-height: 300px;
-                page-break-inside: avoid;
-            }
-            
-            /* Ensure tables print properly */
-            .data-table {
-                width: 100% !important;
-                page-break-inside: avoid;
-            }
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 992px) {
-            .chart-container {
-                height: 350px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .chart-container {
-                height: 300px;
-            }
-
-            .score-card {
-                margin-bottom: 1rem;
-            }
-
-            .section-title {
-                font-size: 1.3rem;
-            }
-        }
-
-        /* Enhanced chart tooltip */
-        .chart-tooltip {
-            background-color: rgba(0,0,0,0.8);
-            color: #fff;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 12px;
-            z-index: 100;
-            pointer-events: none;
-        }
-        
-        /* Accessibility improvements */
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border-width: 0;
-        }
-        
-        /* Legend styling */
-        .chart-legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-            margin: 0.5rem 0 1rem;
-            padding: 0.5rem 0;
-        }
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-        }
-        
-        .legend-btn {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-        }
-        
-        .legend-btn:hover {
-            background-color: rgba(0,0,0,0.05);
-        }
-        
-        .legend-btn[aria-pressed="false"] .legend-label {
-            opacity: 0.5;
-            text-decoration: line-through;
-        }
-        
-        .legend-btn[aria-pressed="false"] .legend-color {
-            opacity: 0.3;
-        }
-        
-        .legend-color {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border-radius: 3px;
-            margin-right: 4px;
-        }
-        
-        .legend-label {
-            font-size: 0.9rem;
-            color: var(--bs-body-color);
-        }
-
-        /* Improve focus states for accessibility */
-        button:focus, a:focus, .action-btn:focus {
-            outline: 2px solid var(--primary);
-            outline-offset: 2px;
-        }
-
-        /* Resource Hub section */
-        .resource-hub {
-            background-color: rgba(37, 99, 235, 0.05);
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-top: 1.5rem;
-            border-left: 4px solid var(--primary);
-        }
-
-        .resource-link {
-            display: inline-flex;
-            align-items: center;
-            margin-right: 1rem;
-            margin-bottom: 0.5rem;
-            padding: 0.5rem 0.75rem;
-            background-color: white;
-            border-radius: 4px;
-            text-decoration: none;
-            color: var(--primary);
-            transition: all 0.2s ease;
-            border: 1px solid rgba(37, 99, 235, 0.2);
-        }
-
-        .resource-link:hover {
-            background-color: rgba(37, 99, 235, 0.1);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-
-        .resource-link i {
-            margin-right: 0.5rem;
-        }
-
-        /* Loading overlay and modal improvements */
-        #loadingOverlay.hidden {
-            display: none !important;
-            z-index: -1 !important;
-            pointer-events: none !important;
-        }
-        
-        .modal-dialog-xl {
-            max-width: 900px;
-        }
-    </style>
 </head>
 <body>
-    <!-- CSRF token form for AJAX requests -->
-    <form id="csrfForm" style="display:none">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-    </form>
-    
-    <div id="loadingOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center bg-white" style="z-index: 2000; transition: opacity 0.3s ease;">
-        <div class="spinner-border text-primary" role="status">
+
+    <div id="loadingOverlay" role="status" class="position-fixed top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center align-items-center bg-white" style="z-index: 2000;">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"> <!-- Larger spinner -->
             <span class="visually-hidden">Loading...</span>
         </div>
-        <p class="mt-3">Loading assessment data...</p>
+        <p class="mt-3 mb-0" aria-live="polite">Loading assessment results...</p>
     </div>
-    <div class="container-fluid page-container py-4">
-        <!-- Header Section -->
-        <div class="section-container mb-4">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <div>
-                    <h1 class="mb-1">SDG Assessment Results</h1>
-                    <!-- Use project.name passed from Flask -->
-                    <h2 class="h4 text-muted mb-0">{{ project.name }}</h2>
-                </div>
-                <div class="text-end">
-                    <div class="d-flex gap-2 mb-2">
-                        <button class="action-btn action-btn-outline no-print" id="printReport" aria-label="Print the assessment report">
-                            <i class="fas fa-print"></i> Print Report
-                        </button>
-                        <button class="action-btn action-btn-outline no-print" id="downloadPDF" aria-label="Download as PDF">
-                            <i class="fas fa-file-pdf"></i> Download PDF
-                        </button>
-                        <button class="action-btn action-btn-outline no-print" id="shareResults" aria-label="Share results">
-                            <i class="fas fa-share-alt"></i> Share
-                        </button>
-                    </div>
-                    <!-- Use assessment.id passed from Flask -->
-                    <div class="d-block text-muted small">
-                        Assessment ID: {{ assessment.id }}
-                    </div>
-                    <div class="d-block text-muted small">
-                        {% if assessment.completed_at %}
-                            <!-- Use format_date filter defined in Flask -->
-                            Completed: {{ assessment.completed_at | format_date }}
-                        {% else %}
-                            Status: {{ assessment.status | capitalize }} {# Show current status if not completed #}
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
 
-            <!-- Key Metrics Row -->
-            <div class="row g-3">
-                <!-- Overall Score -->
-                <div class="col-md-4">
-                    <div class="score-card">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="score-card-title">
-                                <i class="fas fa-star me-2 text-warning"></i>
-                                Overall Score
-                            </div>
-                            <div class="custom-tooltip">
-                                <i class="fas fa-info-circle tooltip-icon"></i>
-                                <span class="tooltiptext">Combined average of all 17 SDG scores</span>
-                            </div>
-                        </div>
-                        <!-- Use assessment.overall_score passed from Flask -->
-                        {% if assessment.overall_score is not none %}
-                            <div class="score-value">{{ assessment.overall_score | round(1) }}<span class="fs-6">/10</span></div>
-                            <div class="score-label">
-                                {% if assessment.overall_score >= 8 %}
-                                    <span class="text-success">Excellent</span>
-                                {% elif assessment.overall_score >= 6 %}
-                                    <span class="text-primary">Good</span>
-                                {% elif assessment.overall_score >= 4 %}
-                                    <span class="text-warning">Fair</span>
-                                {% else %}
-                                    <span class="text-danger">Needs Improvement</span>
-                                {% endif %}
-                            </div>
-                            <div class="score-progress">
-                                <div class="score-progress-bar {% if assessment.overall_score >= 8 %}bg-success{% elif assessment.overall_score >= 6 %}bg-primary{% elif assessment.overall_score >= 4 %}bg-warning{% else %}bg-danger{% endif %}" style="width: {{ (assessment.overall_score/10)*100 }}%"></div>
-                            </div>
-                        {% else %}
-                            <div class="score-value text-muted">--</div>
-                            <div class="score-label">Not yet calculated</div>
-                        {% endif %}
+    <main class="container-fluid page-container py-4">
+        <div id="results-report">
+            <!-- Header Section -->
+            <div class="section-container mb-4">
+                <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap">
+                    <div class="mb-2">
+                        <h1 class="mb-1">SDG Assessment Results</h1>
+                        <h2 class="h4 text-muted mb-0">{{ project.name }}</h2>
                     </div>
-                </div>
-
-                <!-- Top Performing Category -->
-                <div class="col-md-4">
-                    <div class="score-card">
-                        <div class="score-card-title">
-                            <i class="fas fa-trophy me-2 text-success"></i>
-                            Top Category
+                    <div class="text-end">
+                        <div class="d-flex gap-2 mb-2 no-print">
+                            <button class="action-btn action-btn-outline" id="printReport" aria-label="Print the assessment report">
+                                <i class="fas fa-print" aria-hidden="true"></i> Print
+                            </button>
+                            <button class="action-btn action-btn-outline" id="downloadPDF" aria-label="Download as PDF">
+                                <i class="fas fa-file-pdf" aria-hidden="true"></i> PDF
+                            </button>
+                            <button class="action-btn action-btn-outline" id="shareResults" aria-label="Share results">
+                                <i class="fas fa-share-alt" aria-hidden="true"></i> Share
+                            </button>
                         </div>
-                        <div id="topCategory">
-                            <!-- Will be filled by JavaScript -->
-                            <div class="placeholder-glow">
-                                <span class="placeholder col-8"></span>
-                            </div>
+                        <div class="d-block text-muted small mb-1">
+                            Assessment ID: {{ assessment.id }}
+                        </div>
+                        <div class="d-block text-muted small">
+                            {% if assessment.completed_at %}
+                                Completed: {{ assessment.completed_at | format_date }}
+                            {% else %}
+                                Status: <span class="fw-medium">{{ assessment.status | capitalize }}</span> {# Show current status if not completed #}
+                            {% endif %}
                         </div>
                     </div>
                 </div>
 
-                <!-- SDGs Evaluated -->
-                <div class="col-md-4">
-                    <div class="score-card">
-                        <div class="score-card-title">
-                            <i class="fas fa-tasks me-2 text-primary"></i>
-                            SDGs Evaluated
-                        </div>
-                        <div id="sdgsEvaluated">
-                            <!-- Will be filled by JavaScript -->
-                            <div class="placeholder-glow">
-                                <span class="placeholder col-7"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Visualization Section -->
-        <div class="section-container">
-            <h3 class="section-title">
-                <i class="fas fa-chart-pie"></i>
-                SDG Performance Overview
-            </h3>
-
-            <div class="row g-4">
-                <!-- Radar Chart -->
-                <div class="col-lg-6 animate-in" style="animation-delay: 0.1s">
-                    <div class="chart-container" aria-label="SDG Radar Chart" role="img">
-                        <div class="chart-header">
-                            <h4 class="chart-title">SDG Radar Performance</h4>
-                            <div class="chart-actions no-print">
-                                <button class="btn btn-sm btn-outline-secondary download-chart" data-chart="sdgRadarChart" aria-label="Download SDG Radar Chart as image">
-                                    <i class="fas fa-download me-1"></i> Save Image
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary expand-chart" data-chart="sdgRadarChart" aria-label="Expand SDG Radar Chart">
-                                    <i class="fas fa-expand-alt"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <canvas id="sdgRadarChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Bar Chart -->
-                <div class="col-lg-6 animate-in" style="animation-delay: 0.2s">
-                    <div class="chart-container" aria-label="SDG Score Breakdown Chart" role="img">
-                        <div class="chart-header">
-                            <h4 class="chart-title">Score Breakdown</h4>
-                            <div class="chart-actions no-print">
-                                <button class="btn btn-sm btn-outline-secondary download-chart" data-chart="sdgBarChart" aria-label="Download Score Breakdown Chart as image">
-                                    <i class="fas fa-download me-1"></i> Save Image
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary expand-chart" data-chart="sdgBarChart" aria-label="Expand Score Breakdown Chart">
-                                    <i class="fas fa-expand-alt"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <canvas id="sdgBarChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- SDG Category Chart -->
-                <div class="col-lg-6 animate-in" style="animation-delay: 0.3s">
-                    <div class="chart-container" aria-label="SDG Category Performance Chart" role="img">
-                        <div class="chart-header">
-                            <h4 class="chart-title">Performance by Category</h4>
-                            <div class="chart-actions no-print">
-                                <button class="btn btn-sm btn-outline-secondary download-chart" data-chart="categoriesPolarChart" aria-label="Download SDG Category Chart as image">
-                                    <i class="fas fa-download me-1"></i> Save Image
-                                </button>
-                                <button class="btn btn-sm btn-outline-secondary expand-chart" data-chart="categoriesPolarChart" aria-label="Expand SDG Category Chart">
-                                    <i class="fas fa-expand-alt"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <canvas id="categoriesPolarChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Dimensions Chart -->
-                <div class="col-lg-6 animate-in" style="animation-delay: 0.4s">
-                    <div class="chart-container" aria-label="SDG Dimensions Chart" role="img">
-                        <div class="chart-header">
-                            <h4 class="chart-title">SDG Dimensions</h4>
-                            <div class="d-flex align-items-center">
-                                <div class="custom-tooltip me-2">
-                                    <i class="fas fa-info-circle tooltip-icon"></i>
-                                    <span class="tooltiptext">Shows how SDGs are grouped into different dimensions</span>
+                <!-- Key Metrics Row -->
+                <div class="row g-3">
+                    <!-- Overall Score -->
+                    <div class="col-md-4">
+                        <div class="score-card">
+                             <div class="score-card-header">
+                                <div class="score-card-title">
+                                    <i class="fas fa-star me-2 text-warning"></i>Overall Score
                                 </div>
+                                <div class="custom-tooltip ms-auto">
+                                    <i class="fas fa-info-circle tooltip-icon"></i>
+                                    <span class="tooltiptext">Overall average of all SDG total scores (normalized 0-10)</span>
+                                </div>
+                            </div>
+                            {% if assessment.overall_score is not none %}
+                                <div class="score-value">{{ assessment.overall_score | round(1) }}<span class="fs-6">/10</span></div>
+                                <div class="score-label">
+                                    {% set score = assessment.overall_score %}
+                                    <span class="{{ 'text-success' if score >= 8 else 'text-primary' if score >= 6 else 'text-warning' if score >= 4 else 'text-danger' }}">
+                                        {{ 'Excellent' if score >= 8 else 'Good' if score >= 6 else 'Fair' if score >= 4 else 'Needs Improvement' }}
+                                    </span> performance
+                                </div>
+                                <div class="score-progress" title="Overall Score: {{ score | round(1) }}/10">
+                                    {# The specific color class (bg-success, etc.) is applied dynamically #}
+                                    <div class="score-progress-bar {{ 'bg-success' if score >= 8 else 'bg-primary' if score >= 6 else 'bg-warning' if score >= 4 else 'bg-danger' }}"
+                                         style="width: {{ (score/10)*100 }}%"></div>
+                                </div>
+                            {% else %}
+                                <div class="score-value text-muted">--</div>
+                                <div class="score-label">Score not yet calculated.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Top Performing Category -->
+                    <div class="col-md-4">
+                        <div class="score-card">
+                            <div class="score-card-header">
+                                <div class="score-card-title">
+                                    <i class="fas fa-trophy me-2 text-success"></i>Top Category
+                                </div>
+                                 <div class="custom-tooltip ms-auto">
+                                    <i class="fas fa-info-circle tooltip-icon"></i>
+                                    <span class="tooltiptext">Category (People, Planet, etc.) with the highest average SDG score.</span>
+                                </div>
+                            </div>
+                            <div id="topCategory">
+                                <!-- Placeholder will be replaced by JS -->
+                                <div class="placeholder-glow mt-3">
+                                    <span class="placeholder col-5"></span> <span class="placeholder col-3"></span>
+                                    <span class="placeholder col-12 mt-2" style="height: 8px;"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SDGs Evaluated -->
+                    <div class="col-md-4">
+                        <div class="score-card">
+                            <div class="score-card-header">
+                                <div class="score-card-title">
+                                    <i class="fas fa-tasks me-2 text-primary"></i>SDGs Scored
+                                </div>
+                                <div class="custom-tooltip ms-auto">
+                                    <i class="fas fa-info-circle tooltip-icon"></i>
+                                    <span class="tooltiptext">Number of SDGs with calculated scores out of 17 total goals.</span>
+                                </div>
+                            </div>
+                            <div id="sdgsEvaluated">
+                                <!-- Placeholder will be replaced by JS -->
+                                 <div class="placeholder-glow mt-3">
+                                    <span class="placeholder col-4"></span>
+                                    <span class="placeholder col-12 mt-2" style="height: 8px;"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualization Section -->
+            <div class="section-container">
+                <h3 class="section-title">
+                    <i class="fas fa-chart-pie" aria-hidden="true"></i>
+                    SDG Performance Overview
+                </h3>
+
+                <div class="row g-4">
+                    <!-- Radar Chart -->
+                    <div class="col-lg-6 animate-in" style="animation-delay: 0.1s">
+                        <div class="chart-container" aria-label="SDG Radar Chart" role="img">
+                            <div class="chart-header">
+                                <h4 class="chart-title">SDG Radar Performance</h4>
                                 <div class="chart-actions no-print">
-                                    <button class="btn btn-sm btn-outline-secondary download-chart" data-chart="dimensionsChart" aria-label="Download SDG Dimensions Chart as image">
+                                    <button class="btn btn-sm btn-outline-secondary download-chart" data-chart="sdgRadarChart" aria-label="Download SDG Radar Chart as image">
                                         <i class="fas fa-download me-1"></i> Save Image
                                     </button>
-                                    <button class="btn btn-sm btn-outline-secondary expand-chart" data-chart="dimensionsChart" aria-label="Expand SDG Dimensions Chart">
+                                    <button class="btn btn-sm btn-outline-secondary expand-chart" data-chart="sdgRadarChart" aria-label="Expand SDG Radar Chart">
                                         <i class="fas fa-expand-alt"></i>
                                     </button>
                                 </div>
                             </div>
-                        </div>
-                        <div id="dimensionsContainer" class="position-relative" style="height: 300px;">
-                            <canvas id="dimensionsChart"></canvas>
+                            <canvas id="sdgRadarChart"></canvas>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Strengths and Improvement Areas -->
-        <div class="row g-4">
-            <!-- Strengths -->
-            <div class="col-lg-6">
-                <div class="section-container animate-in" style="animation-delay: 0.5s">
-                    <h3 class="section-title">
-                        <i class="fas fa-award"></i>
-                        Top Strengths
-                    </h3>
-                    <div id="topStrengths">
-                        <!-- Will be filled by JavaScript -->
-                        <div class="placeholder-glow">
-                            <span class="placeholder col-12"></span>
-                            <span class="placeholder col-12"></span>
-                            <span class="placeholder col-12"></span>
+                    <!-- Bar Chart -->
+                    <div class="col-lg-6 animate-in" style="animation-delay: 0.2s">
+                        <div class="chart-container" aria-label="SDG Score Breakdown Chart" role="img">
+                            <div class="chart-header">
+                                <h4 class="chart-title">Score Breakdown</h4>
+                                <div class="chart-actions no-print">
+                                    <button class="btn btn-sm btn-outline-secondary download-chart" data-chart="sdgBarChart" aria-label="Download Score Breakdown Chart as image">
+                                        <i class="fas fa-download me-1"></i> Save Image
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary expand-chart" data-chart="sdgBarChart" aria-label="Expand Score Breakdown Chart">
+                                        <i class="fas fa-expand-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <canvas id="sdgBarChart"></canvas>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Areas to Improve -->
-            <div class="col-lg-6">
-                <div class="section-container animate-in" style="animation-delay: 0.6s">
-                    <h3 class="section-title">
-                        <i class="fas fa-arrow-up"></i>
-                        Areas for Improvement
-                    </h3>
-                    <div id="improvementAreas">
-                        <!-- Will be filled by JavaScript -->
-                        <div class="placeholder-glow">
-                            <span class="placeholder col-12"></span>
-                            <span class="placeholder col-12"></span>
-                            <span class="placeholder col-12"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Strengths & Gaps Chart -->
-        <div class="section-container animate-in" style="animation-delay: 0.5s">
-            <h3 class="section-title">
-                <i class="fas fa-sort-amount-up"></i>
-                Strengths & Improvement Areas
-            </h3>
-            <div class="chart-container" aria-label="Strengths and Improvement Areas Chart" role="img">
-                <div class="chart-header">
-                    <h4 class="chart-title">SDG Performance Comparison</h4>
-                    <div class="chart-actions no-print">
-                        <button class="btn btn-sm btn-outline-secondary download-chart" data-chart="strengthsGapsChart" aria-label="Download Strengths/Gaps Chart as image">
-                            <i class="fas fa-download me-1"></i> Save Image
-                        </button>
-                        <button class="btn btn-sm btn-outline-secondary expand-chart" data-chart="strengthsGapsChart" aria-label="Expand Strengths/Gaps Chart">
-                            <i class="fas fa-expand-alt"></i>
-                        </button>
-                    </div>
-                </div>
-                <canvas id="strengthsGapsChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Detailed SDG Scores Table -->
-        <div class="section-container animate-in" style="animation-delay: 0.7s">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="section-title mb-0">
-                    <i class="fas fa-table"></i>
-                    Detailed SDG Scores
-                </h3>
-                <button class="btn btn-sm btn-outline-primary no-print" id="exportCSV" aria-label="Export all SDG scores as CSV data">
-                    <i class="fas fa-file-csv me-1"></i> Export All Data
+                    <!-- SDG Category Bar Chart (Replaces Polar Chart) -->
+<div class="col-lg-6 animate-in" style="animation-delay: 0.3s">
+    <div class="chart-container" aria-label="SDG Category Performance Chart" role="img">
+        <div class="chart-header">
+            <h4 class="chart-title">Performance by Category (5 P's)</h4> <!-- Updated Title -->
+            <div class="chart-actions no-print">
+                <!-- Update data-chart attribute -->
+                <button class="btn btn-sm btn-outline-secondary download-chart" data-chart="categoryBarChart" aria-label="Download SDG Category Chart as image">
+                    <i class="fas fa-download me-1"></i> Save Image
+                </button>
+                <button class="btn btn-sm btn-outline-secondary expand-chart" data-chart="categoryBarChart" aria-label="Expand SDG Category Chart">
+                    <i class="fas fa-expand-alt"></i>
                 </button>
             </div>
+        </div>
+        <!-- Change canvas ID -->
+        <canvas id="categoryBarChart"></canvas>
+    </div>
+</div>
 
-            <div class="table-responsive">
-                <table class="table data-table" aria-label="SDG Scores Table">
-                    <thead>
-                        <tr>
-                            <th style="width: 70px;">SDG</th>
-                            <th>Name</th>
-                            <th class="text-center" style="width: 130px;">
-                                Direct Score
-                                <span class="custom-tooltip ms-1">
-                                    <i class="fas fa-info-circle tooltip-icon"></i>
-                                    <span class="tooltiptext">Score from direct assessment questions</span>
-                                </span>
-                            </th>
-                            <th class="text-center" style="width: 130px;">
-                                Bonus Score
-                                <span class="custom-tooltip ms-1">
-                                    <i class="fas fa-info-circle tooltip-icon"></i>
-                                    <span class="tooltiptext">Additional points from related SDGs</span>
-                                </span>
-                            </th>
-                            <th class="text-center" style="width: 130px;">Final Score</th>
-                            <th class="text-center" style="width: 180px;">Performance</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Iterate over sdg_scores passed from Flask -->
-                        <!-- DEBUG: sdg_scores type = {{ sdg_scores.__class__ }}, length = {{ sdg_scores | length }} -->
-                        {% for score in sdg_scores %}
-                        <tr>
-                            <td class="text-center">
-                                <span class="sdg-badge" style="background-color: {{ score.color_code }};">
-                                    {{ score.number }}
-                                </span>
-                            </td>
-                            <td>
-                                <strong>{{ score.name }}</strong>
-                            </td>
-                            <td class="text-center">{{ score.direct_score | round(1) if score.direct_score is not none else 'N/A' }}</td>
-                            <td class="text-center">{{ score.bonus_score | round(1) if score.bonus_score is not none else 'N/A' }}</td>
-                            <td class="text-center fw-bold">{{ score.total_score | round(1) if score.total_score is not none else 'N/A' }}</td>
-                            <td class="text-center">
-                                <div class="score-progress">
-                                    <div class="score-progress-bar" style="width: {{ (score.total_score/10)*100 if score.total_score is not none else 0 }}%; background-color: {{ 'var(--success)' if score.total_score is not none and score.total_score >= 8 else 'var(--primary)' if score.total_score is not none and score.total_score >= 6 else 'var(--warning)' if score.total_score is not none and score.total_score >= 4 else 'var(--danger)' }};">
+                    <!-- Dimensions Chart -->
+                    <div class="col-lg-6 animate-in" style="animation-delay: 0.4s">
+                        <div class="chart-container" aria-label="SDG Dimensions Chart" role="img">
+                            <div class="chart-header">
+                                <h4 class="chart-title">SDG Dimensions</h4>
+                                 <p class="small text-muted mb-0 me-3"> <!-- Adjusted text -->
+                                    Avg. scores for: People (1-5), Planet (6, 12-15), Prosperity (7-11), Peace (16), Partnership (17).
+                                </p>
+                                <div class="d-flex align-items-center ms-auto"> <!-- Use ms-auto -->
+                                    <div class="custom-tooltip me-2">
+                                        <i class="fas fa-info-circle tooltip-icon"></i>
+                                        <span class="tooltiptext">Shows average scores for common SDG groupings (5 Ps).</span>
+                                    </div>
+                                    <div class="chart-actions no-print">
+                                        <button class="btn btn-sm btn-outline-secondary download-chart" data-chart="dimensionsChart" aria-label="Download SDG Dimensions Chart as image">
+                                            <i class="fas fa-download me-1"></i> Save Image
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary expand-chart" data-chart="dimensionsChart" aria-label="Expand SDG Dimensions Chart">
+                                            <i class="fas fa-expand-alt"></i>
+                                        </button>
                                     </div>
                                 </div>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="6" class="text-center fst-italic text-muted">No SDG scores are available for this assessment yet.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Tailored Recommendations -->
-        <div class="section-container animate-in" style="animation-delay: 0.8s">
-            <h3 class="section-title">
-                <i class="fas fa-lightbulb"></i>
-                Tailored Recommendations
-            </h3>
-
-            <div id="recommendationsContainer">
-                <!-- Will be filled by JavaScript -->
-                {% if not sdg_scores %}
-                <p class="text-muted fst-italic">Recommendations cannot be generated as no scores are available.</p>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- SDG Information Hub Resources -->
-        <div class="section-container animate-in" style="animation-delay: 0.9s">
-            <h3 class="section-title">
-                <i class="fas fa-book"></i>
-                SDG Resources Hub
-            </h3>
-            
-            <p>Use these resources to deepen your understanding of the Sustainable Development Goals and improve your project's sustainability impact.</p>
-            
-            <div class="resource-hub">
-                <h5 class="mb-3">Learn More and Improve Your Project</h5>
-                <p>Our SDG Information Hub provides comprehensive resources for each of the Sustainable Development Goals, including:</p>
-                
-                <div class="d-flex flex-wrap mt-3">
-                    <a href="{{ url_for('main.sdg_information_hub') }}" class="resource-link">
-                        <i class="fas fa-globe"></i> SDG Information Hub
-                    </a>
-                    <a href="{{ url_for('main.sdg_information_hub') }}#targets" class="resource-link">
-                        <i class="fas fa-bullseye"></i> SDG Targets
-                    </a>
-                    <a href="{{ url_for('main.sdg_information_hub') }}#architecture" class="resource-link">
-                        <i class="fas fa-building"></i> Architectural Applications
-                    </a>
-                    <a href="{{ url_for('main.sdg_information_hub') }}#case-studies" class="resource-link">
-                        <i class="fas fa-microscope"></i> Case Studies
-                    </a>
-                    <a href="{{ url_for('main.sdg_information_hub') }}#resources" class="resource-link">
-                        <i class="fas fa-external-link-alt"></i> External Resources
-                    </a>
+                            </div>
+                            <div id="dimensionsContainer" class="position-relative"> <!-- Height set by CSS -->
+                                <canvas id="dimensionsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="col-lg col-md-6">
+                         <div class="category-card" style="border-left-color: var(--bs-info);">
+                            <h5 class="category-name text-info"><i class="fas fa-handshake me-2"></i>Partnership</h5>
+                            <p class="category-description small">Implement the agenda through global partnership.</p>
+                            <p class="category-sdgs small"><strong>Includes:</strong> SDG 17</p>
+                        </div>
+                    </div>
                 </div>
-                
-                <p class="mt-3 mb-0">Access guidance specific to your areas of improvement to enhance your project's sustainability performance.</p>
             </div>
-        </div>
-    </div> <!-- End of page-container -->
+            <!-- End SDG Category Definitions Section -->
+
+            <!-- Strengths and Improvement Areas -->
+            <div class="row g-4">
+                <!-- Strengths -->
+                <div class="col-lg-6">
+                    <div class="section-container animate-in" style="animation-delay: 0.5s">
+                        <h3 class="section-title">
+                            <i class="fas fa-award text-success" aria-hidden="true"></i> <!-- Added color -->
+                            Top Strengths
+                        </h3>
+                        <div id="topStrengths">
+                            <!-- Placeholder will be replaced by JS -->
+                             <div class="placeholder-glow">
+                                <span class="placeholder placeholder-lg col-12 mb-2"></span>
+                                <span class="placeholder col-10"></span>
+                                <span class="placeholder placeholder-lg col-12 mt-3 mb-2"></span>
+                                <span class="placeholder col-10"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Areas to Improve -->
+                <div class="col-lg-6">
+                    <div class="section-container animate-in" style="animation-delay: 0.6s">
+                        <h3 class="section-title">
+                            <i class="fas fa-arrow-trend-up text-warning" aria-hidden="true"></i> <!-- Changed icon and color -->
+                            Areas for Improvement
+                        </h3>
+                        <div id="improvementAreas">
+                            <!-- Placeholder will be replaced by JS -->
+                             <div class="placeholder-glow">
+                                <span class="placeholder placeholder-lg col-12 mb-2"></span>
+                                <span class="placeholder col-10"></span>
+                                 <span class="placeholder placeholder-lg col-12 mt-3 mb-2"></span>
+                                <span class="placeholder col-10"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Strengths & Gaps Chart -->
+            <div class="section-container animate-in" style="animation-delay: 0.65s">
+                <h3 class="section-title">
+                    <i class="fas fa-chart-column" aria-hidden="true"></i> <!-- Changed icon -->
+                    Strengths & Improvement Areas Visualized
+                </h3>
+                <div class="chart-container" aria-label="Strengths and Improvement Areas Chart" role="img">
+                    <div class="chart-header">
+                        <h4 class="chart-title">SDG Performance Ranking</h4> <!-- Changed title -->
+                        <div class="chart-actions no-print">
+                            <button class="btn btn-sm btn-outline-secondary download-chart" data-chart="strengthsGapsChart" aria-label="Download Strengths/Gaps Chart as image">
+                                <i class="fas fa-download me-1"></i> Save Image
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary expand-chart" data-chart="strengthsGapsChart" aria-label="Expand Strengths/Gaps Chart">
+                                <i class="fas fa-expand-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <canvas id="strengthsGapsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Detailed SDG Scores Table -->
+            <div class="section-container animate-in" style="animation-delay: 0.7s">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap"> <!-- Added wrap -->
+                    <h3 class="section-title mb-0 me-3"> <!-- Added margin -->
+                        <i class="fas fa-table" aria-hidden="true"></i>
+                        Detailed SDG Scores
+                    </h3>
+                    <button class="btn btn-sm btn-outline-primary no-print mt-2 mt-md-0" id="exportCSV" aria-label="Export all SDG scores as CSV data"> <!-- Added margin top on small screens -->
+                        <i class="fas fa-file-csv me-1"></i> Export All Data
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table data-table table-hover" aria-label="SDG Scores Table"> <!-- Added table-hover -->
+                        <thead>
+                            <tr>
+                                <th scope="col" style="width: 60px;">SDG</th> <!-- Slightly narrower -->
+                                <th scope="col">Name</th>
+                                <th scope="col" class="text-center" style="width: 110px;"> <!-- Adjusted width -->
+                                    Direct Score
+                                    <span class="custom-tooltip ms-1">
+                                        <i class="fas fa-info-circle tooltip-icon"></i>
+                                        <span class="tooltiptext">Normalized score (0-10) based on direct question responses for this SDG.</span>
+                                    </span>
+                                </th>
+                                <th scope="col" class="text-center" style="width: 110px;"> <!-- Adjusted width -->
+                                    Bonus Score
+                                    <span class="custom-tooltip ms-1">
+                                        <i class="fas fa-info-circle tooltip-icon"></i>
+                                        <span class="tooltiptext">Currently placeholder (0.0). Intended for points from related positive SDG interactions.</span>
+                                    </span>
+                                </th>
+                                <th scope="col" class="text-center" style="width: 110px;"> <!-- Adjusted width -->
+                                    Total Score
+                                     <span class="custom-tooltip ms-1">
+                                        <i class="fas fa-info-circle tooltip-icon"></i>
+                                        <span class="tooltiptext">Final score (0-10), combining Direct and Bonus (if applicable). Used for overall average.</span>
+                                    </span>
+                                </th>
+                                <th scope="col" class="text-center" style="width: 150px;">Performance Bar</th> <!-- Adjusted width -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for score in sdg_scores %}
+                            <tr>
+                                <td class="text-center">
+                                    <span class="sdg-badge sdg-badge-sm" style="background-color: {{ score.color_code | default('#cccccc') }};">
+                                        {{ score.number }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <strong>{{ score.name }}</strong>
+                                </td>
+                                <td class="text-center">
+                                    {% if score.direct_score is none %}
+                                    <span class="text-muted">N/A</span>
+                                    {% else %}
+                                    {{ score.direct_score | round(1) }}
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {# Display bonus score if it's calculated and > 0 #}
+                                    {% if score.bonus_score is not none and score.bonus_score > 0 %}
+                                    +{{ score.bonus_score | round(1) }}
+                                    {% else %}
+                                     <span class="text-muted">--</span> {# Use dashes if no bonus #}
+                                    {% endif %}
+                                </td>
+                                <td class="text-center fw-bold">
+                                    {% if score.total_score is none %}
+                                    <span class="text-muted">N/A</span>
+                                    {% else %}
+                                    {{ score.total_score | round(1) }}
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {# Performance Bar - Relies on CSS classes and potentially inline style for width #}
+                                    <div class="score-progress" title="Score: {{ score.total_score | round(1) if score.total_score is not none else 'N/A' }}/10 Direct: {{ score.direct_score | round(1) if score.direct_score is not none else 'N/A' }} Bonus: {{ score.bonus_score | round(1) if score.bonus_score is not none and score.bonus_score > 0 else '0.0' }}">
+                                        {% set t_score = score.total_score if score.total_score is not none else -1 %}
+                                        <div class="score-progress-bar {{ 'bg-success' if t_score >= 8 else 'bg-primary' if t_score >= 6 else 'bg-warning' if t_score >= 4 else 'bg-danger' if t_score >= 0 else 'bg-secondary' }}"
+                                             style="width: {{ (t_score / 10 * 100) if t_score >= 0 else 0 }}%; background-color: {{ 'var(--success)' if t_score >= 8 else 'var(--primary)' if t_score >= 6 else 'var(--warning)' if t_score >= 4 else 'var(--danger)' if t_score >= 0 else 'var(--gray)' }};"
+                                             aria-valuenow="{{ t_score if t_score >= 0 else 0 }}" aria-valuemin="0" aria-valuemax="10" role="progressbar"
+                                             aria-label="SDG {{ score.number }} Score {{ score.total_score | round(1) if score.total_score is not none else 'N/A' }}/10">
+                                        </div> {# Closing div for score-progress-bar #}
+                                    </div> {# Closing div for score-progress #}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center fst-italic text-muted py-4">No SDG scores available...</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tailored Recommendations -->
+            <div class="section-container animate-in" style="animation-delay: 0.8s">
+                <h3 class="section-title">
+                    <i class="fas fa-lightbulb text-primary" aria-hidden="true"></i> <!-- Added color -->
+                    Tailored Recommendations
+                </h3>
+                <div id="recommendationsContainer">
+                    <!-- Placeholder will be replaced by JS -->
+                    <div class="placeholder-glow">
+                        <span class="placeholder placeholder-lg col-12 mb-3"></span>
+                        <span class="placeholder col-10 mb-2"></span>
+                        <span class="placeholder col-11 mb-2"></span>
+                        <span class="placeholder placeholder-lg col-12 mt-3 mb-3"></span>
+                         <span class="placeholder col-10 mb-2"></span>
+                         <span class="placeholder col-11 mb-2"></span>
+                    </div>
+                    {% if not sdg_scores %}
+                    <p class="text-muted fst-italic mt-3">Recommendations cannot be generated as no scores are available.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- SDG Information Hub Resources -->
+            <div class="section-container animate-in" style="animation-delay: 0.9s">
+                <h3 class="section-title">
+                    <i class="fas fa-book-open text-info" aria-hidden="true"></i> <!-- Changed icon and color -->
+                    SDG Resources Hub
+                </h3>
+
+                <p>Explore these resources to deepen your understanding of the Sustainable Development Goals and find strategies to improve your project's sustainability impact.</p>
+
+                <div class="resource-hub">
+                    <h5 class="mb-3">Learn More & Improve Your Project</h5>
+                    <p>Our SDG Information Hub provides comprehensive resources for each Goal:</p>
+
+                    <div class="d-flex flex-wrap mt-3">
+                        <a href="{{ url_for('main.sdg_information_hub') }}" class="resource-link">
+                            <i class="fas fa-globe"></i> SDG Information Hub
+                        </a>
+                        <a href="{{ url_for('main.sdg_information_hub') }}#targets" class="resource-link">
+                            <i class="fas fa-bullseye"></i> SDG Targets
+                        </a>
+                        <a href="{{ url_for('main.sdg_information_hub') }}#architecture" class="resource-link">
+                            <i class="fas fa-building-columns"></i> Architectural Applications <!-- Changed icon -->
+                        </a>
+                        <a href="{{ url_for('main.sdg_information_hub') }}#case-studies" class="resource-link">
+                            <i class="fas fa-book-reader"></i> Case Studies <!-- Changed icon -->
+                        </a>
+                        <a href="{{ url_for('main.sdg_information_hub') }}#resources" class="resource-link">
+                            <i class="fas fa-external-link-alt"></i> External Resources
+                        </a>
+                    </div>
+
+                    <p class="mt-3 mb-0 small text-muted">Access guidance specific to your areas of improvement to enhance your project's sustainability performance.</p>
+                </div>
+            </div>
+        </div> <!-- End of results-report -->
+    </main> <!-- End of main -->
 
     <!-- Share Modal -->
     <div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
@@ -963,9 +475,11 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <p class="small text-muted mb-3">Enter recipient details to share a summary of this assessment.</p>
                     <div class="mb-3">
-                        <label for="shareEmail" class="form-label">Email Address</label>
-                        <input type="email" class="form-control" id="shareEmail" placeholder="recipient@example.com">
+                        <label for="shareEmail" class="form-label">Email Address<span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="shareEmail" placeholder="recipient@example.com" required>
+                         <div class="invalid-feedback">Please enter a valid email address.</div>
                     </div>
                     <div class="mb-3">
                         <label for="shareMessage" class="form-label">Message (Optional)</label>
@@ -974,13 +488,15 @@
                     <div class="form-check mb-3">
                         <input class="form-check-input" type="checkbox" value="" id="includeRecommendations" checked>
                         <label class="form-check-label" for="includeRecommendations">
-                            Include recommendations
+                            Include tailored recommendations
                         </label>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="confirmShare">Share</button>
+                    <button type="button" class="btn btn-primary" id="confirmShare">
+                         <i class="fas fa-paper-plane me-1"></i> Send Share
+                    </button>
                 </div>
             </div>
         </div>
@@ -988,647 +504,60 @@
 
     <!-- Chart Modal for Expanded View -->
     <div class="modal fade" id="chartModal" tabindex="-1" aria-labelledby="chartModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-xl modal-dialog-centered">
+        <div class="modal-dialog modal-dialog-xl modal-dialog-centered"> <!-- Wider modal -->
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="chartModalLabel">Chart View</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <div style="height: 500px; width: 100%;">
+                <div class="modal-body p-4"> <!-- Added padding -->
+                    <div style="height: 550px; width: 100%;" class="bg-light rounded p-2"> <!-- Increased height and added background -->
                         <canvas id="modalChartCanvas"></canvas>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-primary" id="downloadModalChart">
-                        <i class="fas fa-download"></i> Download
+                        <i class="fas fa-download me-1"></i> Download Chart
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Include Bootstrap JS Bundle -->
+    <!-- External JS Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    
-    <!-- Chart.js Plugin for Data Labels -->
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
-    
-    <!-- html2canvas and jsPDF for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
-    <!-- SDG Charts Custom JS -->
+
+    <!-- Custom Application JS -->
+    <!-- SDG Charts Logic -->
     <script src="{{ url_for('static', filename='js/sdg_charts.js') }}"></script>
 
-    <!-- Main scripts -->
+    <!-- Pass data from Flask to JavaScript -->
     <script>
-        // Set up global variables for chart data
-        const sdgScoresData = {{ sdg_scores | tojson | safe }};
-        const projectName = "{{ project.name | default('Project') }}";
-        const assessmentId = "{{ assessment.id | default('') }}";
-        
-        // Prepare SDG data for charts
-        const sdgNameLookup = {};
-        sdgScoresData.forEach(sdg => {
-            if (sdg.number && sdg.name) {
-                sdgNameLookup[sdg.number] = sdg.name;
-            }
-        });
+        // Make data available globally for other scripts
+        window.sdgScoresData = {{ sdg_scores | tojson | safe }};
+        window.projectName = {{ project.name | default('Project') | tojson }}; // Use tojson for safe JS embedding
+        window.assessmentId = "{{ assessment.id | default('') }}";
 
-        // Initialize UI on document load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Hide loading overlay
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            if (loadingOverlay) {
-                loadingOverlay.style.opacity = '0';
-                setTimeout(() => {
-                    loadingOverlay.classList.add('hidden');
-                }, 300);
-            }
-            
-            // Initialize Bootstrap components
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function(tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl, {
-                    trigger: 'hover'
-                });
-            });
-            
-            // Pre-initialize all modals
-            document.querySelectorAll('.modal').forEach(modalElement => {
-                new bootstrap.Modal(modalElement);
-            });
-            
-            // Make sure Chart.js is loaded before initializing charts
-            if (typeof Chart === 'undefined') {
-                console.error("Chart.js not loaded");
-                document.querySelectorAll('.chart-container').forEach(container => {
-                    container.innerHTML = '<div class="alert alert-warning">Chart library not available</div>';
-                });
-                return;
-            }
-            
-            // Initialize charts directly
-            console.log("Initializing charts with data:", sdgScoresData);
-            
-            try {
-                // Initialize SDG Radar Chart
-                const radarCtx = document.getElementById('sdgRadarChart').getContext('2d');
-                const barCtx = document.getElementById('sdgBarChart').getContext('2d');
-                const polarCtx = document.getElementById('categoriesPolarChart').getContext('2d');
-                const dimensionsCtx = document.getElementById('dimensionsChart').getContext('2d');
-                const strengthsGapsCtx = document.getElementById('strengthsGapsChart').getContext('2d');
-                
-                // Use SDGCharts module if available
-                if (window.SDGCharts) {
-                    console.log("Using SDGCharts module");
-                    window.SDGCharts.createRadarChart(sdgScoresData, sdgNameLookup);
-                    window.SDGCharts.createBarChart(sdgScoresData, sdgNameLookup);
-                    window.SDGCharts.createCategoriesPolarChart(sdgScoresData);
-                    window.SDGCharts.createDimensionsChart(sdgScoresData);
-                    window.SDGCharts.createStrengthsGapsChart(sdgScoresData, sdgNameLookup);
-                } else {
-                    console.error("SDGCharts module not found");
-                    // Fallback to basic charts if SDGCharts module is not available
-                    createBasicCharts();
-                }
-            } catch (error) {
-                console.error("Error initializing charts:", error);
-                document.querySelectorAll('.chart-container').forEach(container => {
-                    container.innerHTML = `<div class="alert alert-danger">Error initializing charts: ${error.message}</div>`;
-                });
-            }
-            
-            // Initialize UI components
-            initializeUIComponents();
-            setupEventHandlers();
-        });
-        
-        // Fallback function to create basic charts if SDGCharts module is not available
-        function createBasicCharts() {
-            console.log("Creating basic charts as fallback");
-            const labels = sdgScoresData.map(score => `SDG ${score.number}`);
-            const scores = sdgScoresData.map(score => parseFloat(score.total_score || 0));
-            const colors = sdgScoresData.map(score => score.color_code || '#cccccc');
-            
-            // Create basic radar chart
-            const radarCtx = document.getElementById('sdgRadarChart').getContext('2d');
-            new Chart(radarCtx, {
-                type: 'radar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'SDG Scores',
-                        data: scores,
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        borderColor: 'rgb(54, 162, 235)',
-                        pointBackgroundColor: colors,
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: colors
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        r: {
-                            beginAtZero: true,
-                            max: 10
-                        }
-                    }
-                }
-            });
-            
-            // Create basic bar chart
-            const barCtx = document.getElementById('sdgBarChart').getContext('2d');
-            new Chart(barCtx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'SDG Scores',
-                        data: scores,
-                        backgroundColor: colors
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 10
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Initialize UI components
-        function initializeUIComponents() {
-            populateCategoryData();
-            populateSdgsEvaluated();
-            populateStrengthsAndImprovement();
-            generateRecommendations();
-        }
-        
-        // Set up event handlers
-        function setupEventHandlers() {
-            // Print report button
-            document.getElementById('printReport').addEventListener('click', function() {
-                window.print();
-            });
-            
-            // Download PDF button
-            document.getElementById('downloadPDF').addEventListener('click', function() {
-                generatePDF();
-            });
-            
-            // Share results button
-            document.getElementById('shareResults').addEventListener('click', function() {
-                shareResults();
-            });
-            
-            // Export CSV button
-            document.getElementById('exportCSV').addEventListener('click', function() {
-                if (window.SDGCharts && typeof window.SDGCharts.exportToCSV === 'function') {
-                    window.SDGCharts.exportToCSV(sdgScoresData, sdgNameLookup, projectName);
-                } else {
-                    exportToCSV();
-                }
-            });
-            
-            // Expand chart buttons
-            document.querySelectorAll('.expand-chart').forEach(button => {
-                button.addEventListener('click', function() {
-                    const chartId = this.getAttribute('data-chart');
-                    expandChart(chartId);
-                });
-            });
-            
-            // Download chart buttons
-            document.querySelectorAll('.download-chart').forEach(button => {
-                button.addEventListener('click', function() {
-                    const chartId = this.getAttribute('data-chart');
-                    if (window.SDGCharts) {
-                        window.SDGCharts.exportChartImage(chartId);
-                    }
-                });
-            });
-            
-            // Setup modal download button
-            document.getElementById('downloadModalChart').addEventListener('click', function() {
-                if (!window.modalChart) return;
-                
-                const link = document.createElement('a');
-                link.download = 'expanded-chart.png';
-                link.href = document.getElementById('modalChartCanvas').toDataURL('image/png');
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            });
-            
-            // Share modal confirm button
-            document.getElementById('confirmShare').addEventListener('click', function() {
-                const email = document.getElementById('shareEmail').value;
-                
-                if (!email) {
-                    alert('Please enter an email address');
-                    return;
-                }
-                
-                this.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Sending...';
-                this.disabled = true;
-                
-                setTimeout(() => {
-                    const shareModal = bootstrap.Modal.getInstance(document.getElementById('shareModal'));
-                    shareModal.hide();
-                    
-                    this.innerHTML = 'Share';
-                    this.disabled = false;
-                    
-                    alert('Assessment results have been shared successfully!');
-                }, 1500);
-            });
-        }
-        
-        // PDF Generation function
-        function generatePDF() {
-            // Setup jsPDF
-            window.jspdf = window.jspdf || {};
-            window.jspdf.jsPDF = window.jspdf.jsPDF || window.jsPDF;
-            
-            // Create loading indicator
-            const loader = document.createElement('div');
-            loader.innerHTML = `
-                <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.8); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                    <div class="spinner-border text-primary" role="status"></div>
-                    <p class="mt-3">Generating PDF...</p>
-                </div>
-            `;
-            document.body.appendChild(loader);
-            
-            // Hide elements that shouldn't be in PDF
-            document.querySelectorAll('.no-print').forEach(el => {
-                el.style.display = 'none';
-            });
-            
-            // Get the content container
-            const element = document.querySelector('.page-container');
-            
-            // Create PDF with html2canvas
-            setTimeout(() => {
-                html2canvas(element, {
-                    scale: 1,
-                    useCORS: true,
-                    allowTaint: true,
-                    scrollY: 0,
-                    scrollX: 0
-                }).then(canvas => {
-                    const imgData = canvas.toDataURL('image/png');
-                    const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-                    
-                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                    pdf.save(`SDG_Assessment_${projectName.replace(/[^a-z0-9]/gi, '-')}.pdf`);
-                    
-                    // Restore hidden elements
-                    document.querySelectorAll('.no-print').forEach(el => {
-                        el.style.display = '';
-                    });
-                    
-                    // Remove loader
-                    document.body.removeChild(loader);
-                });
-            }, 300);
-        }
-        
-        // Share results function
-        function shareResults() {
-            const shareModal = new bootstrap.Modal(document.getElementById('shareModal'));
-            shareModal.show();
-        }
-        
-        // Export to CSV function
-        function exportToCSV() {
-            if (!sdgScoresData || sdgScoresData.length === 0) {
-                alert("No data available to export.");
-                return;
-            }
-            
-            // Define CSV headers
-            const headers = ["SDG Number", "SDG Name", "Direct Score", "Bonus Score", "Total Score"];
-            let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n";
-            
-            // Add data rows
-            sdgScoresData.forEach(sdg => {
-                const row = [
-                    sdg.number,
-                    `"${sdg.name || ""}"`,
-                    sdg.direct_score !== null ? sdg.direct_score.toFixed(1) : "N/A",
-                    sdg.bonus_score !== null ? sdg.bonus_score.toFixed(1) : "N/A",
-                    sdg.total_score !== null ? sdg.total_score.toFixed(1) : "N/A"
-                ];
-                csvContent += row.join(",") + "\n";
-            });
-            
-            // Create and trigger download link
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `${projectName.replace(/[^a-z0-9]/gi, '-')}-sdg-scores.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-        
-        // Expand chart in modal
-        function expandChart(chartId) {
-            const chartModal = new bootstrap.Modal(document.getElementById('chartModal'));
-            chartModal.show();
-            
-            // Get chart canvas
-            const chartCanvas = document.getElementById('modalChartCanvas');
-            chartCanvas.width = 800;
-            chartCanvas.height = 600;
-            
-            // Get chart context
-            const ctx = chartCanvas.getContext('2d');
-            
-            // Get chart data
-            const chartData = window.SDGCharts.getChartData(chartId);
-            
-            // Create chart
-            window.modalChart = new Chart(ctx, {
-                type: chartData.type,
-                data: chartData.data,
-                options: chartData.options
-            });
-        }
-        
-        // UI Component Functions
-        function populateCategoryData() {
-            const topCategoryElement = document.getElementById('topCategory');
-            if (!topCategoryElement) return;
-            
-            // Define SDG categories
-            const categories = {
-                'People': [1, 2, 3, 4, 5],
-                'Planet': [6, 7, 13, 14, 15],
-                'Prosperity': [8, 9, 10, 11, 12],
-                'Peace': [16],
-                'Partnership': [17]
-            };
-            
-            // Calculate average scores for each category
-            const categoryScores = {};
-            Object.entries(categories).forEach(([category, sdgNums]) => {
-                let total = 0;
-                let count = 0;
-                sdgNums.forEach(num => {
-                    const sdg = sdgScoresData.find(s => parseInt(s.number) === num);
-                    if (sdg && sdg.total_score !== null && sdg.total_score !== undefined) {
-                        total += parseFloat(sdg.total_score);
-                        count++;
-                    }
-                });
-                categoryScores[category] = count > 0 ? total / count : 0;
-            });
-            
-            // Find top category
-            let topCategory = '';
-            let topScore = 0;
-            Object.entries(categoryScores).forEach(([category, score]) => {
-                if (score > topScore) {
-                    topCategory = category;
-                    topScore = score;
-                }
-            });
-            
-            // Define category colors
-            const categoryColors = {
-                'People': 'var(--danger)',
-                'Planet': 'var(--success)',
-                'Prosperity': 'var(--warning)',
-                'Peace': 'var(--primary)',
-                'Partnership': 'var(--info)'
-            };
-            
-            // Update UI
-            if (topCategory) {
-                topCategoryElement.innerHTML = `
-                    <div class="d-flex align-items-center mb-1">
-                        <span class="category-pill me-2" style="background-color: ${categoryColors[topCategory]}">
-                            ${topCategory}
-                        </span>
-                        <div class="score-value mb-0">${topScore.toFixed(1)}<span class="fs-6">/10</span></div>
-                    </div>
-                    <div class="score-progress mb-1">
-                        <div class="score-progress-bar"
-                             style="width: ${(topScore/10)*100}%; background-color: ${categoryColors[topCategory]};">
-                        </div>
-                    </div>
-                    <div class="small text-muted mt-1">
-                        Avg. score in this category
-                    </div>
-                `;
-            } else {
-                topCategoryElement.innerHTML = '<p class="text-muted fst-italic">No category data available.</p>';
-            }
-        }
-        
-        function populateSdgsEvaluated() {
-            const sdgsEvaluatedElement = document.getElementById('sdgsEvaluated');
-            if (!sdgsEvaluatedElement) return;
-            
-            const evaluatedCount = sdgScoresData.filter(sdg => sdg.total_score !== null && sdg.total_score !== undefined).length;
-            const totalSDGs = 17;
-            const percentage = (evaluatedCount / totalSDGs) * 100;
-            
-            sdgsEvaluatedElement.innerHTML = `
-                <div class="score-value">${evaluatedCount}<span class="fs-6">/${totalSDGs}</span></div>
-                <div class="score-label mb-1">SDGs Assessed</div>
-                <div class="score-progress">
-                    <div class="score-progress-bar"
-                         style="width: ${percentage}%; background-color: var(--primary);">
-                    </div>
-                </div>
-                <div class="small text-muted mt-1">
-                    ${percentage.toFixed(0)}% of SDGs evaluated
-                </div>
-            `;
-        }
-        
-        function populateStrengthsAndImprovement() {
-            const strengthsElement = document.getElementById('topStrengths');
-            const improvementElement = document.getElementById('improvementAreas');
-            
-            if (!strengthsElement || !improvementElement) return;
-            
-            // Filter and sort SDGs
-            const assessedSDGs = sdgScoresData.filter(sdg => sdg.total_score !== null && sdg.total_score !== undefined);
-            
-            if (assessedSDGs.length === 0) {
-                strengthsElement.innerHTML = '<p class="text-muted fst-italic">No scored SDGs available.</p>';
-                improvementElement.innerHTML = '<p class="text-muted fst-italic">No scored SDGs available.</p>';
-                return;
-            }
-            
-            // Top 3 strengths (highest scores)
-            const topStrengths = [...assessedSDGs].sort((a, b) => b.total_score - a.total_score).slice(0, 3);
-            
-            // Bottom 3 improvement areas (lowest scores)
-            const improvementAreas = [...assessedSDGs].sort((a, b) => a.total_score - b.total_score).slice(0, 3);
-            
-            // Helper function for score labels
-            function getScoreLabel(score) {
-                if (score >= 8) return 'Excellent';
-                if (score >= 6) return 'Good';
-                if (score >= 4) return 'Fair';
-                return 'Needs Improvement';
-            }
-            
-            function getBadgeClass(score) {
-                if (score >= 8) return 'bg-success';
-                if (score >= 6) return 'bg-primary';
-                if (score >= 4) return 'bg-warning';
-                return 'bg-danger';
-            }
-            
-            // Generate HTML for strengths
-            let strengthsHTML = '';
-            topStrengths.forEach(sdg => {
-                strengthsHTML += `
-                    <div class="strength-item">
-                        <span class="sdg-badge me-3" style="background-color: ${sdg.color_code || '#cccccc'};">
-                            ${sdg.number}
-                        </span>
-                        <div class="flex-grow-1">
-                            <div class="fw-bold">${sdg.name}</div>
-                            <div class="d-flex align-items-center mt-1 small">
-                                <div class="me-2">Score: <strong>${sdg.total_score.toFixed(1)}/10</strong></div>
-                                <div class="badge ${getBadgeClass(sdg.total_score)} ms-auto">
-                                    ${getScoreLabel(sdg.total_score)}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            // Generate HTML for improvement areas
-            let improvementHTML = '';
-            improvementAreas.forEach(sdg => {
-                improvementHTML += `
-                    <div class="improve-item">
-                        <span class="sdg-badge me-3" style="background-color: ${sdg.color_code || '#cccccc'};">
-                            ${sdg.number}
-                        </span>
-                        <div class="flex-grow-1">
-                            <div class="fw-bold">${sdg.name}</div>
-                            <div class="d-flex align-items-center mt-1 small">
-                                <div class="me-2">Score: <strong>${sdg.total_score.toFixed(1)}/10</strong></div>
-                                <div class="badge ${getBadgeClass(sdg.total_score)} ms-auto">
-                                    ${getScoreLabel(sdg.total_score)}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            // Update DOM
-            strengthsElement.innerHTML = strengthsHTML || '<p class="text-muted fst-italic">No specific strengths identified.</p>';
-            improvementElement.innerHTML = improvementHTML || '<p class="text-muted fst-italic">No specific improvement areas identified.</p>';
-        }
-        
-        function generateRecommendations() {
-            const recommendationsContainer = document.getElementById('recommendationsContainer');
-            if (!recommendationsContainer) return;
-            
-            // Get SDGs that need improvement (score < 6)
-            const improvementSDGs = sdgScoresData
-                .filter(sdg => sdg.total_score !== null && sdg.total_score !== undefined && sdg.total_score < 6)
-                .sort((a, b) => a.total_score - b.total_score)
-                .slice(0, 3);
-            
-            if (improvementSDGs.length === 0) {
-                recommendationsContainer.innerHTML = '<p class="text-muted fst-italic">No specific recommendations needed based on current scores.</p>';
-                return;
-            }
-            
-            function getRecommendationsForSDG(sdgNumber) {
-                const recommendationsMap = {
-                    1: ['Implement local hiring policies to support community employment.', 'Consider affordable housing integration in your project.', 'Design spaces adaptable for micro-enterprise or community services.'],
-                    2: ['Integrate urban agriculture elements like community gardens.', 'Implement robust food waste reduction systems.', 'Design with edible landscaping considerations.'],
-                    3: ['Maximize natural ventilation and daylighting.', 'Incorporate biophilic design elements.', 'Provide access to fitness facilities or activity spaces.'],
-                    4: ['Include educational spaces or displays about sustainability.', 'Ensure universal design principles for accessibility.', 'Create spaces that support multiple learning styles.'],
-                    5: ['Implement gender-inclusive facilities and spaces.', 'Ensure equal access to amenities for all users.', 'Consider safety features for vulnerable populations.'],
-                    6: ['Implement water-efficient fixtures and systems.', 'Consider rainwater harvesting and greywater reuse.', 'Design landscapes for minimal irrigation needs.'],
-                    7: ['Increase renewable energy integration in the project.', 'Improve building envelope performance.', 'Consider energy storage solutions for resilience.'],
-                    8: ['Prioritize local materials and labor in construction.', 'Design for operational efficiency to reduce maintenance costs.', 'Create spaces that support economic activities.'],
-                    9: ['Incorporate smart building technologies.', 'Design flexible infrastructure for future adaptation.', 'Consider innovative construction methods.'],
-                    10: ['Ensure universal access beyond minimum requirements.', 'Create inclusive spaces for diverse user groups.', 'Consider affordability in project components.'],
-                    11: ['Improve connections to public transportation.', 'Create community gathering spaces.', 'Incorporate mixed-use elements to reduce travel needs.'],
-                    12: ['Source materials with environmental certifications.', 'Design for material efficiency and waste reduction.', 'Incorporate circular economy principles.'],
-                    13: ['Improve passive design strategies for climate resilience.', 'Reduce embodied carbon in materials.', 'Design for extreme weather events.'],
-                    14: ['Implement advanced stormwater management.', 'Reduce potential water pollution sources.', 'Consider coastal protection measures if applicable.'],
-                    15: ['Increase biodiversity support in landscaping.', 'Preserve existing natural features on site.', 'Use sustainably sourced wood and plant materials.'],
-                    16: ['Ensure transparent project governance and reporting.', 'Incorporate inclusive decision-making processes.', 'Consider anti-corruption measures in procurement.'],
-                    17: ['Develop partnerships with sustainable organizations.', 'Share project data and lessons learned.', 'Collaborate with stakeholders across sectors.']
-                };
-                
-                return recommendationsMap[sdgNumber] || [
-                    'Review project against specific SDG targets and indicators.',
-                    'Consult relevant sustainability guidelines and experts.',
-                    'Consider integrating this SDG more explicitly in your project goals.'
-                ];
-            }
-            
-            function getBadgeClass(score) {
-                if (score >= 8) return 'bg-success';
-                if (score >= 6) return 'bg-primary';
-                if (score >= 4) return 'bg-warning';
-                return 'bg-danger';
-            }
-            
-            function getScoreLabel(score) {
-                if (score >= 8) return 'Excellent';
-                if (score >= 6) return 'Good';
-                if (score >= 4) return 'Fair';
-                return 'Needs Improvement';
-            }
-            
-            let recommendationsHTML = '';
-            improvementSDGs.forEach(sdg => {
-                recommendationsHTML += `
-                    <div class="recommendation-card mb-3">
-                        <div class="recommendation-header">
-                            <span class="sdg-badge me-2" style="background-color: ${sdg.color_code || '#cccccc'};">
-                                ${sdg.number}
-                            </span>
-                            <h5 class="mb-0">Improve SDG ${sdg.number}: ${sdg.name}</h5>
-                            <span class="badge ${getBadgeClass(sdg.total_score)} ms-auto">${getScoreLabel(sdg.total_score)}</span>
-                        </div>
-                        <div class="recommendation-content">
-                            <p class="mb-2">Current Score: <strong>${sdg.total_score.toFixed(1)}/10</strong>. Consider these strategies:</p>
-                            <ul class="recommendation-list">
-                                ${getRecommendationsForSDG(parseInt(sdg.number)).map(rec => `<li>${rec}</li>`).join('')}
-                            </ul>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            recommendationsContainer.innerHTML = recommendationsHTML;
-        }
+        // Prepare SDG name lookup object (can also be done in results_page.js if preferred)
+        window.sdgNameLookup = {};
+         if (window.sdgScoresData && Array.isArray(window.sdgScoresData)) {
+             window.sdgScoresData.forEach(sdg => {
+                 if (sdg && sdg.number && sdg.name) {
+                     window.sdgNameLookup[sdg.number] = sdg.name;
+                 }
+             });
+         }
     </script>
+
+    <!-- Main results page logic (Depends on data and sdg_charts.js) -->
+    <script src="{{ url_for('static', filename='js/results_page.js') }}"></script>
+
+    <!-- NO OTHER SCRIPT BLOCKS OR RAW JAVASCRIPT CODE SHOULD BE HERE -->
+
 </body>
 </html>

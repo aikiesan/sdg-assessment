@@ -6,6 +6,9 @@ class SdgRelationship(db.Model):
     source_sdg_id = db.Column(db.Integer, db.ForeignKey('sdg_goals.id'))
     target_sdg_id = db.Column(db.Integer, db.ForeignKey('sdg_goals.id'))
 
+    # --- Added strength column ---
+    strength = db.Column(db.Float, nullable=False, default=0.0)  # Add the strength column
+
     # back‐refs use string names
     source_goal = db.relationship(
         'SdgGoal',

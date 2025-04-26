@@ -12,15 +12,7 @@ from app.utils.email_confirmed_required import email_confirmed_required
 from functools import wraps
 
 # Import email utilities if they exist
-try:
-    from app.utils.email import send_confirmation_email, send_password_reset_email
-except ImportError:
-    # Define stub functions if email module doesn't exist
-    def send_confirmation_email(user):
-        print(f"Would send confirmation email to {user.email}")
-    
-    def send_password_reset_email(user):
-        print(f"Would send password reset email to {user.email}")
+from app.utils.email_utils import send_confirmation_email, send_password_reset_email
 
 auth_bp = Blueprint('auth', __name__)
 

@@ -127,52 +127,47 @@ def show(id):
 @assessments_bp.route('/projects/<int:project_id>/new', methods=['GET', 'POST'])
 @login_required
 def new(project_id):
-    """Create a new assessment for a project."""
+    """Create a new assessment for a project and redirect to the first step."""
+    current_app.logger.critical(f"NEW_ROUTE: === VERY TOP of 'new' function for project {project_id} ===")
+    current_app.logger.info(f"NEW_ROUTE: === BEFORE assessment creation for project {project_id} ===")
+    current_app.logger.info(f"Attempting to create new assessment for project {project_id}")
     try:
         user_id = getattr(current_user, 'id', None) or session.get('user_id')
-        
+
         project = Project.query.filter_by(id=project_id, user_id=user_id).first()
         if not project:
             flash('Project not found or you do not have permission to access it', 'danger')
+            current_app.logger.warning(f"New assessment failed: Project {project_id} not found or access denied for user {user_id}")
             return redirect(url_for('projects.index'))
-        
-        if request.method == 'POST':
-            # Create new assessment
-            assessment = Assessment(
-                project_id=project_id,
-                user_id=user_id,
-                status='draft',
-                created_at=datetime.now(),
-                updated_at=datetime.now()
-            )
-            db.session.add(assessment)
-            db.session.commit()
-            
-            flash('New assessment created. Complete the questionnaire to evaluate your project.', 'success')
-            return redirect(url_for('assessments.questionnaire_step',
-                                  project_id=project_id,
-                                  assessment_id=assessment.id,
-                                  step=1))
-        
-        # GET: Render step 1 of the questionnaire (SDGs 1,2,3,6)
-        step1_sdg_numbers = [1, 2, 3, 6]
-        sdgs = SdgGoal.query.filter(SdgGoal.number.in_(step1_sdg_numbers)).order_by(SdgGoal.number).all()
-        
-        # Fetch latest draft assessment if exists
-        assessment = Assessment.query.filter_by(project_id=project_id).order_by(Assessment.created_at.desc()).first()
-        direct_scores_data = SdgScore.query.filter_by(assessment_id=assessment.id).all() if assessment else []
-        direct_scores = {direct_score.sdg_id: direct_score for direct_score in direct_scores_data}
-        
-        return render_template(
-            'questionnaire/assessment.html',
-            project=project,
-            assessment=assessment,
-            assessment_id=assessment.id if assessment else None,
-            sdgs=sdgs,
-            direct_scores=direct_scores,
-            step=1,
-            sdg_targets=SDG_TARGETS
+
+        # --- Always create the assessment on GET ---
+        assessment = Assessment(
+            project_id=project_id,
+            user_id=user_id,
+            status='draft',
+            created_at=datetime.now(),
+            updated_at=datetime.now()
         )
+        db.session.add(assessment)
+        db.session.commit() # Commit to get the assessment ID
+        current_app.logger.info(f"Successfully created new assessment with ID {assessment.id} for project {project_id}")
+        current_app.logger.info(f"NEW_ROUTE: === AFTER assessment creation for project {project_id}, assessment_id {assessment.id} ===")
+
+        flash('New assessment started. Complete the questionnaire to evaluate your project.', 'success')
+
+        # --- Always redirect to the first questionnaire step ---
+        return redirect(url_for('assessments.questionnaire_step',
+                              project_id=project_id,
+                              assessment_id=assessment.id, # Use the newly created ID
+                              step=1))
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error creating new assessment for project {project_id}: {str(e)}", exc_info=True)
+        flash('Error starting new assessment. Please try again.', 'danger')
+        # *** IMPORTANT: DO NOT CALL url_for('assessments.submit_assessment') here ***
+        # If the error was the BuildError, redirecting simply avoids logging it again.
+        return redirect(url_for('projects.index'))
     except Exception as e:
         current_app.logger.error(f"Error creating new assessment: {str(e)}")
         flash(f"An error occurred: {str(e)}", 'danger')

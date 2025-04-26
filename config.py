@@ -7,6 +7,17 @@ class Config:
         'sqlite:///' + os.path.join(os.path.abspath(os.path.dirname(__file__)), 'instance', 'sdgassessmentdev.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+    # --- Flask-Mail Configuration ---
+    MAIL_SERVER = os.environ.get('MAIL_SERVER') or 'smtp.googlemail.com'  # e.g., smtp.googlemail.com for Gmail
+    MAIL_PORT = int(os.environ.get('MAIL_PORT') or 587)
+    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
+    MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', 'false').lower() in ['true', 'on', '1']
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')  # Your email address
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')  # Your email password or app password
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER') or (MAIL_USERNAME if 'MAIL_USERNAME' in os.environ else None)
+    ADMINS = [os.environ.get('ADMIN_EMAIL') or 'your-admin-email@example.com']  # For error reporting maybe
+    # --- End Flask-Mail Config ---
+
 class DevelopmentConfig(Config):
     DEBUG = True
 

@@ -113,7 +113,7 @@ def new_assessment(id):
         if not assessment_name:
             flash('Assessment name is required.', 'danger')
             # Render a template for the assessment creation form with error
-            return render_template('assessments/new.html', project=project), 200
+            return render_template('projects/new.html', project=project), 200
         # You can add more validation here as needed
         assessment = Assessment(project_id=id, user_id=current_user.id, status='draft', name=assessment_name)
         db.session.add(assessment)
@@ -122,7 +122,7 @@ def new_assessment(id):
         return redirect(url_for('assessments.questionnaire_step', project_id=id, assessment_id=assessment_id, step=1))
 
     # GET: show the form for creating an assessment
-    return render_template('assessments/new.html', project=project)
+    return render_template('projects/new.html', project=project)
 
 @projects_bp.route('/<int:id>/delete', methods=['POST'])
 @login_required

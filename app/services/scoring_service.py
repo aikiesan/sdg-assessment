@@ -51,9 +51,9 @@ import math
 from app import db
 from app.models.assessment import Assessment, SdgScore
 from app.models.response import QuestionResponse
-from app.models.sdg import SdgGoal
-# If SdgQuestion model is separate, import it too
-# from app.models.question import SdgQuestion # Example
+from app.models.sdg import SdgGoal, SdgQuestion  # Assuming SdgQuestion is defined here or import separately
+from app.models.sdg_relationship import SdgRelationship  # Make sure this model exists and is imported
+from flask import current_app  # For logging
 
 def calculate_sdg_scores(assessment_id):
     """
@@ -162,53 +162,118 @@ def calculate_sdg_scores(assessment_id):
         q_count = sdg_question_counts.get(sdg_id, 0)
         print(f"SDG {sdg_id}: Raw={raw_score}, MaxPossible={max_possible}, QuestionCount={q_count}")
         if max_possible > 0:
+            # Initial normalization + boost
             normalized_score = min(10, (raw_score / max_possible) * 10 * 1.25)
-            if raw_score > 0 and normalized_score < 4.0: normalized_score = 4.0
-            if 4.0 <= normalized_score < 7.0: normalized_score = 4.0 + (normalized_score - 4.0) * 1.2
+
+            # --- FLOOR ADJUSTED TO 3.0 ---
+            if raw_score > 0 and normalized_score < 3.0:
+                normalized_score = 3.0
+                print(f"  Applied minimum score floor of 3.0 for SDG {sdg_id}")
+
+            # --- SCALING ADJUSTED TO START FROM 3.0 ---
+            if 3.0 <= normalized_score < 7.0:
+                original_score = normalized_score
+                normalized_score = 3.0 + (normalized_score - 3.0) * 1.2
+                print(f"  Applied progressive scaling to SDG {sdg_id}: {original_score:.2f} -> {normalized_score:.2f}")
         else:
             normalized_score = 0
         sdg_direct_scores[sdg_id] = normalized_score
         print(f"  -> NormalizedDirect={normalized_score:.2f}")
 
-    print("--- ORM: Calculating Bonus Scores (SKIPPED) ---")
-    sdg_bonus_scores = {sdg_id: 0.0 for sdg_id in all_sdg_ids}
-    # Bonus calculation temporarily disabled:
-    # try:
-    #     from app.models.sdg import SdgRelationship
-    #     relationships_orm = SdgRelationship.query.all()
-    #     sdg_relationships = {}
-    #     for rel in relationships_orm:
-    #         source_id = rel.source_sdg_id
-    #         if source_id not in sdg_relationships: sdg_relationships[source_id] = []
-    #         sdg_relationships[source_id].append({'target_id': rel.target_sdg_id, 'strength': float(rel.relationship_strength or 0.0)})
-    #     if not relationships_orm:
-    #         print("ORM WARNING: No SDG relationships found in the database.")
-    #     else:
-    #         print(f"ORM: Found {len(relationships_orm)} SDG relationships.")
-    # except Exception as rel_e:
-    #     print(f"ERROR calculating bonus scores (relationships): {rel_e}")
-    print("--- ORM: Calculating Total Scores ---")
+    # --- ORM: Calculating Bonus Scores ---
+    current_app.logger.info("--- ORM: Calculating Bonus Scores ---")
+    sdg_bonus_scores = {sdg_id: 0.0 for sdg_id in all_sdg_ids} # Initialize all bonus scores to 0
+
+    try:
+        # Fetch all relationships at once
+        all_relationships = SdgRelationship.query.all()
+        if not all_relationships:
+            current_app.logger.warning("ORM WARNING: No SDG relationships found in the database. Bonus scores will remain 0.")
+        else:
+            current_app.logger.info(f"ORM: Found {len(all_relationships)} SDG relationships.")
+
+            # Iterate through each relationship to potentially apply bonus
+            for rel in all_relationships:
+                source_sdg_id = rel.source_sdg_id
+                target_sdg_id = rel.target_sdg_id
+                strength = float(rel.strength or 0.0)
+
+                # Ensure target SDG ID is valid before proceeding
+                if target_sdg_id not in sdg_bonus_scores:
+                    current_app.logger.warning(f"  Skipping relationship: Target SDG {target_sdg_id} not in score dictionary.")
+                    continue
+
+                # Get the DIRECT score of the SOURCE SDG
+                source_direct_score = sdg_direct_scores.get(source_sdg_id, 0.0)
+
+                # --- Define Your Bonus Logic Here ---
+                bonus_increment = 0.0
+                # Example: Apply bonus ONLY from 'Good' or 'Excellent' source scores (>= 6.0)
+                # AND ONLY for positive relationships (strength > 0)
+                if source_direct_score >= 6.0 and strength > 0:
+                    # Formula: Bonus scaled by how much source exceeds threshold and relationship strength
+                    threshold = 6.0
+                    factor = 0.15 # Tunable factor - how much bonus to give (0.15 = 15%)
+                    bonus_increment = (source_direct_score - threshold) * strength * factor
+                    sdg_bonus_scores[target_sdg_id] += bonus_increment
+                    current_app.logger.debug(f"  Applying bonus to SDG {target_sdg_id}: +{bonus_increment:.2f} (From SDG {source_sdg_id}, Score: {source_direct_score:.1f}, Strength: {strength:.2f})")
+
+            # --- Apply Bonus Cap ---
+            MAX_BONUS_POINTS = 2.0 # Max bonus an SDG can receive
+            for sdg_id in sdg_bonus_scores:
+                original_bonus = sdg_bonus_scores[sdg_id]
+                # Cap bonus between 0 and MAX_BONUS_POINTS
+                capped_bonus = min(max(original_bonus, 0.0), MAX_BONUS_POINTS)
+                sdg_bonus_scores[sdg_id] = capped_bonus
+                if original_bonus != capped_bonus and original_bonus > 0: # Log only if changed and was positive
+                    current_app.logger.info(f"  Capped Bonus for SDG {sdg_id}: {original_bonus:.2f} -> {capped_bonus:.2f}")
+
+    except Exception as bonus_calc_e:
+        current_app.logger.error(f"ERROR during bonus score calculation: {bonus_calc_e}", exc_info=True)
+        # Fallback to 0 bonus if calculation fails
+        sdg_bonus_scores = {sdg_id: 0.0 for sdg_id in all_sdg_ids}
+    # --- ORM: Calculating Total Scores ---
+
+
+    current_app.logger.info("--- ORM: Calculating Total Scores ---")
     sdg_total_scores = {}
     for sdg_id in all_sdg_ids:
-        direct = sdg_direct_scores.get(sdg_id, 0)
-        bonus = sdg_bonus_scores.get(sdg_id, 0)
+        direct = sdg_direct_scores.get(sdg_id, 0.0)
+        bonus = sdg_bonus_scores.get(sdg_id, 0.0) # Use the calculated & capped bonus
         total = direct + bonus
-        sdg_total_scores[sdg_id] = min(total, 10)
-        print(f"SDG {sdg_id}: Total Score = {sdg_total_scores[sdg_id]:.2f}")
-    print("--- ORM: Saving Calculated Scores to sdg_scores table ---")
+        # Cap total score between 0 and 10
+        sdg_total_scores[sdg_id] = min(max(total, 0.0), 10.0)
+        current_app.logger.debug(f"SDG {sdg_id}: Direct={direct:.2f}, Bonus={bonus:.2f}, Raw Total={total:.2f}, Final Total Score = {sdg_total_scores[sdg_id]:.2f}")
+
+    current_app.logger.info("--- ORM: Saving Calculated Scores to sdg_scores table ---")
+    # (The saving loop should correctly pick up the new bonus_score_val and total_score_val)
     for sdg_id in all_sdg_ids:
+        # Fetch existing or create new SdgScore object
         sdg_score_obj = SdgScore.query.filter_by(assessment_id=assessment_id, sdg_id=sdg_id).first()
         if not sdg_score_obj:
             sdg_score_obj = SdgScore(assessment_id=assessment_id, sdg_id=sdg_id)
             db.session.add(sdg_score_obj)
-        sdg_score_obj.direct_score = sdg_direct_scores.get(sdg_id, 0)
-        sdg_score_obj.bonus_score = sdg_bonus_scores.get(sdg_id, 0)
-        sdg_score_obj.total_score = sdg_total_scores.get(sdg_id, 0)
-        sdg_score_obj.raw_score = sdg_raw_scores.get(sdg_id, 0)
-        sdg_score_obj.max_possible = sdg_max_possible_raw.get(sdg_id, 0)
-        sdg_score_obj.percentage_score = (sdg_score_obj.raw_score / sdg_score_obj.max_possible) * 100 if sdg_score_obj.max_possible else 0
-        sdg_score_obj.question_count = sdg_question_counts.get(sdg_id, 0)
-        print(f"  ORM Saving SDG {sdg_id}: Direct={sdg_score_obj.direct_score:.2f}, Bonus={sdg_score_obj.bonus_score:.2f}, Total={sdg_score_obj.total_score:.2f}, Count={sdg_score_obj.question_count}")
+
+        # Assign calculated values
+        direct_score_val = sdg_direct_scores.get(sdg_id, 0.0)
+        bonus_score_val = sdg_bonus_scores.get(sdg_id, 0.0)
+        total_score_val = sdg_total_scores.get(sdg_id, 0.0)
+        raw_score_val = sdg_raw_scores.get(sdg_id, 0.0) # Assuming sdg_raw_scores exists from direct calc
+        max_possible_val = sdg_max_possible_raw.get(sdg_id, 0.0) # Assuming exists from direct calc
+        percentage_val = (raw_score_val / max_possible_val) * 100 if max_possible_val else 0.0
+        question_count_val = sdg_question_counts.get(sdg_id, 0) # Assuming exists from direct calc
+
+        # Update the SdgScore object
+        sdg_score_obj.direct_score = direct_score_val
+        sdg_score_obj.bonus_score = bonus_score_val # Assign calculated bonus
+        sdg_score_obj.total_score = total_score_val # Assign calculated total
+        sdg_score_obj.raw_score = raw_score_val
+        sdg_score_obj.max_possible = max_possible_val
+        sdg_score_obj.percentage_score = percentage_val
+        sdg_score_obj.question_count = question_count_val
+
+        current_app.logger.debug(f"  ORM Preparing to Save SDG {sdg_id}: Direct={sdg_score_obj.direct_score:.2f}, Bonus={sdg_score_obj.bonus_score:.2f}, Total={sdg_score_obj.total_score:.2f}, Count={sdg_score_obj.question_count}")
+
     print("--- ORM: Calculating and Saving Overall Score ---")
     valid_total_scores = [score for score in sdg_total_scores.values() if score is not None]
     overall_score = sum(valid_total_scores) / len(valid_total_scores) if valid_total_scores else 0

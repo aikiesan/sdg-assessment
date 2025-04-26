@@ -46,9 +46,14 @@ const SDG_GROUPS = {
         description: "Ensure prosperous and fulfilling lives in harmony with nature"
     },
     peace: {
-        ids: [16, 17],
-        name: "Peace & Partnership",
-        description: "Foster peaceful, just and inclusive societies with strong global partnerships"
+        ids: [16],
+        name: "Peace",
+        description: "Foster peaceful, just and inclusive societies"
+    },
+    partnership: {
+        ids: [17],
+        name: "Partnership",
+        description: "Implement the agenda through global partnership"
     }
 };
 
@@ -57,7 +62,8 @@ const GROUP_COLORS = {
     people: 'rgba(0, 123, 255, 0.8)',      // Blue (primary)
     planet: 'rgba(40, 167, 69, 0.8)',      // Green (success)
     prosperity: 'rgba(255, 193, 7, 0.8)',  // Yellow (warning)
-    peace: 'rgba(23, 162, 184, 0.8)'       // Cyan (info)
+    peace: 'rgba(23, 162, 184, 0.8)',      // Cyan (info)
+    partnership: 'rgba(25, 72, 106, 0.8)'  // Navy Blue (partnership)
 };
 
 // Chart configuration defaults for consistency
@@ -661,15 +667,23 @@ function createRadarChart(sdgScores, sdgNames) {
                     }
                 }
             },
+            layout: {
+                padding: {
+                    top: 20,
+                    bottom: 30,
+                    left: 20,
+                    right: 20
+                }
+            },
             animation: CHART_DEFAULTS.animation
         }
     };
 
     // Create and store chart instance
     window.radarChart = new Chart(ctx, config);
-    
     // Log chart creation
     console.log('SDG Radar chart created successfully');
+    return window.radarChart;
     } catch (error) {
         console.error("Error creating radar chart:", error);
         const container = document.getElementById('sdgRadarChart')?.closest('.chart-container');
@@ -849,15 +863,31 @@ function createBarChart(sdgScores, sdgNames) {
                     stacked: true
                 }
             },
+            layout: {
+                padding: {
+                    top: 20,
+                    bottom: 30,
+                    left: 20,
+                    right: 20
+                }
+            },
             animation: CHART_DEFAULTS.animation
+        },
+        layout: {
+            padding: {
+                top: 5,
+                bottom: 15, // Increased bottom padding to further prevent cut-off
+                left: 5,
+                right: 5
+            }
         }
     };
 
     // Create and store chart instance
     window.barChart = new Chart(ctx, config);
-    
     // Log chart creation
     console.log('SDG Bar chart created successfully');
+    return window.barChart;
     } catch (error) {
         console.error("Error creating bar chart:", error);
         const container = document.getElementById('sdgBarChart')?.closest('.chart-container');
@@ -955,7 +985,23 @@ function createCategoriesPolarChart(sdgScores) {
                         }
                     }
                 },
-                animation: CHART_DEFAULTS.animation
+                layout: {
+                    padding: {
+                        top: 5,
+                        bottom: 15,
+                        left: 5,
+                        right: 5
+                    }
+                },
+                layout: {
+                padding: {
+                    top: 20,
+                    bottom: 30,
+                    left: 20,
+                    right: 20
+                }
+            },
+            animation: CHART_DEFAULTS.animation
             }
         };
         
@@ -995,7 +1041,8 @@ function createDimensionsChart(sdgScores) {
         people: calculateDimensionScore(sdgScores, SDG_GROUPS.people.ids),
         planet: calculateDimensionScore(sdgScores, SDG_GROUPS.planet.ids),
         prosperity: calculateDimensionScore(sdgScores, SDG_GROUPS.prosperity.ids),
-        peace: calculateDimensionScore(sdgScores, SDG_GROUPS.peace.ids)
+        peace: calculateDimensionScore(sdgScores, SDG_GROUPS.peace.ids),
+        partnership: calculateDimensionScore(sdgScores, SDG_GROUPS.partnership.ids)
     };
     
     // Prepare data for chart
@@ -1003,21 +1050,24 @@ function createDimensionsChart(sdgScores) {
         SDG_GROUPS.people.name, 
         SDG_GROUPS.planet.name, 
         SDG_GROUPS.prosperity.name, 
-        SDG_GROUPS.peace.name
+        SDG_GROUPS.peace.name,
+        SDG_GROUPS.partnership.name
     ];
     
     const data = [
         dimensions.people,
         dimensions.planet,
         dimensions.prosperity,
-        dimensions.peace
+        dimensions.peace,
+        dimensions.partnership
     ];
     
     const backgroundColors = [
         GROUP_COLORS.people,
         GROUP_COLORS.planet,
         GROUP_COLORS.prosperity,
-        GROUP_COLORS.peace
+        GROUP_COLORS.peace,
+        GROUP_COLORS.partnership
     ];
     
     const borderColors = backgroundColors.map(color => color.replace('0.8', '1'));
@@ -1063,15 +1113,25 @@ function createDimensionsChart(sdgScores) {
                             size: CHART_DEFAULTS.labelFontSize
                         },
                         generateLabels: function(chart) {
-                            const originalLabels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
-                            
-                            // Add score to each label
-                            originalLabels.forEach((label, i) => {
-                                const score = data[i].toFixed(1);
-                                label.text = `${label.text} (${score})`;
-                            });
-                            
-                            return originalLabels;
+                            const chartData = chart.data;
+                            if (chartData.labels.length && chartData.datasets.length) {
+                                const dataset = chartData.datasets[0]; // Assuming one dataset
+                                return chartData.labels.map((label, i) => {
+                                    const meta = chart.getDatasetMeta(0); // Assuming one dataset
+                                    const style = meta.controller.getStyle(i);
+                                    const score = dataset.data[i]; // Get score from dataset data
+
+                                    return {
+                                        text: `${label} (${score !== undefined ? score.toFixed(1) : 'N/A'})`,
+                                        fillStyle: style.backgroundColor,
+                                        strokeStyle: style.borderColor,
+                                        lineWidth: style.borderWidth,
+                                        hidden: !chart.isDatasetVisible(0) || isNaN(dataset.data[i]), // Hide if dataset hidden or data invalid
+                                        index: i
+                                    };
+                                });
+                            }
+                            return []; // Return empty array if data is missing
                         }
                     }
                 },
@@ -1081,22 +1141,39 @@ function createDimensionsChart(sdgScores) {
                             return context[0].label;
                         },
                         label: function(context) {
-                            const dimensionKey = context.label.toLowerCase().split(' ')[0].replace('&', '').trim();
+                            const dimensionKey = context.label ? context.label.toLowerCase().split(' ')[0].replace('&', '').trim() : '';
                             const description = SDG_GROUPS[dimensionKey]?.description || '';
-                            return [`Score: ${context.raw.toFixed(1)}/10`, description];
+                            const scoreText = (typeof context.raw === 'number' && !isNaN(context.raw)) ? `Score: ${context.raw.toFixed(1)}/10` : 'Score: N/A';
+                            return [scoreText, description];
                         }
                     }
                 }
             },
+            layout: {
+                padding: {
+                    top: 20,
+                    bottom: 30,
+                    left: 20,
+                    right: 20
+                }
+            },
             animation: CHART_DEFAULTS.animation
+        },
+        layout: {
+            padding: {
+                top: 5,
+                bottom: 15, // Increased bottom padding to further prevent cut-off
+                left: 5,
+                right: 5
+            }
         }
     };
 
     // Create and store chart instance
     window.dimensionsChart = new Chart(ctx, config);
-    
     // Log chart creation
     console.log('SDG Dimensions chart created successfully');
+    return window.dimensionsChart;
 }
 
 /**
@@ -1113,11 +1190,22 @@ function createStrengthsGapsChart(sdgScores, sdgNames) {
     
     // Sort SDGs by score
     const sortedSDGs = Object.keys(SDG_COLORS)
-        .map(num => ({
-            number: parseInt(num),
-            score: getScoreWithFallback(sdgScores, num),
-            name: sdgNames[num] || `SDG ${num}`
-        }))
+        .map(num => {
+            const score = getScoreWithFallback(sdgScores, num);
+            const name = sdgNames[num] || `SDG ${num}`;
+            // Validate score and name
+            if (score === undefined || score === null || isNaN(score)) {
+                console.error('Invalid score for SDG', num, score);
+            }
+            if (!name) {
+                console.error('Invalid name for SDG', num, name);
+            }
+            return {
+                number: parseInt(num),
+                score: (score === undefined || score === null || isNaN(score)) ? 0 : score,
+                name: name || `SDG ${num}`
+            };
+        })
         .sort((a, b) => b.score - a.score);
     
     // Take top 5 and bottom 5
@@ -1127,19 +1215,52 @@ function createStrengthsGapsChart(sdgScores, sdgNames) {
     // Prepare data for chart
     const strengthsGapsData = {
         labels: [
-            ...topSDGs.map(item => `SDG ${item.number}: ${item.name}`),
-            ...bottomSDGs.map(item => `SDG ${item.number}: ${item.name}`)
+            ...topSDGs.map((item, idx) => {
+                if (!item || typeof item.number === 'undefined' || typeof item.name === 'undefined') {
+                    console.error('Invalid topSDGs item at index', idx, item);
+                    return 'N/A';
+                }
+                // Defensive: handle weird/undefined data
+                if (item.number === null || item.name === null) return 'N/A';
+                return `SDG ${item.number}: ${item.name}`;
+            }),
+            ...bottomSDGs.map((item, idx) => {
+                if (!item || typeof item.number === 'undefined' || typeof item.name === 'undefined') {
+                    console.error('Invalid bottomSDGs item at index', idx, item);
+                    return 'N/A';
+                }
+                if (item.number === null || item.name === null) return 'N/A';
+                return `SDG ${item.number}: ${item.name}`;
+            })
         ],
         datasets: [{
             label: 'Strengths',
-            data: [...topSDGs.map(item => item.score), ...Array(5).fill(null)],
+            data: [
+                ...topSDGs.map((item, idx) => {
+                    if (!item || typeof item.score === 'undefined' || item.score === null || isNaN(item.score)) {
+                        console.error('Invalid score in topSDGs at index', idx, item);
+                        return null;
+                    }
+                    return item.score;
+                }),
+                ...Array(5).fill(null)
+            ],
             backgroundColor: topSDGs.map(item => SDG_COLORS[item.number]),
             borderColor: 'rgba(0, 0, 0, 0.1)',
             borderWidth: 1,
             barThickness: 20
         }, {
             label: 'Improvement Areas',
-            data: [...Array(5).fill(null), ...bottomSDGs.map(item => item.score)],
+            data: [
+                ...Array(5).fill(null),
+                ...bottomSDGs.map((item, idx) => {
+                    if (!item || typeof item.score === 'undefined' || item.score === null || isNaN(item.score)) {
+                        console.error('Invalid score in bottomSDGs at index', idx, item);
+                        return null;
+                    }
+                    return item.score;
+                })
+            ],
             backgroundColor: bottomSDGs.map(item => SDG_COLORS[item.number]),
             borderColor: 'rgba(0, 0, 0, 0.1)',
             borderWidth: 1,
@@ -1212,15 +1333,23 @@ function createStrengthsGapsChart(sdgScores, sdgNames) {
                     }
                 }
             },
+            layout: {
+                padding: {
+                    top: 20,
+                    bottom: 30,
+                    left: 20,
+                    right: 20
+                }
+            },
             animation: CHART_DEFAULTS.animation
         }
     };
 
     // Create and store chart instance
     window.strengthsGapsChart = new Chart(ctx, config);
-    
     // Log chart creation
     console.log('SDG Strengths/Gaps chart created successfully');
+    return window.strengthsGapsChart;
 }
 
 /**
@@ -1325,15 +1454,23 @@ function createCategoriesPolarChart(sdgScores) {
                     }
                 }
             },
+            layout: {
+                padding: {
+                    top: 20,
+                    bottom: 30,
+                    left: 20,
+                    right: 20
+                }
+            },
             animation: CHART_DEFAULTS.animation
         }
     };
 
     // Create and store chart instance
     window.categoriesPolarChart = new Chart(ctx, config);
-    
     // Log chart creation
     console.log('SDG Categories polar chart created successfully');
+    return window.categoriesPolarChart;
 }
 
 /**
@@ -1881,6 +2018,137 @@ function getPerformanceLevel(score) {
 }
 
 // Export functions for use in the main application
+// Returns the Chart.js config for a given chartId, or null if not found
+function getChartData(chartId) {
+    const chartInstance = Chart.getChart(chartId);
+    if (chartInstance) {
+        return {
+            type: chartInstance.config.type,
+            data: chartInstance.data,
+            options: chartInstance.options // Note: may need adjustment for modal
+        };
+    }
+    return null;
+}
+
+/**
+ * Create a bar chart showing performance across the 5 P categories.
+ * @param {Object} categoryScores - Object with calculated scores { People: {score, color}, Planet: {...}, ... }
+ */
+function createCategoryBarChart(categoryScores) {
+    const ctx = document.getElementById('categoryBarChart');
+    if (!ctx) { /* ... */ return null; }
+    if (!categoryScores || Object.keys(categoryScores).length === 0) { /* ... */ return null; }
+
+    // Define reliable RGBA colors matching the category themes
+    const CATEGORY_RGBA_COLORS = {
+        'People':      'rgba(239, 68, 68, 0.7)',   // Red (danger)
+        'Planet':      'rgba(16, 185, 129, 0.7)',  // Green (success)
+        'Prosperity':  'rgba(245, 158, 11, 0.7)',  // Orange (warning)
+        'Peace':       'rgba(37, 99, 235, 0.7)',   // Blue (primary)
+        'Partnership': 'rgba(14, 165, 233, 0.7)'   // Cyan (info)
+    };
+    // Define the SDG ranges for labels
+    const CATEGORY_SDG_RANGES = {
+        'People': '(1-5)',
+        'Planet': '(6, 12-15)',
+        'Prosperity': '(7-11)',
+        'Peace': '(16)',
+        'Partnership': '(17)'
+    };
+
+    // Generate labels including SDG numbers
+    const labels = Object.keys(categoryScores).map(label =>
+        `${label} ${CATEGORY_SDG_RANGES[label] || ''}` // Add range like "(1-5)"
+    );
+    const data = Object.values(categoryScores).map(cat => cat.score.toFixed(1)); // Extract scores
+    // Use the hardcoded RGBA colors
+    const backgroundColors = Object.keys(categoryScores).map(label => CATEGORY_RGBA_COLORS[label] || 'rgba(128,128,128, 0.7)'); // Default gray
+    const borderColors = backgroundColors.map(color => color.replace('0.7', '1')); // Make border solid
+
+    const chartData = {
+        labels: labels, // Use the updated labels
+        datasets: [{
+            label: 'Average Score',
+            data: data,
+            backgroundColor: backgroundColors, // Use hardcoded RGBA
+            borderColor: borderColors,         // Use solid version of RGBA
+            borderWidth: 1,
+            barPercentage: 0.6,
+            categoryPercentage: 0.7
+        }]
+    };
+
+    const config = {
+        type: 'bar',
+        data: chartData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+                title: {
+                    display: false
+                },
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `Avg Score: ${context.raw}/10`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    max: 10,
+                    title: {
+                        display: true,
+                        text: 'Average Score (0-10)',
+                        font: { size: CHART_DEFAULTS.labelFontSize, weight: '600' }
+                    },
+                    grid: { color: 'rgba(0, 0, 0, 0.05)' }
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: {
+                        font: { size: 11 },
+                        autoSkip: false
+                    }
+                }
+            },
+            layout: {
+                padding: {
+                    top: 20,
+                    bottom: 30,
+                    left: 20,
+                    right: 20
+                }
+            },
+            animation: CHART_DEFAULTS.animation
+        },
+        layout: {
+            padding: {
+                top: 5,
+                bottom: 15, // Increased bottom padding to further prevent cut-off
+                left: 5,
+                right: 5
+            }
+        }
+    };
+
+    // ... (destroy and create chart instance) ...
+    if (window.categoryBarChartInstance) {
+        window.categoryBarChartInstance.destroy();
+    }
+    window.categoryBarChartInstance = new Chart(ctx, config); // Recreate with new data/options
+    console.log("Category Bar chart created/updated successfully.");
+    return window.categoryBarChartInstance;
+}
+
 window.SDGCharts = {
     initializeCharts,
     createRadarChart,
@@ -1888,6 +2156,7 @@ window.SDGCharts = {
     createCategoriesPolarChart,
     createDimensionsChart,
     createStrengthsGapsChart,
+    createCategoryBarChart,
     createBenchmarkChart,
     generatePDFReport,
     exportChartImage,
@@ -1895,5 +2164,8 @@ window.SDGCharts = {
     compareWithBenchmark,
     getScoreLabel,
     getBadgeClass,
-    getPerformanceLevel
+    getPerformanceLevel,
+    getChartData // <--- Now exported
 };
+
+console.log("sdg_charts.js script executed and SDGCharts object defined."); // <-- ADDED
