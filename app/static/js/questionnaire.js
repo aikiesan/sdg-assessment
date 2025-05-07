@@ -185,12 +185,19 @@ function setupFormSubmission() {
             const formData = new FormData(form);
             formData.append('action', 'submit');
             
+            // Get CSRF token from meta tag or hidden input
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || 
+                            document.querySelector('input[name="csrf_token"]')?.value;
+            
+            // Use the form's action URL instead of constructing it
             fetch(form.action, {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken
+                },
+                credentials: 'same-origin'  // Include cookies
             })
             .then(response => response.json())
             .then(data => {

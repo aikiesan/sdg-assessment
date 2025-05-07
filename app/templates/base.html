@@ -3,27 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}SDG Assessment Tool{% endblock %}</title>
-    <!-- Google Fonts - Inter for modern, clean typography -->
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- Custom CSS -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    
+    {# Link to your main.css first #}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    
     <style>
         :root {
-            --primary-color: #0056b3;
-            --secondary-color: #28a745;
-            --accent-color: #f8c537;
-            --light-gray: #f8f9fa;
-            --medium-gray: #e9ecef;
-            --dark-gray: #495057;
-            --card-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            --transition-speed: 0.3s;
+            /* UIA Logo Inspired Palette - SINGLE SOURCE OF TRUTH */
+            --uia-logo-gray: #7f7f7f; 
+            --uia-logo-red: #d81e05;
+            --uia-logo-blue-dark: #4a5c9e; 
+            --uia-logo-blue-light: #2c7bbc; 
+
+            /* Primary Theme Colors */
+            --uia-primary: var(--uia-logo-blue-dark); /* Main interactive color */
+            --uia-secondary: var(--uia-logo-blue-light); /* Lighter blue for hover/accents */
+            --uia-accent: var(--uia-logo-red); /* For very specific accents */
+            
+            --uia-text-dark: #333333; 
+            --uia-text-medium: var(--uia-logo-gray); 
+            --uia-text-light: #6b7280; 
+            
+            --uia-bg-white: #ffffff;
+            --uia-bg-light: #f4f6f8; 
+            --uia-border-color: #e1e4e8; 
+            --uia-border-color-subtle: #f0f2f5; /* Even lighter for internal borders */
+
+            /* Bootstrap Variable Overrides (Optional but good for deep integration) */
+            /* This makes Bootstrap components naturally use your theme */
+            --bs-primary: var(--uia-primary);
+            --bs-secondary: var(--uia-text-medium); /* Using logo gray as secondary */
+            --bs-success: #198754; /* Keep BS default or theme */
+            --bs-info: var(--uia-secondary); /* Use a UIA blue for info */
+            --bs-warning: #ffc107; /* Keep BS default or theme */
+            --bs-danger: var(--uia-accent); /* Use UIA red for danger */
+            --bs-light: var(--uia-bg-light);
+            --bs-dark: var(--uia-text-dark);
+            --bs-body-color: var(--uia-text-dark);
+            --bs-body-bg: var(--uia-bg-white);
+            --bs-border-color: var(--uia-border-color);
+            --bs-border-radius: 0.375rem; /* Default BS5 radius */
+            --bs-border-radius-sm: 0.25rem;
+            --bs-border-radius-lg: 0.5rem;
+            --bs-border-radius-pill: 50rem;
+
+            /* Project specific CSS variables (can be overridden by --bs- ones if you map them) */
+            --primary-color: var(--uia-primary);
+            --secondary-color: var(--uia-secondary);
+            --accent-color: var(--uia-accent); 
+            --light-gray: var(--uia-bg-light);
+            --medium-gray: var(--uia-border-color);
+            --dark-gray: var(--uia-text-dark);
+
+            --header-height: 72px;
+            --border-radius-sm: var(--bs-border-radius-sm); /* Use BS vars */
+            --border-radius-md: var(--bs-border-radius);
+            --border-radius-lg: var(--bs-border-radius-lg);
+            --transition-speed: 0.2s;
         }
         
         body {
@@ -31,336 +76,294 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            color: #333;
-            line-height: 1.6;
+            color: var(--bs-body-color); /* Use BS variable */
+            background-color: var(--bs-body-bg); /* Use BS variable */
+            line-height: 1.65;
+            padding-top: var(--header-height);
         }
         
-        .navbar {
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transition: all var(--transition-speed) ease;
+        /* --- Navbar Styling --- */
+        .navbar-custom {
+            background-color: var(--uia-bg-white);
+            border-bottom: 1px solid var(--uia-border-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            height: var(--header-height);
+            align-items: center;
         }
         
-        .navbar-brand {
-            font-weight: 600;
+        .navbar-custom .navbar-brand {
+            font-weight: 700;
+            color: var(--uia-text-dark);
+            font-size: 1.3rem;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 0.75rem;
         }
         
-        .navbar-brand img {
-            width: 32px;
-            height: 32px;
+        .navbar-custom .navbar-brand img {
+            height: 40px;
+            width: auto;
+            max-width: 120px;
+            object-fit: contain;
         }
         
-        .nav-link {
+        .navbar-custom .nav-link {
+            color: var(--uia-text-medium);
+            font-weight: 500;
+            padding: 0.6rem 1rem;
+            border-radius: var(--bs-border-radius-md); /* Use BS var */
+            transition: color var(--transition-speed) ease, background-color var(--transition-speed) ease;
             position: relative;
-            transition: all var(--transition-speed) ease;
+            margin: 0 0.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+         .navbar-custom .nav-link i {
+            font-size: 1.1em;
+            line-height: 1;
+         }
+        
+        .navbar-custom .nav-link:hover,
+        .navbar-custom .nav-link:focus-visible {
+            color: var(--uia-primary); /* Use themed primary */
+            background-color: var(--uia-bg-light);
+            outline: none;
+        }
+        
+        .navbar-custom .nav-link.active {
+            color: var(--uia-primary); /* Use themed primary */
+            font-weight: 600;
+        }
+
+        .navbar-custom .nav-link.active::after {
+             content: '';
+             position: absolute;
+             bottom: 5px;
+             left: 1rem; 
+             right: 1rem; 
+             height: 2px;
+             background-color: var(--uia-primary); /* Use themed primary */
+             border-radius: 1px;
+        }
+        .navbar-custom .nav-link:not(.active)::after { display: none; }
+
+
+        .navbar-custom .navbar-toggler {
+            border: 1px solid var(--uia-border-color);
+            padding: 0.35rem 0.6rem;
+        }
+        .navbar-custom .navbar-toggler-icon {
+             /* Use the primary color for the toggler icon lines */
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%234a5c9e' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2.5' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        }
+
+        /* User Dropdown Styling */
+        .navbar-custom .nav-item.dropdown {
+            margin-left: 0.5rem;
+        }
+        .navbar-custom .dropdown-toggle {
             font-weight: 500;
+            color: var(--uia-text-medium);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
         }
-        
-        .nav-link:after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: 0;
-            left: 0;
-            background-color: currentColor;
-            transition: width var(--transition-speed) ease;
+        .navbar-custom .dropdown-toggle .user-name-nav {
+            max-width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        
-        .nav-link:hover:after, .nav-link.active:after {
-            width: 100%;
+        .navbar-custom .dropdown-menu {
+            border-radius: var(--bs-border-radius-md);
+            border: 1px solid var(--uia-border-color);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            padding: 0.5rem 0;
+            margin-top: 0.5rem !important;
         }
-        
+        .navbar-custom .dropdown-item {
+            font-weight: 500;
+            padding: 0.6rem 1.25rem;
+            color: var(--uia-text-dark);
+        }
+        .navbar-custom .dropdown-item:hover,
+        .navbar-custom .dropdown-item:focus {
+            background-color: var(--uia-bg-light);
+            color: var(--uia-primary); /* Use themed primary */
+        }
+        .navbar-custom .dropdown-item i {
+            margin-right: 0.75rem;
+            color: var(--uia-text-medium); 
+            width: 1.25em; 
+            text-align: center;
+        }
+         .navbar-custom .dropdown-item:hover i {
+            color: var(--uia-primary); /* Use themed primary */
+         }
+        .navbar-custom .dropdown-divider {
+            border-top: 1px solid var(--uia-border-color); /* Use themed border */
+        }
+        .navbar-custom .btn-outline-primary { /* For Register button */
+            color: var(--uia-primary); /* Use themed primary */
+            border-color: var(--uia-primary); /* Use themed primary */
+            font-weight: 600;
+        }
+        .navbar-custom .btn-outline-primary:hover {
+            background-color: var(--uia-primary); /* Use themed primary */
+            color: var(--uia-bg-white);
+        }
+
+        /* General Button Styling (using Bootstrap variables primarily) */
         .btn {
-            padding: 0.5rem 1.25rem;
-            border-radius: 0.5rem;
+            padding: 0.6rem 1.25rem;
+            border-radius: var(--bs-border-radius-md);
             transition: all var(--transition-speed) ease;
             font-weight: 500;
+            text-transform: none;
         }
         
-        .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
+        .btn-primary { /* Will use --bs-primary */
+            color: var(--bs-light); /* Ensure good contrast if --bs-primary is dark */
         }
-        
         .btn-primary:hover {
-            background-color: #004494;
-            border-color: #004494;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            filter: brightness(90%); /* Simple hover effect */
+            transform: translateY(-1px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        
-        .btn-success {
-            background-color: var(--secondary-color);
-            border-color: var(--secondary-color);
-        }
-        
-        .btn-success:hover {
-            background-color: #218838;
-            border-color: #218838;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
+        /* Define .btn-success, .btn-danger etc. if needed, they will use --bs-success etc. */
+
         .card {
-            border: none;
-            border-radius: 0.75rem;
-            box-shadow: var(--card-shadow);
+            border: 1px solid var(--bs-border-color); /* Use BS var */
+            border-radius: var(--bs-border-radius-lg); /* Use BS var */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
             transition: all var(--transition-speed) ease;
             overflow: hidden;
+            background-color: var(--bs-body-bg); /* Use BS var */
         }
-        
         .card:hover {
-            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.07);
+            transform: translateY(-2px);
         }
-        
         .card-header {
-            background-color: white;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
+            background-color: var(--bs-tertiary-bg); /* Use BS var */
+            border-bottom: 1px solid var(--bs-border-color); /* Use BS var */
             font-weight: 600;
-            padding: 1.25rem 1.5rem;
-        }
-        
-        .card-body {
-            padding: 1.5rem;
-        }
-        
-        .form-control, .form-select {
-            padding: 0.75rem 1rem;
-            border: 1px solid #dee2e6;
-            border-radius: 0.5rem;
-            transition: all var(--transition-speed) ease;
-        }
-        
-        .form-control:focus, .form-select:focus {
-            box-shadow: 0 0 0 0.25rem rgba(0, 86, 179, 0.25);
-            border-color: var(--primary-color);
-        }
-        
-        .form-label {
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
-        
-        .form-check-input:checked {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-        
-        .alert {
-            border: none;
-            border-radius: 0.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            padding: 1rem 1.5rem;
+            color: var(--bs-emphasis-color); /* Use BS var */
         }
         
         footer {
-            background-color: #343a40;
-            color: #fff;
+            background-color: var(--uia-text-dark);
+            color: var(--uia-bg-light); 
             margin-top: auto;
-            padding: 2rem 0;
+            padding: 2.5rem 0; 
+            font-size: 0.9rem;
+        }
+        footer a {
+            color: var(--uia-bg-white); 
+            text-decoration: none;
+            transition: color var(--transition-speed) ease;
+        }
+        footer a:hover {
+            color: var(--uia-secondary); /* Use themed secondary */
+        }
+        footer .list-unstyled li { margin-bottom: 0.5rem; }
+        footer hr {
+            border-top: 1px solid var(--uia-text-light);
+            opacity: 0.5;
         }
         
-        .badge {
-            padding: 0.4em 0.8em;
-            font-weight: 500;
-        }
-
-        /* SDG colors */
-        .sdg-1 { background-color: #E5243B; }
-        .sdg-2 { background-color: #DDA63A; }
-        .sdg-3 { background-color: #4C9F38; }
-        .sdg-4 { background-color: #C5192D; }
-        .sdg-5 { background-color: #FF3A21; }
-        .sdg-6 { background-color: #26BDE2; }
-        .sdg-7 { background-color: #FCC30B; }
-        .sdg-8 { background-color: #A21942; }
-        .sdg-9 { background-color: #FD6925; }
-        .sdg-10 { background-color: #DD1367; }
-        .sdg-11 { background-color: #FD9D24; }
-        .sdg-12 { background-color: #BF8B2E; }
-        .sdg-13 { background-color: #3F7E44; }
-        .sdg-14 { background-color: #0A97D9; }
-        .sdg-15 { background-color: #56C02B; }
-        .sdg-16 { background-color: #00689D; }
-        .sdg-17 { background-color: #19486A; }
-        
-        /* SDG badge */
-        .sdg-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            color: white;
-            text-align: center;
-            font-weight: bold;
-            margin-right: 10px;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
-        }
-        
-        /* Page container */
         .content-container {
             padding-top: 2rem;
             padding-bottom: 3rem;
+            flex-grow: 1; 
         }
         
-        /* Enhanced alerts */
-        .alert {
-            border-radius: 0.5rem;
-            display: flex;
-            align-items: center;
-            padding: 1rem 1.25rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        .alert-success {
-            background-color: rgba(40, 167, 69, 0.1);
-            border-left: 4px solid var(--secondary-color);
-            color: #155724;
-        }
-        
-        .alert-danger {
-            background-color: rgba(220, 53, 69, 0.1);
-            border-left: 4px solid #dc3545;
-            color: #721c24;
-        }
-        
-        .alert-warning {
-            background-color: rgba(255, 193, 7, 0.1);
-            border-left: 4px solid #ffc107;
-            color: #856404;
-        }
-        
-        .alert-info {
-            background-color: rgba(13, 202, 240, 0.1);
-            border-left: 4px solid #0dcaf0;
-            color: #0c5460;
-        }
-        
-        .alert:before {
-            content: '';
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            margin-right: 12px;
-        }
-        
-        .alert-success:before {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23198754' viewBox='0 0 16 16'%3E%3Cpath d='M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z'/%3E%3C/svg%3E");
-        }
-        
-        .alert-danger:before {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23dc3545' viewBox='0 0 16 16'%3E%3Cpath d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z'/%3E%3Cpath d='M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z'/%3E%3C/svg%3E");
-        }
-        
-        .alert-warning:before {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23ffc107' viewBox='0 0 16 16'%3E%3Cpath d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z'/%3E%3Cpath d='M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z'/%3E%3C/svg%3E");
-        }
-        
-        .alert-info:before {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%230dcaf0' viewBox='0 0 16 16'%3E%3Cpath d='M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z'/%3E%3C/svg%3E");
-        }
-        
-        /* Page transitions */
-        .page-transition {
-            animation: fadeIn 0.5s ease-in-out;
-        }
-        
+        .page-transition { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
-        /* Responsive adjustments */
-        @media (max-width: 767.98px) {
-            .card-header, .card-body {
-                padding: 1.25rem;
-            }
-            
-            .alert {
-                padding: 0.75rem 1rem;
-            }
-        }
+
+        /* Ensure Bootstrap alert styling can also use theme colors if not overridden by specific classes */
+        .alert-primary { background-color: var(--bs-primary-bg-subtle); color: var(--bs-primary-text-emphasis); border-color: var(--bs-primary-border-subtle); }
+        .alert-secondary { background-color: var(--bs-secondary-bg-subtle); color: var(--bs-secondary-text-emphasis); border-color: var(--bs-secondary-border-subtle); }
+        /* Add for success, danger, warning, info if needed */
+
     </style>
-    {% block head %}{% endblock %}
+    {% block head %}{% endblock %} {# For page-specific CSS files or styles #}
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('main.index') }}">
-                <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="Logo" 
-                     onerror="this.onerror=null; this.src='{{ url_for('static', filename='img/sdg-icons/E-WEB-Goal-11.png') }}'; this.width=30; this.height=30;">
-                SDG Assessment Tool
+                <img src="{{ url_for('static', filename='img/UIA_LOGO.png') }}" alt="UIA Inspired Logo" 
+                     onerror="this.onerror=null; this.src='{{ url_for('static', filename='img/sdg-icons/E-WEB-Goal-11.png') }}'; this.style.height='36px'; this.style.width='36px'; this.style.borderRadius='50%'; this.style.padding='2px'; this.style.backgroundColor='var(--uia-primary)';">
+                <span class="d-none d-sm-inline">SDG Assessment Tool</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbarNav" aria-controls="mainNavbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
+            <div class="collapse navbar-collapse" id="mainNavbarNav">
+                <ul class="navbar-nav mx-auto">
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == url_for('main.index') %}active{% endif %}" href="{{ url_for('main.index') }}">
-    <i class="bi bi-house"></i> Home
-</a>
+                        <a class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}" href="{{ url_for('main.index') }}">
+                            <i class="bi bi-house-door"></i> Home
+                        </a>
                     </li>
                     {% if current_user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == url_for('projects.index') %}active{% endif %}" href="{{ url_for('projects.index') }}">
-    <i class="bi bi-folder2-open"></i> My Projects
-</a>
+                        <a class="nav-link {% if request.blueprint == 'projects' %}active{% endif %}" href="{{ url_for('projects.index') }}">
+                            <i class="bi bi-kanban"></i> My Projects
+                        </a>
                     </li>
                     {% endif %}
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == url_for('main.about') %}active{% endif %}" href="{{ url_for('main.about') }}">
-    <i class="bi bi-info-circle"></i> About
-</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/sdg-information-hub' %}active{% endif %}" href="/sdg-information-hub">
-                            <i class="bi bi-globe"></i> SDG Information Hub
+                        <a class="nav-link {% if request.endpoint == 'main.sdg_information_hub' %}active{% endif %}" href="{{ url_for('main.sdg_information_hub') }}">
+                            <i class="bi bi-globe-americas"></i> SDG Hub
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/faq' %}active{% endif %}" href="/faq">
+                        <a class="nav-link {% if request.endpoint == 'main.about' %}active{% endif %}" href="{{ url_for('main.about') }}">
+                            <i class="bi bi-info-circle"></i> About
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'main.faq' %}active{% endif %}" href="{{ url_for('main.faq') }}">
                             <i class="bi bi-question-circle"></i> FAQ
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/contact' %}active{% endif %}" href="/contact">
-                            <i class="bi bi-envelope"></i> Contact
-                        </a>
-                    </li>
                 </ul>
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav">
                     {% if current_user.is_authenticated %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-circle me-1"></i> {{ current_user.name or 'User' }}
+                        <a class="nav-link dropdown-toggle" href="#" id="userAccountDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-fill"></i>
+                            <span class="d-none d-lg-inline ms-1 user-name-nav">{{ current_user.name|truncate(20) or 'Account' }}</span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('projects.index') }}"><i class="bi bi-briefcase me-2"></i>My Projects</a></li>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userAccountDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('projects.index') }}"><i class="bi bi-kanban"></i>My Projects</a></li>
                             {% if current_user.is_authenticated and current_user.is_admin %}
-                            <li><a class="dropdown-item" href="{{ url_for('dashboard.index') }}"><i class="bi bi-speedometer2 me-2"></i>Admin Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('dashboard.index') }}"><i class="bi bi-speedometer2"></i>Admin Dashboard</a></li>
                             {% endif %}
+                            <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}"><i class="bi bi-person-badge"></i>My Profile</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="bi bi-power"></i>Logout</a></li>
                         </ul>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == url_for('auth.login') %}active{% endif %}" href="{{ url_for('auth.login') }}">
-    <i class="bi bi-box-arrow-in-right"></i> Login
-</a>
+                        <a class="nav-link" href="{{ url_for('auth.login') }}">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == url_for('auth.register') %}active{% endif %}" href="{{ url_for('auth.register') }}">
-    <i class="bi bi-person-plus"></i> Register
-</a>
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-outline-primary ms-lg-2">
+                           <i class="bi bi-person-plus"></i> Register
+                        </a>
                     </li>
                     {% endif %}
                 </ul>
@@ -368,87 +371,86 @@
         </div>
     </nav>
 
-    <div class="container content-container page-transition">
+    <main class="content-container page-transition">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
+                <div class="container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
             {% endif %}
         {% endwith %}
         
         {% block content %}{% endblock %}
-    </div>
+    </main>
 
-    <footer class="py-4 bg-dark text-white">
+    <footer class="py-4">
         <div class="container">
             <div class="row">
-                <div class="col-md-6">
-                    <h5 class="mb-3">SDG Assessment Tool for Architecture</h5>
-                    <p class="mb-3">Empowering architects to design sustainable buildings aligned with the UN Sustainable Development Goals.</p>
-                    <div class="d-flex gap-3">
-                        <a href="#" class="text-white" aria-label="Twitter"><i class="bi bi-twitter"></i></a>
-                        <a href="#" class="text-white" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
-                        <a href="#" class="text-white" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                <div class="col-lg-5 mb-4 mb-lg-0">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="{{ url_for('static', filename='img/UIA_LOGO.png') }}" alt="Tool Logo" style="height: 30px; margin-right: 10px;"
+                             onerror="this.style.display='none'">
+                        <h5 class="mb-0 fw-semibold" style="color: var(--uia-bg-light);">SDG Assessment Tool</h5> {# Text color for footer heading #}
                     </div>
+                    <p class="small">An educational platform to align architectural projects with the UN Sustainable Development Goals. Inspired by the work of the UIA.</p>
                 </div>
-                <div class="col-md-3">
-                    <h6 class="mb-3">Quick Links</h6>
+                <div class="col-lg-2 col-6 mb-4 mb-lg-0">
+                    <h6 class="mb-3 fw-semibold" style="color: var(--uia-bg-light);">Navigate</h6>
                     <ul class="list-unstyled">
-                        <li><a href="{{ url_for('main.about') }}" class="text-white text-decoration-none">About Us</a></li>
-                        <li><a href="/contact" class="text-white text-decoration-none">Contact</a></li>
-                        <li><a href="/faq" class="text-white text-decoration-none">FAQ</a></li>
+                        <li><a href="{{ url_for('main.index') }}" class="text-decoration-none">Home</a></li>
+                        <li><a href="{{ url_for('main.about') }}" class="text-decoration-none">About</a></li>
+                        <li><a href="{{ url_for('main.sdg_information_hub') }}" class="text-decoration-none">SDG Hub</a></li>
                     </ul>
                 </div>
-                <div class="col-md-3">
-                    <h6 class="mb-3">Resources</h6>
+                <div class="col-lg-2 col-6 mb-4 mb-lg-0">
+                    <h6 class="mb-3 fw-semibold" style="color: var(--uia-bg-light);">Support</h6>
                     <ul class="list-unstyled">
-                        <li><a href="/sdg-information-hub" class="text-white text-decoration-none">SDG Information Hub</a></li>
+                        <li><a href="{{ url_for('main.faq') }}" class="text-decoration-none">FAQ</a></li>
+                        <li><a href="{{ url_for('main.contact') }}" class="text-decoration-none">Contact Us</a></li>
+                        <li><a href="{{ url_for('main.privacy_policy') }}" class="text-decoration-none">Privacy Policy</a></li> 
                     </ul>
+                </div>
+                <div class="col-lg-3">
+                     <h6 class="mb-3 fw-semibold" style="color: var(--uia-bg-light);">Stay Updated</h6>
+                     <p class="small">Subscribe for updates (Placeholder).</p>
+                     <form class="d-flex">
+                        <input type="email" class="form-control form-control-sm me-2" placeholder="your@email.com" disabled>
+                        <button class="btn btn-sm ms-auto" type="button" disabled style="background-color: var(--uia-secondary); color: white;">Go</button>
+                     </form>
                 </div>
             </div>
-            <hr class="my-3 bg-secondary">
+            <hr class="my-4" style="border-color: var(--uia-text-medium);"> {# Use themed border #}
             <div class="text-center">
-                <p class="mb-0">&copy; {{ now.year }} SDG Assessment Tool for Architecture. All rights reserved.</p>
+                <p class="mb-0 small">© {{ now.year if now else '2024' }} SDG Assessment Tool. All rights reserved.</p>
             </div>
         </div>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Highlight current navigation item
         document.addEventListener('DOMContentLoaded', function() {
-            // Add smooth hover effect to cards
-            const cards = document.querySelectorAll('.card');
-            cards.forEach(card => {
-                card.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-5px)';
-                    this.style.boxShadow = '0 10px 20px rgba(0,0,0,0.1)';
-                });
-                
-                card.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0)';
-                    this.style.boxShadow = 'var(--card-shadow)';
-                });
-            });
-            
-            // Auto-dismiss alerts after 5 seconds
-            const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
+            const alerts = document.querySelectorAll('.alert-dismissible');
             alerts.forEach(alert => {
                 setTimeout(() => {
-                    alert.style.opacity = '0';
-                    alert.style.transition = 'opacity 0.5s ease';
-                    setTimeout(() => {
-                        alert.remove();
-                    }, 500);
-                }, 5000);
+                    if (typeof bootstrap !== 'undefined' && bootstrap.Alert) {
+                        const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                        if (bsAlert) {
+                            bsAlert.close();
+                        }
+                    } else { 
+                        alert.style.opacity = '0';
+                        setTimeout(() => alert.remove(), 500);
+                    }
+                }, 7000);
             });
         });
     </script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    {% block scripts %}
-    {% endblock %}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <script src="{{ url_for('static', filename='js/questionnaire.js') }}"></script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

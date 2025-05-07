@@ -2,6 +2,7 @@
 import pytest
 from app.services import scoring_service
 from app.models.response import QuestionResponse
+from app.models.assessment import Assessment
 from app.models.project import Project
 from app import db
 
@@ -32,6 +33,12 @@ def test_scoring_basic(session, app, test_user):
     session.commit()  # Commit responses before scoring
     print("   Committed responses.")
 
+    # <<< --- ADD VISIBILITY CHECK HERE --- >>>
+    goals_visible_in_test = {goal.id for goal in session.query(SdgGoal).all()}
+    print(f"### VISIBILITY CHECK inside test_scoring_basic (before service call): Goals={goals_visible_in_test} ###")
+    assert 2 in goals_visible_in_test, "Goal 2 not visible in test session before service call!"
+    # <<< --- END VISIBILITY CHECK --- >>>
+
     # Act: Call the service function directly within app context
     print(f"   Calling scoring_service for assessment {assessment.id}...")
     with app.app_context():
@@ -50,10 +57,17 @@ def test_scoring_basic(session, app, test_user):
     assert results['sdg_scores'][1] > 0, f"Expected positive score for SDG 1, got {results['sdg_scores'].get(1)}"
     assert results['sdg_scores'][2] > 0, f"Expected positive score for SDG 2, got {results['sdg_scores'].get(2)}"
 
-    # Verify Assessment score update
-    final_assessment = session.get(Assessment, assessment.id)
-    assert final_assessment is not None
-    assert final_assessment.overall_score == results['overall_score']
+    # --- Refresh the assessment object ---
+    print(f"   Refreshing assessment {assessment.id} in test session...")
+    # Option 1: Expire and Refresh (keeps the same object instance)
+    session.expire(assessment)
+    session.refresh(assessment)
+    print(f"   Refreshed assessment score: {assessment.overall_score}")
+
+    # Verify Assessment score update using the refreshed object
+    assert assessment.overall_score is not None, "Assessment overall_score is still None after refresh"
+    assert assessment.overall_score == results['overall_score'], \
+           f"Refreshed score ({assessment.overall_score}) != calculated ({results['overall_score']})"
 
     # Verify SdgScore creation/update
     sdg1_score = SdgScore.query.filter_by(assessment_id=assessment.id, sdg_id=1).first()

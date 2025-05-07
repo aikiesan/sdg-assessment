@@ -3,6 +3,27 @@ SDG Targets data module
 Contains the targets for each Sustainable Development Goal (SDG)
 """
 
+# Dictionary mapping SDG numbers to their metadata (name, color, icon)
+SDG_INFO = {
+    1:  {'name': 'No Poverty',                 'color_code': '#E5243B', 'icon': 'fa-hand-holding-usd'},
+    2:  {'name': 'Zero Hunger',                'color_code': '#DDA63A', 'icon': 'fa-seedling'},
+    3:  {'name': 'Good Health & Well-being',   'color_code': '#4C9F38', 'icon': 'fa-heartbeat'},
+    4:  {'name': 'Quality Education',          'color_code': '#C5192D', 'icon': 'fa-graduation-cap'},
+    5:  {'name': 'Gender Equality',            'color_code': '#FF3A21', 'icon': 'fa-venus-mars'},
+    6:  {'name': 'Clean Water & Sanitation',   'color_code': '#26BDE2', 'icon': 'fa-tint'},
+    7:  {'name': 'Affordable & Clean Energy',  'color_code': '#FCC30B', 'icon': 'fa-bolt'},
+    8:  {'name': 'Decent Work & Economic Growth', 'color_code': '#A21942', 'icon': 'fa-briefcase'},
+    9:  {'name': 'Industry, Innovation & Infrastructure', 'color_code': '#FD6925', 'icon': 'fa-industry'},
+    10: {'name': 'Reduced Inequalities',       'color_code': '#DD1367', 'icon': 'fa-arrows-alt-h'},
+    11: {'name': 'Sustainable Cities & Communities', 'color_code': '#FD9D24', 'icon': 'fa-city'},
+    12: {'name': 'Responsible Consumption & Production', 'color_code': '#BF8B2E', 'icon': 'fa-recycle'},
+    13: {'name': 'Climate Action',             'color_code': '#3F7E44', 'icon': 'fa-cloud-sun-rain'},
+    14: {'name': 'Life Below Water',           'color_code': '#0A97D9', 'icon': 'fa-water'},
+    15: {'name': 'Life on Land',               'color_code': '#56C02B', 'icon': 'fa-tree'},
+    16: {'name': 'Peace, Justice & Strong Institutions', 'color_code': '#00689D', 'icon': 'fa-landmark'},
+    17: {'name': 'Partnerships for the Goals', 'color_code': '#19486A', 'icon': 'fa-handshake'}
+}
+
 # Dictionary mapping SDG numbers to their targets
 SDG_TARGETS = {
     1: [

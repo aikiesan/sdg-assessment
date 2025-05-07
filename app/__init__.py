@@ -4,7 +4,8 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
-from flask_mail import Mail  # <-- ADD THIS LINE
+from flask_mail import Mail
+from flask_wtf.csrf import CSRFProtect
 import os
 from config import Config, DevelopmentConfig, TestingConfig, ProductionConfig, config
 
@@ -12,7 +13,8 @@ from config import Config, DevelopmentConfig, TestingConfig, ProductionConfig, c
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
-mail = Mail()  # <-- ADD THIS LINE
+mail = Mail()
+csrf = CSRFProtect()
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -21,7 +23,17 @@ def load_user(user_id):
 
 def create_app(config_name=None):
     import logging
+    from datetime import datetime
+    
     app = Flask(__name__, instance_relative_config=True)
+    
+    # Add format_date filter for templates
+    def format_datetime(value, format='%b %d, %Y'):
+        if value is None:
+            return ""
+        return value.strftime(format)
+    
+    app.jinja_env.filters['format_date'] = format_datetime
 
 
     if config_name is None:
@@ -101,9 +113,9 @@ def create_app(config_name=None):
     # --- Initialize Extensions ---
     db.init_app(app)
     login_manager.init_app(app)
-    # login_manager.login_view = 'auth.login' # Already set globally
     migrate.init_app(app, db)
-    mail.init_app(app)  # <-- ADD THIS LINE TO INITIALIZE MAIL
+    mail.init_app(app)
+    csrf.init_app(app)
 
     # Register filters (if filters.py exists)
     try:

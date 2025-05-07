@@ -1,138 +1,152 @@
 # tests/conftest.py
 import pytest
 import os
-from app import create_app, db
+import uuid
+from app import create_app, db as _db  # Use _db to avoid conflict with fixture name
 from app.models.user import User
 from app.models.project import Project
 from app.models.assessment import Assessment
+from app.models.sdg import SdgQuestion, SdgGoal  # For verification
 from config import TestingConfig
 from werkzeug.security import generate_password_hash
-
 from app.utils.db_utils import populate_goals, populate_questions
 
-@pytest.fixture(scope='session') # Keep app session-scoped
-def app():
-    """Create and configure a new app instance for tests."""
-    print("Creating Flask app for test session...")
-    app = create_app(TestingConfig)
-    # No need to push context here usually
-    yield app
-
-# --- Make _db session-scoped AGAIN ---
 @pytest.fixture(scope='session')
-def _db(app): # Depends on session-scoped app
-    """Session-wide database setup."""
-    print("Setting up database for test session...")
-    with app.app_context(): # Ensure DB operations happen within context
-        db.create_all()
-        print("  -> DB Tables created for session.")
-        yield db # Provide db for population fixture and function sessions
-        print("  <- Dropping database tables after session.")
-        db.drop_all()
-        # ... (DB file deletion) ...
+def app():
+    """Session-wide test Flask application."""
+    print("\n--- Creating Flask app for test session ---")
+    app = create_app(TestingConfig)
+    print(f"!!! Using Testing Config: {app.config.get('SQLALCHEMY_DATABASE_URI', 'URI not set')} !!!")
+    app_context = app.app_context()
+    app_context.push()
+    yield app
+    app_context.pop()
+    print("--- Flask app context popped ---")
 
-# --- Keep populate_db session-scoped ---
-@pytest.fixture(scope='session', autouse=True)
-def populate_db(_db, app): # Depends on session-scoped app and _db
-     """Populates the database with static data ONCE per session."""
-     print("Populating static DB data for session...")
-     with app.app_context():
-         print("   Populating goals via direct call...")
-         success_goals = populate_goals() # Assumes this uses db.session internally now
-         assert success_goals is True, "populate_goals function failed"
+@pytest.fixture(scope='session')
+def db(app):
+    """Session-wide test database setup and static data population."""
+    print("\n--- Setting up session database ---")
+    with app.app_context():
+        _db.app = app
+        _db.create_all()
+        print("--- Tables created ---")
 
-         print("   Populating questions via direct call...")
-         success_questions = populate_questions() # Assumes this uses db.session internally now
-         assert success_questions is True, "populate_questions function failed"
+        print("--- Attempting to populate static SDG data ---")
+        try:
+            print("   Populating goals...")
+            populate_goals() # Assumes this adds to _db.session
+            print("   -> Goals added to session.")
 
-     print("Static DB data populated.")
+            print("   Populating questions...")
+            populate_questions() # Assumes this adds to _db.session
+            print("   -> Questions added to session.")
 
-# Fixture for running CLI commands within tests
+            # --- Verification BEFORE commit ---
+            goal_count_before = _db.session.query(SdgGoal).count()
+            q_count_before = _db.session.query(SdgQuestion).count()
+            print(f"--- Verification (Before Commit): Found {goal_count_before} goals and {q_count_before} questions in session. ---")
+
+            # --- Single Commit ---
+            _db.session.commit() # Commit all populated data together
+            print("--- Static data committed. ---")
+
+            # --- Verification AFTER commit ---
+            goal_count_after = _db.session.query(SdgGoal).count()
+            q_count_after = _db.session.query(SdgQuestion).count()
+            print(f"--- Verification (After Commit): Found {goal_count_after} goals and {q_count_after} questions in DB query. ---")
+
+            if goal_count_after == 0 or q_count_after == 0:
+                 pytest.fail("Static SDG data population resulted in 0 essential records after commit.")
+            print("--- Static data population successful ---")
+
+        except Exception as e:
+            print(f"--- ERROR during static data population: {e} ---")
+            _db.session.rollback()
+            pytest.fail(f"Static data population failed: {e}", pytrace=False)
+
+    yield _db
+
+    # Teardown
+    print("\n--- Tearing down session database ---")
+    with app.app_context():
+         _db.drop_all()
+    print("--- Database dropped ---")
+
 @pytest.fixture(scope='function')
-def runner(app):
-    """A test runner for the app's Click commands."""
-    return app.test_cli_runner()
+def session(app, db):  # Depends on app and session-scoped db
+    """
+    Function-scoped session fixture using nested transactions.
+    Relies on the standard Flask-SQLAlchemy `db.session`.
+    """
+    with app.app_context():  # Ensures db.session is accessed within the correct context
+        print("--- Setting up function-scoped session (nested transaction) ---")
+        # Start a nested transaction (uses SAVEPOINT)
+        db.session.begin_nested()
 
-# --- Session-scoped DB fixture ---
-@pytest.fixture(scope='function')
-def session(_db):
-    """Provides the db.session object scoped to a test function."""
-    print("   -> Providing db.session for test function.")
-    yield _db.session  # Provide the regular session managed by Flask-SQLAlchemy
-    # Cleanup happens in _db fixture teardown (drop_all)
-    # No explicit rollback/remove here; handled by _db
+        # Optional verification
+        q_count_func = db.session.query(SdgQuestion).count()
+        print(f"--- Check at start of function session: {q_count_func} SdgQuestions ---")
+        if q_count_func == 0:
+            # This indicates an issue if static data wasn't available here
+            print("!!! WARNING: 0 SdgQuestions found at start of function scope !!!")
 
-# Fixture for creating a test user
+        # Yield the standard Flask-SQLAlchemy session object
+        # Tests will use this session for their operations.
+        yield db.session
+
+        # Teardown for function scope (after test function runs)
+        # Rollback the nested transaction, undoing changes made in the test
+        db.session.rollback()
+        print("--- Function session (nested transaction) rolled back ---")
+
 @pytest.fixture(scope='function')
-def test_user(session):
-    """Create a user for testing (flush only)."""
-    print("     -> Creating test user object...")
+def client(app, session):  # Inject function-scoped session to ensure client uses same context if needed
+    """Provides a test client."""
+    return app.test_client()
+
+@pytest.fixture(scope='function')
+def test_user(session):  # Depends on function-scoped session
+    """Creates a test user within the function transaction."""
+    print("   -> Creating test user object...")
     user = User(
         name='Test User',
-        email=f'test_{os.urandom(4).hex()}@example.com',
+        email=f"test_{uuid.uuid4().hex[:8]}@example.com",
         password_hash=generate_password_hash('password')
     )
     session.add(user)
-    session.commit()
-    print(f"     <- Test user created and committed (ID: {user.id}, Email: {user.email}).")
+    session.flush()  # Use flush to get ID if needed, commit isn't necessary due to rollback
+    print(f"   <- Test user flushed (ID: {user.id if user.id else 'N/A'} - pending rollback).")
     return user
 
-# Fixture for creating another user
 @pytest.fixture(scope='function')
 def other_user(session):
-     print("     -> Creating other user object...")
-     user = User(
-         name='Other User',
-         email=f'other_{os.urandom(4).hex()}@example.com',
-         password_hash=generate_password_hash('password') # Corrected
-     )
-     session.add(user)
-     session.flush()
-     print(f"     <- Other user object flushed (ID: {user.id}).")
-     return user
+    """Creates another test user within the function transaction."""
+    print("   -> Creating other user object...")
+    user = User(
+        name='Other User',
+        email=f"other_{uuid.uuid4().hex[:8]}@example.com",
+        password_hash=generate_password_hash('password')
+    )
+    session.add(user)
+    session.flush()
+    print(f"   <- Other user flushed (ID: {user.id if user.id else 'N/A'} - pending rollback).")
+    return user
 
-# --- Fixture to populate data ONCE per session ---
-@pytest.fixture(scope='session', autouse=True)
-def populate_db(_db, app):
-     """Populates the database with static data ONCE per session."""
-     print("Populating static DB data for session...")
-     with app.app_context():
-         # --- Option 2: Call functions directly (Preferred) ---
-         # Ensure functions are imported from correct location (db_utils)
-         print("   Populating goals via direct call...")
-         success_goals = populate_goals() # Calls imported function
-         assert success_goals is True, "populate_goals function failed"
-
-         print("   Populating questions via direct call...")
-         success_questions = populate_questions() # Calls imported function
-         assert success_questions is True, "populate_questions function failed"
-         # ------------------------------------------------------------------------
-
-         # --- Option 1: Use CLI Runner (Remove if using Option 2) ---
-         # runner = app.test_cli_runner()
-         # print("   Populating test DB: sdg_goals...")
-         # result_goals = runner.invoke(args=['populate-goals'])
-         # print(result_goals.output)
-         # assert 'CLI: sdg_goals table populated successfully' in result_goals.output
-
-         # print("   Populating test DB: sdg_questions...")
-         # result_questions = runner.invoke(args=['populate-questions'])
-         # print(result_questions.output)
-         # assert 'CLI: sdg_questions table populated successfully' in result_questions.output
-         # -------------------------------------------------------------
-     print("Static DB data populated.")
-
-# --- ADD THIS FIXTURE BACK ---
 @pytest.fixture(scope='function')
-def test_project(session, test_user): # Depends on session and test_user
-    """Create a project owned by the test user."""
-    print("     -> Creating test project...")
-    project = Project(name='Assessment Test Project', user_id=test_user.id, project_type='commercial', location='Test Location Fixture')
+def test_project(session, test_user):  # Depends on function-scoped session
+    """Creates a test project within the function transaction."""
+    print("   -> Creating test project...")
+    project = Project(
+        name="Test Project Fixture",
+        user_id=test_user.id,
+        project_type='commercial',
+        location='Test Location Fixture'
+    )
     session.add(project)
-    session.flush() # Use flush instead of commit
-    print(f"     <- Test project flushed (ID: {project.id} - pending rollback).")
+    session.flush()
+    print(f"   <- Test project flushed (ID: {project.id} - pending rollback).")
     return project
-# --- END ADD ---
 
 # Helper class for authentication actions
 class AuthActions:
@@ -148,8 +162,7 @@ class AuthActions:
     def logout(self):
         return self._client.get('/auth/logout', follow_redirects=True)
 
-# Fixture providing the AuthActions helper
 @pytest.fixture(scope='function')
-def auth(client): # Depends on the implicit 'client' from pytest-flask
+def auth(client):  # Depends on the function-scoped client
     """Fixture to perform login/logout actions."""
     return AuthActions(client)

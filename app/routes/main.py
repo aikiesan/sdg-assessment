@@ -315,3 +315,8 @@ def index():
 @main_bp.route('/about')
 def about():
     return render_template('about.html')
+
+@main_bp.route('/privacy-policy')
+def privacy_policy():
+    """Renders the privacy policy page."""
+    return render_template('privacy_policy.html', title='Privacy Policy')

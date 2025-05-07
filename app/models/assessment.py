@@ -23,6 +23,10 @@ class Assessment(db.Model):
     step3_completed = db.Column(db.Boolean, default=False)
     step4_completed = db.Column(db.Boolean, default=False)
     step5_completed = db.Column(db.Boolean, default=False)
+    
+    # New columns for expert assessment support
+    raw_expert_data = db.Column(db.JSON)  # Stores the raw JSON data from expert assessment form
+    assessment_type = db.Column(db.String(50), default='standard')  # 'standard' or 'expert'
 
     project = db.relationship('Project', back_populates='assessments')
     sdg_scores = db.relationship('SdgScore', back_populates='assessment', cascade='all, delete-orphan')

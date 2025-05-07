@@ -452,7 +452,7 @@
                     }
                 });
             </script>
-            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="project_id" value="{{ project.id }}">
             <input type="hidden" name="assessment_id" value="{{ assessment_id }}">
 
@@ -1730,21 +1730,27 @@
                  // Add radio buttons and other fields
                  for (const [key, value] of formData.entries()) {
                      // Only add if not already handled (i.e., not a checkbox)
-                     if (!(form.querySelector(`input[name="${key}"]`)?.type === 'checkbox')) {
+                     // AND skip the csrf_token here as we send it via header
+                     if (!(form.querySelector(`input[name="${key}"]`)?.type === 'checkbox') && key !== 'csrf_token') {
                          formDataObj[key] = value;
                      }
                  }
 
-                 // Add CSRF token if needed by the backend endpoint
+                 // --- Get CSRF token for the header ---
                  const csrfToken = document.querySelector('input[name="csrf_token"]')?.value;
-                 if (csrfToken) {
-                     formDataObj['csrf_token'] = csrfToken; // Ensure it's included if save endpoint requires it
+                 if (!csrfToken) {
+                     console.error("CSRF token not found in form!");
+                     // Handle error appropriately - maybe alert user or prevent save
+                     if (typeof callback === 'function') callback(false);
+                     return;
                  }
+                 // --- END Get CSRF token ---
 
 
                 const saveUrl = `/assessments/projects/${projectId}/questionnaire/${assessmentId}/save-draft`;
                 console.log("Save URL:", saveUrl);
-                console.log("Data to save:", formDataObj);
+                console.log("Data to save (body):", formDataObj);
+                console.log("CSRF Token (header):", csrfToken);
 
 
                 fetch(saveUrl, {
@@ -1752,8 +1758,9 @@
                     headers: {
                         'Content-Type': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest',
-                        // Add CSRF header if your backend framework requires it (e.g., Flask-WTF)
-                         // 'X-CSRFToken': csrfToken // Example for Flask-WTF
+                        // --- Add CSRF header ---
+                        'X-CSRFToken': csrfToken
+                        // --- END Add CSRF header ---
                     },
                     body: JSON.stringify(formDataObj)
                 })
@@ -1776,14 +1783,16 @@
                          if (typeof callback === 'function') callback(true);
                     } else {
                         console.error("Error saving progress (server response):", data.message || "Unknown error");
-                        alert("Error saving progress. Please check console for details.");
-                         if (typeof callback === 'function') callback(false);
+                        // Don't alert for draft saves, just log
+                        console.warn("Draft save failed, continuing navigation/submit attempt.");
+                         if (typeof callback === 'function') callback(true); // Allow proceeding even if draft save fails
                     }
                 })
                 .catch(error => {
                     console.error("Error saving progress (network/fetch error):", error);
-                    alert(`Network error saving progress: ${error.message}. Please try again.`);
-                     if (typeof callback === 'function') callback(false);
+                    // Don't alert for draft saves, just log
+                    console.warn(`Network error during draft save: ${error.message}. Continuing navigation/submit attempt.`);
+                     if (typeof callback === 'function') callback(true); // Allow proceeding even if draft save fails
                 });
             }
 
@@ -1943,77 +1952,137 @@
 
             // Form Submission
             if (form) {
-                // --- Add projectId and assessmentId extraction ---
                 const projectIdInput = document.querySelector('input[name="project_id"]');
                 const assessmentIdInput = document.querySelector('input[name="assessment_id"]');
                 const projectId = projectIdInput ? projectIdInput.value : null;
                 const assessmentId = assessmentIdInput ? assessmentIdInput.value : null;
+                // --- Define the FINAL submit URL ---
                 const submitUrl = projectId && assessmentId ? `/assessments/projects/${projectId}/assessments/${assessmentId}/submit` : null;
                 console.log("Submit URL constructed:", submitUrl);
+                // --- Store the results URL ---
+                const resultsUrl = projectId && assessmentId ? `/assessments/projects/${projectId}/assessments/${assessmentId}/results` : null;
+
 
                 form.addEventListener('submit', function(e) {
-                    e.preventDefault(); // Prevent default initially
-                    console.log("Form submission initiated...");
+                    e.preventDefault(); // Prevent default form submission ALWAYS
+                    console.log("Form submission initiated (AJAX)...");
 
                     if (!submitBtn) {
                         console.error("Submit button not found!");
                         return;
                     }
+                    if (!submitUrl) {
+                        console.error("Submit URL could not be constructed!");
+                        alert("Error: Cannot determine submission URL.");
+                        return;
+                    }
 
-                    // Disable button immediately to prevent double clicks
+                    // Disable button immediately
                     submitBtn.disabled = true;
                     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-
 
                     // Validate ALL sections one last time
                     let allSectionsValid = true;
                     let firstInvalidSection = null;
-
                     for (let i = 1; i <= totalSections; i++) {
-                        let sectionValid = false;
+                         let sectionValid = false;
                          if (typeof FormValidation !== 'undefined' && FormValidation.validateAssessmentSection) {
                              sectionValid = FormValidation.validateAssessmentSection(i);
                          } else {
                               console.warn(`Validation skipped for section ${i} during final submit (validation function missing).`);
-                              sectionValid = true; // Assume valid if validation func missing
+                              sectionValid = true;
                          }
-
-                        if (!sectionValid) {
+                         if (!sectionValid) {
                             allSectionsValid = false;
-                            if (firstInvalidSection === null) {
-                                firstInvalidSection = i;
-                            }
-                        }
+                            if (firstInvalidSection === null) firstInvalidSection = i;
+                         }
                     }
 
                     if (!allSectionsValid) {
                         console.log(`Final validation failed. First invalid section: ${firstInvalidSection}`);
-                        goToSection(firstInvalidSection); // Navigate to the first error
+                        goToSection(firstInvalidSection);
                         alert("Please complete all required questions before submitting. Check section " + firstInvalidSection + ".");
-                        // Re-enable submit button after delay
                         setTimeout(() => {
                             submitBtn.disabled = false;
                             submitBtn.innerHTML = 'Submit Assessment';
                         }, 500);
-                        return; // Stop submission
+                        return;
                     }
 
-                    // If all sections are valid, save one last time (optional but good practice) and then submit
-                    console.log("All sections valid. Saving final state and submitting...");
-                    saveFormData((success) => {
-                         // Regardless of save success (it might fail if offline), attempt the final submission
-                         console.log("Final save attempted. Proceeding with form.submit().");
-                         // Set form action dynamically after validation
-                         form.setAttribute('action', submitUrl);
-                         // Use the native form submission
-                         form.submit();
+                    // --- Submit using AJAX ---
+                    console.log("All sections valid. Submitting via AJAX...");
 
-                         // Show manual redirect link after a short delay as a fallback
-                          setTimeout(() => {
-                              if (manualRedirectDiv) manualRedirectDiv.style.display = 'block';
-                          }, 5000); // Show after 5 seconds
+                    const finalFormData = new FormData(form);
+                    const finalFormDataObj = {};
 
+                    // Build the final data object similar to saveFormData
+                    finalFormData.forEach((value, key) => {
+                         // Handle checkboxes correctly (aggregate into arrays)
+                         if (form.querySelector(`[name="${key}"]`)?.type === 'checkbox') {
+                             if (!finalFormDataObj[key]) {
+                                 finalFormDataObj[key] = [];
+                             }
+                             finalFormDataObj[key].push(value);
+                         } else if (key !== 'csrf_token') { // Exclude CSRF token from body
+                             finalFormDataObj[key] = value;
+                         }
+                     });
+
+                    // Get CSRF token for the header
+                    const csrfToken = document.querySelector('input[name="csrf_token"]')?.value;
+                     if (!csrfToken) {
+                         console.error("CSRF token not found for final submit!");
+                         alert("Critical Error: Missing security token. Cannot submit.");
+                         submitBtn.disabled = false;
+                         submitBtn.innerHTML = 'Submit Assessment';
+                         return;
+                     }
+
+                    fetch(submitUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRFToken': csrfToken // Send CSRF token in header
+                        },
+                        body: JSON.stringify(finalFormDataObj) // Send all form data as JSON
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            // Attempt to get more specific error from response
+                            return response.text().then(text => { // Use .text() as it might not be JSON
+                                console.error("Submit failed response text:", text);
+                                // Try parsing as JSON, but fallback to text
+                                try {
+                                    const errData = JSON.parse(text);
+                                    throw new Error(`Submit failed: ${response.status} ${response.statusText}. Server message: ${errData.message || text}`);
+                                } catch (e) {
+                                    throw new Error(`Submit failed: ${response.status} ${response.statusText}. Response: ${text}`);
+                                }
+                            });
+                        }
+                        return response.json(); // Expecting JSON on success (e.g., redirect URL or success message)
+                    })
+                    .then(data => {
+                        console.log("Submission successful (AJAX):", data);
+                        // Redirect to the results page on success
+                        if (resultsUrl) {
+                            window.location.href = resultsUrl;
+                        } else {
+                            alert("Assessment submitted successfully! (Could not determine results page URL)");
+                             // Re-enable button if redirection fails
+                             submitBtn.disabled = false;
+                             submitBtn.innerHTML = 'Submit Assessment';
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error submitting assessment (AJAX):", error);
+                        alert(`Error submitting assessment: ${error.message}`);
+                        // Re-enable submit button on error
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = 'Submit Assessment';
                     });
+                    // --- END Submit using AJAX ---
                 });
             } else {
                 console.error("Form element not found!");

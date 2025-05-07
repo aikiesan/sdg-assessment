@@ -4,297 +4,383 @@
 
 {% block head %}
 {{ super() }}
-<!-- Modern font and icons -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/landing_page.css') }}">
 <style>
-  /* Core design system */
+  /* ... (your existing :root and body styles are fine) ... */
   :root {
-    --primary-color: #0056b3;
-    --primary-light: #dce7f3;
-    --secondary-color: #28a745;
-    --dark-color: #2c3e50;
-    --light-color: #f8f9fa;
-    --accent-color: #ff9800;
+    --uia-primary-blue: #003366;
+    --uia-secondary-blue: #005ea2;
+    --uia-accent-blue: #0078d4;
+    --uia-light-gray: #f0f2f5;
+    --uia-medium-gray: #d1d5db;
+    --uia-dark-gray: #374151;
+    --uia-text-light: #6b7280;
+    --uia-white: #ffffff;
     --transition-speed: 0.3s;
+    --border-radius-md: 0.5rem;
+    --border-radius-lg: 0.75rem;
   }
 
   body {
     font-family: 'Inter', sans-serif;
-    color: var(--dark-color);
-    line-height: 1.6;
+    color: var(--uia-dark-gray); /* Will be overridden in hero for text on image */
+    line-height: 1.7;
   }
 
-  /* Refined hero section - more compact and less blue */
+  /* --- HERO SECTION WITH SVG BACKGROUND --- */
   .hero-section {
-    background: linear-gradient(160deg, #ffffff, var(--primary-light), #e8f0f8);
-    padding: 60px 0;
-    position: relative;
-    overflow: hidden;
+    /* Set the SVG as background */
+    background-image: 
+        /* Optional: Dark semi-transparent overlay for better text readability */
+        linear-gradient(rgba(0, 25, 51, 0.65), rgba(0, 40, 82, 0.55)), 
+        url("{{ url_for('static', filename='img/sustainable-building-illustration.svg') }}");
+    background-size: cover; /* Cover the entire area, may crop image */
+    background-position: center center; /* Center the image */
+    background-repeat: no-repeat;
+    
+    color: var(--uia-white); /* Text color on top of the background */
+    padding: 100px 0; /* Adjust padding as needed */
+    min-height: 75vh; /* Ensure section is tall enough to show background */
+    display: flex; /* For vertical centering of content */
+    align-items: center; /* For vertical centering */
+    text-align: center; /* Center hero content */
+    position: relative; /* For potential pseudo-elements if needed */
   }
 
-  /* SDG grid with improved layout */
-  .sdg-goals-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 10px;
+  .hero-section .container {
+    position: relative; /* Ensure content is above any pseudo-elements of hero-section */
+    z-index: 2;
+    max-width: 800px; /* Constrain content width for readability */
   }
 
-  .sdg-goal-item {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-  }
-
-  .sdg-goal-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-  }
-
-  .sdg-goal-item.active {
-    border: 2px solid var(--primary-color);
-    transform: translateY(-3px);
-  }
-
-  /* Section styling */
-  .section-title {
-    font-size: 2rem;
-    font-weight: 600;
+  .hero-section .display-4 {
+    font-weight: 800;
+    color: var(--uia-white); /* Ensure heading is white */
     margin-bottom: 1.5rem;
-    color: var(--dark-color);
-  }
-  
-  .section-subtitle {
-    font-size: 1.1rem;
-    color: #6c757d;
-    margin-bottom: 2rem;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3); /* Subtle shadow for readability */
   }
 
-  /* Educational emphasis */
+  .hero-section .lead {
+    font-size: 1.3rem; /* Slightly larger lead */
+    color: rgba(255, 255, 255, 0.9); /* Slightly off-white for lead */
+    margin-bottom: 2.5rem;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+
   .education-badge {
-    background-color: #e9f5ee;
-    color: var(--secondary-color);
-    padding: 0.4rem 1rem;
+    /* Make badge stand out on image background */
+    background-color: rgba(255, 255, 255, 0.15); /* Semi-transparent white */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: var(--uia-white);
+    padding: 0.6rem 1.5rem;
     border-radius: 50px;
-    font-weight: 500;
+    font-weight: 600;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+  }
+   .education-badge i {
+    font-size: 1.1em;
+   }
+
+  .hero-ctas .btn {
+    padding: 0.8rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0.5rem; /* Add margin for spacing if they wrap */
+    transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+  }
+  .hero-ctas .btn-primary {
+    background-color: var(--uia-accent-blue); /* Use accent for primary CTA on dark bg */
+    border-color: var(--uia-accent-blue);
+    color: var(--uia-white);
+  }
+  .hero-ctas .btn-primary:hover {
+    background-color: #0067b3; /* Darken accent */
+    border-color: #0067b3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  }
+  .hero-ctas .btn-outline-primary { /* This will be outline-light effectively */
+    border-color: rgba(255,255,255,0.8);
+    color: var(--uia-white);
+  }
+  .hero-ctas .btn-outline-primary:hover {
+    background-color: rgba(255,255,255,0.15);
+    border-color: var(--uia-white);
+    color: var(--uia-white);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+
+
+  /* ... (rest of your CSS for other sections: .section, .feature-card, etc. remain the same) ... */
+  .section {
+    padding: 80px 0;
+  }
+  .section.bg-light-alt {
+    background-color: #f7f9fc; 
+  }
+  .section-title {
+    font-size: 2.5rem; 
+    font-weight: 700;
     margin-bottom: 1rem;
+    color: var(--uia-dark-gray);
+    text-align: center;
   }
-
-  .highlight-card {
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    transition: all 0.3s ease;
+  .section-subtitle {
+    font-size: 1.15rem; 
+    color: var(--uia-text-light);
+    margin-bottom: 3rem; 
+    text-align: center;
+    max-width: 750px;
+    margin-left: auto;
+    margin-right: auto;
   }
-
-  .highlight-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  .feature-card {
+    background-color: #fff;
+    border: 1px solid var(--uia-medium-gray); 
+    border-radius: var(--border-radius-lg);
+    padding: 2rem;
+    text-align: center;
+    transition: all var(--transition-speed) ease;
+    height: 100%; 
   }
-
-  /* Accessibility improvements */
+  .feature-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 30px rgba(0, 51, 102, 0.1); /* UIA primary blue shadow */
+  }
+  .feature-icon {
+    font-size: 2.5rem; 
+    color: var(--uia-primary-blue);
+    margin-bottom: 1rem;
+    display: inline-block;
+    background-color: var(--uia-light-gray);
+    width: 70px;
+    height: 70px;
+    line-height: 70px;
+    border-radius: 50%;
+  }
+  .feature-card h5 {
+    font-weight: 600;
+    color: var(--uia-dark-gray);
+    margin-bottom: 0.75rem;
+  }
+  .how-it-works-step {
+    display: flex;
+    align-items: flex-start; 
+    margin-bottom: 2rem;
+  }
+  .how-it-works-step .step-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--uia-primary-blue);
+    background-color: var(--uia-light-gray);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
+    text-align: center;
+    margin-right: 1.5rem;
+    flex-shrink: 0; 
+  }
+  .how-it-works-step .step-content h5 {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  .how-it-works-step .step-content p {
+    color: var(--uia-text-light);
+    margin-bottom: 0;
+  }
+  .collaboration-section img {
+    max-height: 60px; 
+    filter: grayscale(100%);
+    opacity: 0.7;
+    transition: all var(--transition-speed) ease;
+  }
+  .collaboration-section img:hover {
+    filter: grayscale(0%);
+    opacity: 1;
+  }
+  .cta-section {
+    background-color: var(--uia-primary-blue);
+    color: #fff;
+    padding: 60px 0;
+    border-radius: var(--border-radius-lg);
+  }
+  .cta-section h2 {
+    color: #fff;
+    font-weight: 700;
+  }
+  .cta-section .btn-light { 
+    font-weight: 600;
+    padding: 0.8rem 2rem;
+    color: var(--uia-primary-blue); /* Text color for light button */
+  }
+   .cta-section .btn-light:hover {
+    background-color: var(--uia-light-gray); /* Slightly darker on hover */
+   }
   .btn {
-    border-radius: 6px;
-    padding: 0.5rem 1.25rem;
-    transition: all 0.3s ease;
+    border-radius: var(--border-radius-md);
+    padding: 0.6rem 1.5rem; 
+    transition: all var(--transition-speed) ease;
+    text-transform: none; 
   }
-
   .btn-primary {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
+    background-color: var(--uia-primary-blue); /* General primary button */
+    border-color: var(--uia-primary-blue);
+    color: var(--uia-white);
   }
-
   .btn-primary:hover {
-    background-color: #004494;
-    border-color: #004494;
+    background-color: var(--uia-secondary-blue);
+    border-color: var(--uia-secondary-blue);
   }
-
   .btn-outline-primary {
-    color: var(--primary-color);
-    border-color: var(--primary-color);
+    color: var(--uia-primary-blue);
+    border-color: var(--uia-primary-blue);
+    border-width: 2px; 
   }
-
   .btn-outline-primary:hover {
-    background-color: var(--primary-color);
+    background-color: var(--uia-primary-blue);
     color: white;
   }
-  
-  /* SDG detail panel */
-  .sdg-detail-panel {
-    background-color: white;
-    border-radius: 10px;
-    padding: 1.5rem;
-    margin-top: 1.5rem;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    transition: all 0.3s ease;
-  }
-  
-  .sdg-detail-title {
-    font-weight: 600;
-    margin-bottom: 0.75rem;
-    transition: opacity 0.3s ease;
-  }
-  
-  .sdg-detail-description {
-    color: #6c757d;
-    transition: opacity 0.3s ease;
-  }
-  
-  /* Responsive improvements */
   @media (max-width: 992px) {
-    .sdg-goals-grid {
-      grid-template-columns: repeat(6, 1fr);
-    }
-    
-    .section-title {
-      font-size: 1.75rem;
-    }
+    .hero-section .display-4 { font-size: 2.5rem; }
+    .section-title { font-size: 2rem; }
   }
-  
   @media (max-width: 768px) {
-    .hero-section {
-      padding: 40px 0;
-    }
-    
-    .sdg-goals-grid {
-      grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
-    }
+    .hero-section { padding: 80px 0; min-height: 60vh; } /* Adjust padding/height for mobile */
+    .hero-section .display-4 { font-size: 2rem; }
+    .hero-section .lead { font-size: 1.15rem; }
+    .hero-ctas .btn { display: block; margin-left:auto; margin-right:auto; margin-bottom: 1rem; width: 80%; max-width:300px; }
+    .hero-ctas .btn:last-child { margin-bottom: 0; }
+    .section { padding: 60px 0; }
+    .section-title { font-size: 1.75rem; }
+    .how-it-works-step { flex-direction: column; align-items: center; text-align: center; }
+    .how-it-works-step .step-number { margin-right: 0; margin-bottom: 1rem; }
   }
-  
-  @media (max-width: 576px) {
-    .sdg-goals-grid {
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-    }
-  }
+
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Refined Hero Section - More minimalist and less blue -->
+<!-- Hero Section -->
 <section class="hero-section">
     <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                <div class="education-badge">
-                    <i class="bi bi-mortarboard"></i>
-                    <span>Educational Tool</span>
-                </div>
-                <h1 class="mb-3">Architecture for Sustainable Development</h1>
-                <p class="lead mb-4">Evaluate your architectural projects against the UN Sustainable Development Goals. A free educational assessment tool for architects and students.</p>
-                
-                {% if current_user.is_authenticated %}
-                    <div class="mt-4">
-                        <a href="{{ url_for('projects.index') }}" class="btn btn-primary btn-lg px-4 py-3 me-2 fw-bold">
-                            <i class="bi bi-clipboard-check me-2"></i>My Projects
-                        </a>
-                    </div>
-                {% else %}
-                    <div class="mt-4">
-                        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-4 py-3 me-3 fw-bold">
-                            <i class="bi bi-clipboard-check me-2"></i>Start Assessment
-                        </a>
-                        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg px-4 py-3 fw-bold">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>Login
-                        </a>
-                    </div>
-                {% endif %}
-            </div>
-            <div class="col-lg-6">
-                <img src="{{ url_for('static', filename='img/sustainable-building-illustration.svg') }}" alt="Sustainable Architecture" class="img-fluid">
-            </div>
+        <div class="education-badge">
+            <i class="bi bi-mortarboard-fill"></i>
+            <span>An Educational Tool for Sustainable Design</span>
         </div>
-    </div>
-</section>
-
-<!-- About the Tool Section -->
-<section class="py-5 bg-white">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-8 mx-auto text-center">
-                <h2 class="section-title">Assess Your Architecture Projects</h2>
-                <p class="section-subtitle">A free educational tool developed in collaboration with the International Union of Architects (UIA) to help architects understand and enhance their projects' contribution to sustainable development.</p>
-            </div>
-        </div>
+        <h1 class="display-4">Integrate Sustainability into Your Architecture</h1>
+        <p class="lead">
+            Understand and improve your project's alignment with the UN Sustainable Development Goals.
+            A free, insightful assessment experience for architects, planners, and students.
+        </p>
         
-        <div class="row mt-4 g-4">
-            <div class="col-md-4">
-                <div class="highlight-card p-4 h-100 bg-light">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="me-3 p-2 rounded-circle bg-primary bg-opacity-10">
-                            <i class="bi bi-bar-chart-line text-primary" style="font-size: 1.5rem;"></i>
-                        </div>
-                        <h5 class="mb-0">Comprehensive Assessment</h5>
-                    </div>
-                    <p class="mb-0">Evaluate projects across all 17 SDGs with specific metrics tailored for architectural applications.</p>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="highlight-card p-4 h-100 bg-light">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="me-3 p-2 rounded-circle bg-primary bg-opacity-10">
-                            <i class="bi bi-lightbulb text-primary" style="font-size: 1.5rem;"></i>
-                        </div>
-                        <h5 class="mb-0">Learning Resources</h5>
-                    </div>
-                    <p class="mb-0">Access educational materials about sustainability integration in architectural design.</p>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="highlight-card p-4 h-100 bg-light">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="me-3 p-2 rounded-circle bg-primary bg-opacity-10">
-                            <i class="bi bi-graph-up-arrow text-primary" style="font-size: 1.5rem;"></i>
-                        </div>
-                        <h5 class="mb-0">Progress Tracking</h5>
-                    </div>
-                    <p class="mb-0">Monitor how your designs evolve over time with detailed reports and visual analytics.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- SDG Overview Section - Streamlined -->
-<section class="py-5 bg-light">
-    <div class="container">
-        <div class="row align-items-start">
-            <div class="col-lg-5 mb-4 mb-lg-0">
-                <h2 class="section-title">The 17 SDGs in Architecture</h2>
-                <p class="mb-4">The UN Sustainable Development Goals provide architects with a framework for creating buildings and spaces that positively impact people and the planet.</p>
-                <p class="mb-4">Explore each goal to understand its relevance to architectural design and planning.</p>
-                <a href="/sdg-information-hub" class="btn btn-outline-primary">
-                    <i class="bi bi-book me-2"></i>Visit SDG Information Hub
+        <div class="hero-ctas mt-4">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('projects.index') }}" class="btn btn-primary btn-lg"> {# Was me-md-2 mb-2 mb-md-0 #}
+                    <i class="bi bi-folder2-open me-2"></i>Go to My Projects
                 </a>
+                <a href="{{ url_for('main.sdg_information_hub') }}" class="btn btn-outline-primary btn-lg"> {# Will become outline-light effectively #}
+                    <i class="bi bi-info-circle me-2"></i>Learn About SDGs
+                </a>
+            {% else %}
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg"> {# Was me-md-2 mb-2 mb-md-0 #}
+                    <i class="bi bi-check2-circle me-2"></i>Start Your First Assessment
+                </a>
+                <a href="{{ url_for('main.sdg_information_hub') }}" class="btn btn-outline-primary btn-lg"> {# Will become outline-light effectively #}
+                    <i class="bi bi-info-circle me-2"></i>Explore the SDGs
+                </a>
+            {% endif %}
+        </div>
+        {# REMOVE the hero-image-wrapper div and its img tag #}
+        {# 
+        <div class="hero-image-wrapper">
+            <img src="{{ url_for('static', filename='img/sustainable-building-illustration.svg') }}" 
+                 alt="Illustration of a green, sustainable building with nature elements" 
+                 class="img-fluid" style="max-height: 400px;">
+        </div> 
+        #}
+    </div>
+</section>
+
+<!-- Why This Tool Section -->
+<section class="section bg-light-alt">
+    <div class="container">
+        <h2 class="section-title">Why Use This Tool?</h2>
+        <p class="section-subtitle">
+            Designed to empower the architectural community, this tool offers a clear path to embedding
+            sustainability into every project, from concept to completion.
+        </p>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-lightbulb-fill"></i></div>
+                    <h5>Gain Clarity</h5>
+                    <p class="text-muted">Understand how your design choices connect to global sustainability targets. Get a structured overview of your project's SDG impact.</p>
+                </div>
             </div>
-            
-            <div class="col-lg-7">
-                <!-- SDG Goals Grid - Improved layout -->
-                <div class="card shadow-sm p-0 overflow-hidden">
-                    <div class="card-body p-4">
-                        <div class="sdg-goals-grid mb-4">
-                            {% for i in range(1, 18) %}
-                            <div class="sdg-goal-item" data-sdg="{{ i }}">
-                                <img src="{{ url_for('static', filename='img/sdg-icons/E-WEB-Goal-' + '%02d' % i + '.png') }}" alt="SDG Goal {{ i }}" class="img-fluid">
-                            </div>
-                            {% endfor %}
-                        </div>
-                    
-                        <!-- SDG Detail Panel -->
-                        <div class="sdg-detail-panel bg-light">
-                            <h5 class="sdg-detail-title">Select a goal to learn more</h5>
-                            <p class="sdg-detail-description mb-0">The Sustainable Development Goals provide a framework for addressing global challenges through architectural design.</p>
-                        </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-book-half"></i></div>
+                    <h5>Enhance Learning</h5>
+                    <p class="text-muted">Access curated information and insights about each SDG's relevance to architecture. Ideal for students and professionals alike.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="bi bi-arrows-angle-expand"></i></div>
+                    <h5>Broaden Perspective</h5>
+                    <p class="text-muted">Think beyond traditional green building metrics. Consider social equity, economic viability, and environmental stewardship holistically.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="section">
+    <div class="container">
+        <h2 class="section-title">Simple Steps to Insight</h2>
+        <p class="section-subtitle">
+            Our intuitive assessment process guides you through evaluating your project's sustainability profile.
+        </p>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="how-it-works-step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h5>Define Your Project</h5>
+                        <p>Start by providing basic details about your architectural project. Context is key to a relevant assessment.</p>
+                    </div>
+                </div>
+                <div class="how-it-works-step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h5>Assess Against SDGs</h5>
+                        <p>Respond to targeted questions and criteria for each relevant SDG, reflecting on your design's impact.</p>
+                    </div>
+                </div>
+                <div class="how-it-works-step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h5>Review Your Insights</h5>
+                        <p>Receive a visual summary and detailed report, highlighting strengths and areas for potential improvement.</p>
+                    </div>
+                </div>
+                 <div class="how-it-works-step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h5>Learn and Iterate</h5>
+                        <p>Use the feedback and resources to inform future design decisions and enhance your sustainable practices.</p>
                     </div>
                 </div>
             </div>
@@ -302,34 +388,45 @@
     </div>
 </section>
 
-<!-- Call to Action - Educational Focus -->
-<section class="py-5 bg-white">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-7 mb-4 mb-lg-0">
-                <h2 class="section-title">Begin Your Sustainability Journey</h2>
-                <p class="lead mb-4">This educational tool helps architecture professionals and students understand and enhance their contribution to sustainable development through better design decisions.</p>
-                
-                {% if current_user.is_authenticated %}
-                    <div class="mt-4">
-                        <a href="{{ url_for('projects.index') }}" class="btn btn-primary">
-                            <i class="bi bi-folder2-open me-2"></i>Go to My Projects
-                        </a>
-                    </div>
-                {% else %}
-                    <div class="mt-4">
-                        <a href="{{ url_for('auth.register') }}" class="btn btn-primary">
-                            <i class="bi bi-plus-circle me-2"></i>Create Account
-                        </a>
-                        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary">
-                            <i class="bi bi-box-arrow-in-right me-2"></i>Login
-                        </a>
-                    </div>
-                {% endif %}
+<!-- Collaboration/Trust Section -->
+<section class="section bg-light-alt collaboration-section">
+    <div class="container text-center">
+        <h2 class="section-title">Developed with Global Insight</h2>
+        <p class="section-subtitle">
+            This educational tool is proud to be developed with considerations from and for the global architectural community,
+            referencing standards and frameworks like those from the UIA.
+        </p>
+        <div class="row justify-content-center align-items-center">
+            <div class="col-md-3 col-6 mb-4">
+                {# Ensure you have a UIA-style logo or placeholder here #}
+                <img src="{{ url_for('static', filename='img/uia-logo-placeholder-dark.png') }}" alt="International Union of Architects (UIA) Reference" class="img-fluid">
+                <p class="mt-2 small text-muted">Inspired by UIA's SDG Commission Work</p>
             </div>
-            
-            <div class="col-lg-5">
-                <img src="{{ url_for('static', filename='img/sustainable-future.svg') }}" alt="Sustainability Journey" class="img-fluid">
+        </div>
+    </div>
+</section>
+
+<!-- Final Call to Action Section -->
+<section class="section text-center">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                 <i class="bi bi-stars text-primary" style="font-size: 3rem; margin-bottom: 1rem; color: var(--uia-accent-blue) !important;"></i> {# Use UIA accent blue #}
+                <h2 class="section-title">Ready to Explore Your Project's Potential?</h2>
+                <p class="section-subtitle">
+                    Join a growing community of forward-thinking architects and designers committed to a sustainable future.
+                    Start your educational journey today.
+                </p>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('projects.index') }}" class="btn btn-primary btn-lg" style="background-color: var(--uia-primary-blue); border-color: var(--uia-primary-blue);"> {# UIA Primary Blue #}
+                        <i class="bi bi-arrow-right-circle me-2"></i>Access My Dashboard
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg" style="background-color: var(--uia-primary-blue); border-color: var(--uia-primary-blue);"> {# UIA Primary Blue #}
+                        <i class="bi bi-person-plus-fill me-2"></i>Create Free Account
+                    </a>
+                    <p class="mt-3"><small>Already have an account? <a href="{{ url_for('auth.login') }}" style="color: var(--uia-accent-blue);">Login here</a>.</small></p> {# UIA Accent Blue for link #}
+                {% endif %}
             </div>
         </div>
     </div>
@@ -340,8 +437,9 @@
 {% block scripts %}
 {{ super() }}
 <script>
+// ... (your existing script for smooth scroll and IntersectionObserver animations) ...
 document.addEventListener('DOMContentLoaded', function() {
-    // Smooth scroll for anchor links
+    // Smooth scroll for anchor links (if any on this page, good to keep for future)
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
             const href = this.getAttribute('href');
@@ -353,107 +451,40 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
-    // SDG Goals interaction - improved code
-    const sdgGoalItems = document.querySelectorAll('.sdg-goal-item');
-    const sdgDetailTitle = document.querySelector('.sdg-detail-title');
-    const sdgDetailDescription = document.querySelector('.sdg-detail-description');
-    
-    // SDG goal titles and descriptions - focused on architecture relevance
-    const sdgData = {
-        1: { 
-            title: "No Poverty", 
-            description: "Architecture can contribute to reducing poverty through affordable housing solutions, community development, and creating spaces that support economic opportunity."
-        },
-        2: { 
-            title: "Zero Hunger", 
-            description: "Architectural design can integrate urban farming spaces, efficient food storage, and distribution areas to support food security and sustainable agricultural practices."
-        },
-        3: { 
-            title: "Good Health and Well-being", 
-            description: "Building design significantly impacts health through elements like indoor air quality, natural light, biophilic design, and spaces that encourage physical activity."
-        },
-        4: { 
-            title: "Quality Education", 
-            description: "Architects can create learning environments that facilitate education through appropriate acoustics, lighting, spatial configuration, and technology integration."
-        },
-        5: { 
-            title: "Gender Equality", 
-            description: "Inclusive architectural design ensures spaces are accessible, safe, and functional for all genders, addressing different needs in built environments."
-        },
-        6: { 
-            title: "Clean Water and Sanitation", 
-            description: "Building systems can incorporate water efficiency fixtures, rainwater harvesting, greywater recycling, and sustainable drainage solutions."
-        },
-        7: { 
-            title: "Affordable and Clean Energy", 
-            description: "Architectural design can minimize energy demand through passive strategies while integrating renewable energy systems and efficient building systems."
-        },
-        8: { 
-            title: "Decent Work and Economic Growth", 
-            description: "Architects can support economic development through material choices, labor practices, and creating spaces that enhance productivity and wellbeing."
-        },
-        9: { 
-            title: "Industry, Innovation and Infrastructure", 
-            description: "Buildings can showcase innovative construction techniques, adaptive reuse strategies, and resilient infrastructure integration."
-        },
-        10: { 
-            title: "Reduced Inequalities", 
-            description: "Universal design principles ensure that built environments are accessible to people of all abilities, ages, and socioeconomic backgrounds."
-        },
-        11: { 
-            title: "Sustainable Cities and Communities", 
-            description: "Architectural design shapes urban spaces and can promote community connections, cultural heritage preservation, and resilient infrastructure."
-        },
-        12: { 
-            title: "Responsible Consumption and Production", 
-            description: "Sustainable architecture incorporates lifecycle thinking, material efficiency, waste reduction, and circular economy principles."
-        },
-        13: { 
-            title: "Climate Action", 
-            description: "Buildings should minimize carbon footprints through energy efficiency, embodied carbon reduction, and design adaptations for changing climate conditions."
-        },
-        14: { 
-            title: "Life Below Water", 
-            description: "Architectural design can minimize harmful runoff, prevent water pollution, and protect aquatic ecosystems through thoughtful site planning."
-        },
-        15: { 
-            title: "Life on Land", 
-            description: "Site design can preserve or restore natural habitats, improve biodiversity, and integrate native species into building and landscape elements."
-        },
-        16: { 
-            title: "Peace, Justice and Strong Institutions", 
-            description: "Architecture can create spaces that bring diverse communities together and embody principles of transparency, accessibility, and inclusion."
-        },
-        17: { 
-            title: "Partnerships for the Goals", 
-            description: "Sustainable architecture requires collaboration across disciplines, sharing knowledge, and forming partnerships to address complex design challenges."
-        }
+
+    // Optional: Simple fade-in animation for sections as they scroll into view
+    const sections = document.querySelectorAll('.section, .hero-section'); // Include hero-section if you want it to fade in
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1 
     };
-    
-    sdgGoalItems.forEach(item => {
-        item.addEventListener('click', function() {
-            const sdgNumber = this.getAttribute('data-sdg');
-            
-            // Add active class to clicked item
-            sdgGoalItems.forEach(el => el.classList.remove('active'));
-            this.classList.add('active');
-            
-            if (sdgData[sdgNumber]) {
-                // Animate the content change
-                sdgDetailTitle.style.opacity = '0';
-                sdgDetailDescription.style.opacity = '0';
-                
-                setTimeout(() => {
-                    sdgDetailTitle.textContent = `Goal ${sdgNumber}: ${sdgData[sdgNumber].title}`;
-                    sdgDetailDescription.textContent = sdgData[sdgNumber].description;
-                    
-                    sdgDetailTitle.style.opacity = '1';
-                    sdgDetailDescription.style.opacity = '1';
-                }, 300);
+
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('fade-in-visible');
+                observer.unobserve(entry.target); 
             }
         });
+    }, observerOptions);
+
+    sections.forEach(section => {
+        section.classList.add('fade-in-on-scroll'); 
+        observer.observe(section);
     });
 });
 </script>
+<style>
+/* Styles for fade-in animation */
+.fade-in-on-scroll {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.fade-in-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+</style>
 {% endblock %}

@@ -5,7 +5,7 @@ Handles creating, viewing, editing, and analyzing assessments related to
 Sustainable Development Goals (SDGs).
 """
 
-from flask import Blueprint, render_template, redirect, url_for, request, flash, session, jsonify, current_app
+from flask import Blueprint, render_template, redirect, url_for, request, flash, session, jsonify, current_app, json
 from flask_login import login_required, current_user
 from datetime import datetime
 import json
@@ -92,35 +92,77 @@ def show(id):
     """Display assessment results."""
     try:
         user_id = getattr(current_user, 'id', None) or session.get('user_id')
-        
+
         assessment = Assessment.query.get(id)
         if not assessment:
             flash('Assessment not found', 'danger')
             return redirect(url_for('projects.index'))
-        
+
+        # Ensure this is not an expert assessment being viewed via the wrong route
+        if assessment.assessment_type == 'expert':
+            flash('Expert assessments should be viewed via their specific results page.', 'warning')
+            # Redirect to the correct expert results page
+            return redirect(url_for('projects.show_expert_results', assessment_id=assessment.id))
+
         project = Project.query.get(assessment.project_id)
         if not project or project.user_id != user_id:
             flash('You do not have permission to view this assessment', 'danger')
             return redirect(url_for('projects.index'))
-        
-        # Get SDG direct_scores
-        direct_scores_data = SdgScore.query.filter_by(assessment_id=id).all()
-        
-        # Convert ORM objects to dicts
-        def direct_score_to_dict(direct_score):
-            return {c.name: getattr(direct_score, c.name) for c in direct_score.__table__.columns}
-        
-        sdg_direct_scores = [direct_score_to_dict(direct_score) for direct_score in direct_scores_data]
-        
+
+        # Fetch scores along with goal details using the ORM relationship
+        sdg_scores_orm = SdgScore.query.filter_by(assessment_id=assessment.id)\
+                                    .join(SdgGoal)\
+                                    .order_by(SdgGoal.number)\
+                                    .all()
+
+        # Convert ORM objects to dictionaries suitable for JSON serialization AND template access
+        sdg_scores_data = []
+        for score_obj in sdg_scores_orm:
+            goal_obj = score_obj.sdg_goal # Access the relationship
+            score_dict = {
+                'id': score_obj.id,
+                'assessment_id': score_obj.assessment_id,
+                'sdg_id': score_obj.sdg_id,
+                # Include all relevant scores, handling None
+                'direct_score': round(score_obj.direct_score, 1) if score_obj.direct_score is not None else 0.0,
+                'bonus_score': round(score_obj.bonus_score, 1) if score_obj.bonus_score is not None else 0.0,
+                'total_score': round(score_obj.total_score, 1) if score_obj.total_score is not None else 0.0,
+                'raw_score': round(score_obj.raw_score, 1) if score_obj.raw_score is not None else 0.0,
+                'max_possible': round(score_obj.max_possible, 1) if score_obj.max_possible is not None else 0.0,
+                'percentage_score': round(score_obj.percentage_score, 1) if score_obj.percentage_score is not None else 0.0,
+                'question_count': int(score_obj.question_count) if score_obj.question_count is not None else 0,
+                'response_text': score_obj.response_text or '',
+                'notes': score_obj.notes or '',
+                # Include SDG Goal details
+                'number': goal_obj.number if goal_obj else None,
+                'name': goal_obj.name if goal_obj else 'N/A',
+                'color_code': goal_obj.color_code if goal_obj else '#CCCCCC',
+                'description': goal_obj.description if goal_obj else '',
+                'icon': goal_obj.icon if goal_obj else 'fa-question-circle'
+            }
+            sdg_scores_data.append(score_dict)
+
+        overall_score = getattr(assessment, 'overall_score', 0.0)
+
         return render_template(
             'questionnaire/results.html',
             assessment=assessment,
             project=project,
-            sdg_direct_scores=sdg_direct_scores
+            sdg_scores=sdg_scores_data,
+            scores_json=json.dumps(sdg_scores_data),
+            overall_score_display=round(overall_score, 1) if overall_score is not None else 0.0
         )
     except Exception as e:
-        current_app.logger.error(f"Error in show assessment: {str(e)}")
-        flash(f"An error occurred: {str(e)}", 'danger')
+        current_app.logger.error(f"Error in show assessment (route: /assessments/<id>): {str(e)}")
+        current_app.logger.error(traceback.format_exc())
+        flash(f"An error occurred displaying assessment results: {str(e)}", 'danger')
+        # Try to redirect to the project page
+        try:
+            assessment_for_redirect = Assessment.query.get(id)
+            if assessment_for_redirect:
+                return redirect(url_for('projects.show', id=assessment_for_redirect.project_id))
+        except:
+            pass
         return redirect(url_for('projects.index'))
 
 
@@ -487,8 +529,11 @@ def recalculate_direct_scores(assessment_id):
 @assessments_bp.route('/projects/<int:project_id>/questionnaire/<int:assessment_id>/save-draft', methods=['POST'])
 @login_required
 def save_draft(project_id, assessment_id):
-    """Save draft assessment data (receives JSON)."""
+    """Save draft assessment data (receives JSON). Now handles CSRF correctly via header."""
     try:
+        # CSRF protection is likely handled globally for POST/AJAX if Flask-WTF is enabled.
+        # If not, you might need specific checks here.
+
         data = request.json  # Expect JSON data
         if not data:
             return jsonify({'success': False, 'message': 'No data received'}), 400
@@ -500,6 +545,8 @@ def save_draft(project_id, assessment_id):
         if not assessment or assessment.user_id != user_id:
             return jsonify({'success': False, 'message': 'Assessment not found or permission denied'}), 404
 
+        # Optionally validate the structure of 'data' here
+
         assessment.draft_data = json.dumps(data)  # Store as JSON string
         assessment.updated_at = datetime.now()
         db.session.commit()
@@ -507,8 +554,8 @@ def save_draft(project_id, assessment_id):
         return jsonify({'success': True, 'message': 'Draft saved successfully'})
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f"Error saving draft: {str(e)}")
-        return jsonify({'success': False, 'message': str(e)}), 500
+        current_app.logger.error(f"Error saving draft for assessment {assessment_id}: {str(e)}")
+        return jsonify({'success': False, 'message': f'Internal server error: {str(e)}'}), 500
 
 
 @assessments_bp.route('/projects/<int:project_id>/questionnaire/<int:assessment_id>/load-draft', methods=['GET'])
@@ -546,152 +593,141 @@ def load_draft(project_id, assessment_id):
 @login_required
 def submit_assessment(project_id, assessment_id):
     """Submit a completed assessment, save initial responses, and trigger score calculation."""
-    # --- VERY FIRST LOG ---
-    current_app.logger.critical(f"--- ENTERING SUBMIT_ASSESSMENT: Project {project_id}, Assessment {assessment_id} ---")
+    current_app.logger.critical(f"--- ENTERING SUBMIT_ASSESSMENT (AJAX): Project {project_id}, Assessment {assessment_id} ---")
     try:
         user_id = getattr(current_user, 'id', None) or session.get('user_id')
         current_app.logger.info(f"Submit request for project {project_id}, assessment {assessment_id} by user {user_id}")
 
+        # --- Basic Project/Assessment Verification ---
         project = Project.query.filter_by(id=project_id, user_id=user_id).first()
         if not project:
-            flash('Project not found or permission denied', 'danger')
             current_app.logger.warning(f"Submit failed: Project {project_id} not found or access denied for user {user_id}")
-            return redirect(url_for('projects.index'))
+            # Return JSON error for AJAX
+            return jsonify({'success': False, 'message': 'Project not found or permission denied'}), 404
 
         assessment = Assessment.query.get(assessment_id)
         if not assessment or assessment.project_id != project_id:
-            flash('Assessment not found or does not belong to this project', 'danger')
             current_app.logger.warning(f"Submit failed: Assessment {assessment_id} not found or permission denied for user {user_id}")
-            return redirect(url_for('projects.show', id=project_id))
+            # Return JSON error for AJAX
+            return jsonify({'success': False, 'message': 'Assessment not found or does not belong to this project'}), 404
 
-        # --- LOG BEFORE PROCESSING FORM ---
-        current_app.logger.critical("--- ABOUT TO PROCESS FORM DATA ---")
-        current_app.logger.critical(f"Raw request.form keys: {list(request.form.keys())}") # Log keys specifically
+        # --- Process JSON data from AJAX request ---
+        current_app.logger.critical("--- ABOUT TO PROCESS JSON DATA ---")
+        form_data = request.json # <--- CHANGE HERE: Use request.json
+        if not form_data:
+             current_app.logger.error("No JSON data received in submit request.")
+             return jsonify({'success': False, 'message': 'No data received'}), 400
 
-        form_data = request.form.to_dict()
-        current_app.logger.info(f"Form data received (dict): {form_data}")
+        current_app.logger.info(f"JSON data received: {form_data}")
         from app.models.response import QuestionResponse
         from datetime import datetime
         from app.services import scoring_service
-        import traceback
 
-        # --- Step 1: Clear existing responses for this assessment ---
+        # --- Step 1: Clear existing responses ---
         try:
             num_deleted = QuestionResponse.query.filter_by(assessment_id=assessment_id).delete()
-            db.session.commit() # Commit the deletion immediately
+            db.session.commit()
             current_app.logger.info(f"Deleted {num_deleted} existing responses for assessment {assessment_id}.")
         except Exception as del_e:
             db.session.rollback()
             current_app.logger.error(f"Error deleting existing responses for assessment {assessment_id}: {str(del_e)}")
-            flash("Error preparing assessment for new submission.", "danger")
-            return redirect(url_for('projects.show', id=project_id))
+            return jsonify({'success': False, 'message': 'Error preparing assessment for new submission.'}), 500
 
-        # --- Step 2: Save individual question responses ---
+        # --- Step 2: Save new responses from JSON data ---
         responses_to_add = []
-        # --- LOG BEFORE LOOP ---
-        current_app.logger.critical("--- ENTERING FORM DATA LOOP ---")
+        current_app.logger.critical("--- ENTERING JSON DATA LOOP ---")
         for key, value in form_data.items():
-            # --- LOG INSIDE LOOP (FIRST THING) ---
             current_app.logger.info(f"Looping: Processing key '{key}' with value '{value}'")
-
-            # THE CRITICAL CHECK
             if key.startswith('q') and key[1:].isdigit():
-                # --- LOG IF CONDITION MET ---
                 current_app.logger.info(f"Key '{key}' matched condition 'qN'.")
                 try:
                     question_id = int(key[1:])
-                    response_text_value = value
-                    raw_score = scoring_service.map_option_to_score(response_text_value)
-                    current_app.logger.info(f"Mapped score for q_id {question_id} ('{response_text_value}') -> {raw_score}")
 
-                    # --- Check if QuestionResponse model is available ---
-                    try:
-                        from app.models.response import QuestionResponse # Re-check import scope
-                        current_app.logger.info("QuestionResponse model seems available.")
-                    except ImportError:
-                        current_app.logger.error("FAILED TO IMPORT QuestionResponse within loop!")
-                        continue # Skip if model isn't loaded
+                    # Determine response_text based on type (string for radio, list for checkbox)
+                    response_text_value = value # Value could be string or list
+                    raw_score = 0 # Initialize score
+
+                    # Handle single value (radio) vs list (checkbox)
+                    if isinstance(value, list):
+                         # For checkboxes, calculate score based on number selected or specific values
+                         # Example: Simple count-based score (adjust logic as needed)
+                         raw_score = len(value)
+                         # Store the list as JSON string or handle appropriately
+                         response_text_for_db = json.dumps(value)
+                         current_app.logger.info(f"Checkbox q_id {question_id}: values={value}, score={raw_score}")
+                    elif isinstance(value, str):
+                         # For radio buttons, map the single value
+                         raw_score = scoring_service.map_option_to_score(value)
+                         response_text_for_db = value
+                         current_app.logger.info(f"Radio q_id {question_id}: value='{value}', score={raw_score}")
+                    else:
+                         current_app.logger.warning(f"Unexpected value type for {key}: {type(value)}. Skipping.")
+                         continue
 
                     new_response = QuestionResponse(
                         assessment_id=assessment_id,
                         question_id=question_id,
                         response_score=raw_score,
-                        response_text=response_text_value
+                        response_text=response_text_for_db # Use the potentially JSON-stringified value
                     )
                     responses_to_add.append(new_response)
                     current_app.logger.info(f"Added response for q{question_id} to list.")
 
                 except Exception as e:
-                    current_app.logger.error(f"Error processing form field {key}='{value}': {str(e)}")
-                    # current_app.logger.error(traceback.format_exc()) # Keep commented unless needed
+                    current_app.logger.error(f"Error processing JSON field {key}='{value}': {str(e)}")
             else:
-                # --- LOG IF CONDITION NOT MET ---
-                current_app.logger.info(f"Key '{key}' did NOT match condition 'qN'.")
+                 current_app.logger.info(f"Key '{key}' did NOT match condition 'qN' or is not relevant form data (e.g., project_id).")
 
-        # --- LOG AFTER LOOP ---
-        current_app.logger.critical("--- EXITED FORM DATA LOOP ---")
+        current_app.logger.critical("--- EXITED JSON DATA LOOP ---")
 
         if not responses_to_add:
-            current_app.logger.warning(f"No QuestionResponse objects were created from form data for assessment {assessment_id}.")
+             current_app.logger.warning(f"No QuestionResponse objects created from JSON data for assessment {assessment_id}.")
+             # Decide if this is an error - maybe allow submitting empty?
+             # return jsonify({'success': False, 'message': 'No valid responses found in submission'}), 400
         else:
             current_app.logger.info(f"Prepared {len(responses_to_add)} QuestionResponse objects to add.")
             try:
                 db.session.add_all(responses_to_add)
-                db.session.flush()  # Not committed yet, but assigned IDs
-                for resp in responses_to_add:
-                    current_app.logger.debug(f"To be saved: assessment_id={resp.assessment_id}, question_id={resp.question_id}, score={resp.response_score}, text='{resp.response_text}'")
+                db.session.flush()
                 db.session.commit()
                 current_app.logger.info(f"Successfully committed {len(responses_to_add)} responses for assessment {assessment_id}.")
-                # DIAGNOSTIC: Query and print all QuestionResponses for this assessment after commit
-                try:
-                    all_resps = QuestionResponse.query.filter_by(assessment_id=assessment_id).all()
-                    current_app.logger.info(f"Found {len(all_resps)} responses in DB after commit for assessment {assessment_id}.")
-                    for r in all_resps:
-                        current_app.logger.info(f"--> DB row: id={r.id}, assessment_id={r.assessment_id}, question_id={r.question_id}, score={r.response_score}, text='{r.response_text}'")
-                except Exception as postq_e:
-                    current_app.logger.error(f"Error querying QuestionResponses after commit: {str(postq_e)}")
             except Exception as commit_e:
                 db.session.rollback()
-                current_app.logger.error(f"Database commit error while saving responses for assessment {assessment_id}: {str(commit_e)}")
-                flash("Error saving assessment responses.", "danger")
-                return redirect(url_for('projects.show', id=project_id))
+                current_app.logger.error(f"Database commit error saving responses for assessment {assessment_id}: {str(commit_e)}")
+                return jsonify({'success': False, 'message': 'Error saving assessment responses.'}), 500
 
-        # --- Step 2: Trigger Detailed Score Calculation ---
-        # --- LOG BEFORE SCORING ---
+        # --- Step 3: Trigger Detailed Score Calculation ---
         current_app.logger.critical("--- CALLING SCORING SERVICE ---")
         try:
-            current_app.logger.critical("--- CALLING SCORING SERVICE (ORM version) ---")
             calculated_scores = scoring_service.calculate_sdg_scores(assessment_id)
             current_app.logger.info(f"Scores calculated (ORM) for assessment {assessment_id}: {calculated_scores}")
         except Exception as score_calc_e:
-            db.session.rollback()
+            # Note: Responses are saved, but scores failed. Status remains draft? Or completed with error flag?
+            # For now, let's still mark as completed but log the error.
+            db.session.rollback() # Rollback potential partial score saves within the service
             current_app.logger.error(f"CRITICAL Error during score calculation: {str(score_calc_e)}")
-            flash(f"An error occurred during score calculation: {str(score_calc_e)}", 'danger')
-            return redirect(url_for('projects.show', id=project_id))
+            # Don't update status if scoring failed critically
+            return jsonify({'success': False, 'message': f'Responses saved, but score calculation failed: {str(score_calc_e)}'}), 500
 
-        # --- Step 3: Update Assessment Status ---
-        # --- LOG BEFORE FINAL COMMIT ---
+        # --- Step 4: Update Assessment Status ---
         current_app.logger.critical("--- UPDATING ASSESSMENT STATUS ---")
         assessment.status = 'completed'
         assessment.completed_at = datetime.now()
         assessment.updated_at = datetime.now()
+        # Optional: Clear draft data if it exists
+        assessment.draft_data = None
         db.session.commit()
 
-        flash('Assessment submitted and scores calculated successfully!', 'success')
-        # --- LOG BEFORE REDIRECT ---
-        current_app.logger.critical("--- REDIRECTING from submit_assessment ---")
-        return redirect(url_for('assessments.results', project_id=project_id, assessment_id=assessment_id))
+        current_app.logger.info('Assessment submitted and scores calculated successfully!')
+        # Return success for AJAX
+        return jsonify({'success': True, 'message': 'Assessment submitted successfully!'})
 
     except Exception as e:
         db.session.rollback()
-        # --- LOG UNHANDLED EXCEPTION ---
-        current_app.logger.critical(f"--- UNHANDLED EXCEPTION in submit_assessment ---")
+        current_app.logger.critical(f"--- UNHANDLED EXCEPTION in submit_assessment (AJAX) ---")
         current_app.logger.error(f"Error in submit_assessment: {str(e)}")
         current_app.logger.error(traceback.format_exc())
-        flash(f"An error occurred while submitting the assessment: {str(e)}", 'danger')
-        # --- LOG BEFORE REDIRECT ON ERROR ---
-        current_app.logger.critical("--- REDIRECTING from submit_assessment (ERROR) ---")
-        return redirect(url_for('projects.show', id=project_id))
+        return jsonify({'success': False, 'message': f'An internal error occurred: {str(e)}'}), 500
 
 
 # --- Database Management Functions ---

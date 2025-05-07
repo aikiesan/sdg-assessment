@@ -432,3 +432,62 @@ def save_questionnaire_response(assessment_id):
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@api_bp.route('/save-progress', methods=['POST'])
+@token_required
+def save_progress():
+    """Save assessment progress for a section."""
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+
+        # Validate required fields
+        required_fields = ['project_id', 'section_id', 'section_data']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+
+        project_id = data['project_id']
+        section_id = data['section_id']
+        section_data = data['section_data']
+
+        # Verify project exists and user has access
+        project = conn.execute('SELECT * FROM projects WHERE id = ?', (project_id,)).fetchone()
+        if not project:
+            return jsonify({'error': 'Project not found'}), 404
+        if project['user_id'] != g.user_id:
+            return jsonify({'error': 'Unauthorized access to project'}), 403
+
+        # Get or create assessment progress
+        progress = conn.execute('''
+            SELECT * FROM assessment_progress WHERE project_id = ? AND user_id = ?
+        ''', (project_id, g.user_id)).fetchone()
+
+        if not progress:
+            conn.execute('''
+                INSERT INTO assessment_progress (project_id, user_id, data, last_updated)
+                VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+            ''', (project_id, g.user_id, {}, datetime.datetime.utcnow()))
+
+        # Update section data
+        if not progress['data']:
+            progress['data'] = {}
+        progress['data'][section_id] = section_data
+        progress['last_updated'] = datetime.datetime.utcnow()
+
+        conn.execute('''
+            UPDATE assessment_progress SET data = ?, last_updated = ? WHERE project_id = ? AND user_id = ?
+        ''', (json.dumps(progress['data']), progress['last_updated'], project_id, g.user_id))
+        conn.commit()
+
+        return jsonify({
+            'status': 'success',
+            'message': f'Progress saved for section {section_id}',
+            'timestamp': progress['last_updated'].isoformat()
+        })
+
+    except Exception as e:
+        conn.rollback()
+        print(f"Error saving progress: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
