@@ -10,13 +10,13 @@
     }
     
     .auth-card {
-        border-radius: 1rem;
+        border-radius: var(--bs-border-radius-lg, 1rem);
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         overflow: hidden;
     }
     
     .auth-card .card-header {
-        background: linear-gradient(135deg, #28a745, #20913a);
+        background-color: var(--uia-primary, #4a5c9e);
         color: white;
         padding: 1.5rem;
         text-align: center;
@@ -30,33 +30,34 @@
     .form-control {
         padding: 0.75rem 1rem;
         height: auto;
-        border-radius: 0.5rem;
-        border: 1px solid #e0e0e0;
+        border-radius: var(--bs-border-radius-md, 0.5rem);
+        border: 1px solid var(--uia-border-color, #e0e0e0);
         box-shadow: none;
         transition: all 0.3s ease;
     }
     
     .form-control:focus {
-        border-color: #28a745;
-        box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.15);
+        border-color: var(--uia-primary, #4a5c9e);
+        box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--uia-primary, #4a5c9e) 15%, transparent);
     }
     
     .form-label {
         font-weight: 500;
-        color: #495057;
+        color: var(--uia-text-color, #495057);
     }
     
     .btn-register {
         padding: 0.75rem 1.5rem;
         font-weight: 600;
-        border-radius: 0.5rem;
-        background: linear-gradient(135deg, #28a745, #20913a);
+        border-radius: var(--bs-border-radius-md, 0.5rem);
+        background-color: var(--uia-primary, #4a5c9e);
         border: none;
         transition: all 0.3s ease;
+        color: white;
     }
     
     .btn-register:hover, .btn-register:focus {
-        background: linear-gradient(135deg, #20913a, #187e32);
+        background-color: var(--uia-secondary, #2c7bbc);
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     }
@@ -74,14 +75,14 @@
         left: 0;
         right: 0;
         height: 1px;
-        background-color: #e0e0e0;
+        background-color: var(--uia-border-color, #e0e0e0);
     }
     
     .auth-divider span {
         position: relative;
         padding: 0 1rem;
         background-color: white;
-        color: #6c757d;
+        color: var(--uia-text-muted, #6c757d);
     }
     
     .auth-footer {
@@ -90,8 +91,8 @@
     }
     
     .input-group-text {
-        background-color: #f8f9fa;
-        border-color: #e0e0e0;
+        background-color: var(--uia-bg-light, #f8f9fa);
+        border-color: var(--uia-border-color, #e0e0e0);
     }
 
     .password-toggle {
@@ -101,9 +102,9 @@
 
     .password-strength-meter {
         height: 5px;
-        border-radius: 5px;
+        border-radius: var(--bs-border-radius-sm, 5px);
         margin-top: 8px;
-        background-color: #e9ecef;
+        background-color: var(--uia-bg-light, #e9ecef);
         position: relative;
         overflow: hidden;
     }
@@ -111,71 +112,69 @@
     .password-strength-fill {
         height: 100%;
         width: 0;
-        transition: width 0.3s ease;
+        transition: width 0.3s ease, background-color 0.3s ease;
     }
 
     .password-strength-text {
         font-size: 0.75rem;
         margin-top: 5px;
         text-align: right;
+        transition: color 0.3s ease;
     }
 
     .auth-alt-option {
-        background-color: #f8f9fa;
-        border-top: 1px solid #e0e0e0;
+        background-color: var(--uia-bg-light, #f8f9fa);
+        border-top: 1px solid var(--uia-border-color, #e0e0e0);
         padding: 1.25rem;
         text-align: center;
     }
-    
+
+    .auth-alt-option a {
+        color: var(--uia-primary, #4a5c9e);
+        font-weight: 600;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .auth-alt-option a:hover {
+        color: var(--uia-secondary, #2c7bbc);
+        text-decoration: underline;
+    }
+
     .tooltip-icon {
         cursor: help;
-        color: #6c757d;
+        color: var(--uia-text-muted, #6c757d);
     }
-    
+
     .form-row {
-        display: flex;
-        flex-wrap: wrap;
-        margin-right: -10px;
-        margin-left: -10px;
+        margin-right: -0.5rem;
+        margin-left: -0.5rem;
     }
-    
+
     .form-col {
-        flex: 0 0 100%;
-        max-width: 100%;
-        padding-right: 10px;
-        padding-left: 10px;
+        padding-right: 0.5rem;
+        padding-left: 0.5rem;
     }
-    
-    @media (min-width: 576px) {
-        .form-col-md {
-            flex: 0 0 50%;
-            max-width: 50%;
-        }
-    }
-    
-    /* Modal styles */
+
     .modal-title {
-        color: #20913a;
+        color: var(--uia-primary, #4a5c9e);
         font-weight: 600;
     }
-    
-    .modal-body {
-        max-height: 70vh;
-        overflow-y: auto;
+
+    .form-check-label a {
+        color: var(--uia-primary, #4a5c9e);
+        text-decoration: none;
+        transition: color 0.2s ease;
     }
-    
-    .modal-section {
-        margin-bottom: 1.5rem;
+
+    .form-check-label a:hover {
+        color: var(--uia-secondary, #2c7bbc);
+        text-decoration: underline;
     }
-    
-    .modal-section h5 {
-        color: #343a40;
-        margin-bottom: 0.75rem;
-        font-weight: 600;
-    }
-    
-    .modal-content {
-        border-radius: 0.75rem;
+
+    .form-check-input:checked {
+        background-color: var(--uia-primary, #4a5c9e);
+        border-color: var(--uia-primary, #4a5c9e);
     }
 </style>
 {% endblock %}
@@ -184,11 +183,11 @@
 <div class="auth-container">
     <div class="card auth-card">
         <div class="card-header">
-            <div class="mb-3">
-                <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="Logo" class="img-fluid" style="max-height: 60px;" onerror="handleImgError(this);">
+            <div class="text-center mb-4">
+                <img src="{{ url_for('static', filename='img/UIA_LOGO.png') }}" alt="UIA Logo" class="img-fluid mb-3" style="max-height: 60px;">
+                <h4 class="mb-0">Create Account</h4>
+                <p class="text-muted">Join us to start your SDG assessment journey</p>
             </div>
-            <h4 class="mb-1">Create Your Account</h4>
-            <p class="text-white-50 mb-0">Start your sustainability assessment journey</p>
         </div>
         
         <div class="card-body">
@@ -211,7 +210,7 @@
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-envelope"></i></span>
                             <input type="email" class="form-control" id="email" name="email" 
-                                   placeholder="name@example.com" required>
+                                   placeholder="lucassnakamura@gmail.com" required>
                         </div>
                     </div>
                 </div>
@@ -542,27 +541,30 @@
         let strengthPercentage = (strength / 5) * 100;
         strengthMeter.style.width = strengthPercentage + '%';
         
+        // Get theme colors
+        const uiaPrimaryColor = getComputedStyle(document.documentElement).getPropertyValue('--uia-primary').trim() || '#4a5c9e';
+        
         // Set color based on strength
-        if (strengthPercentage <= 20) {
-            strengthMeter.style.backgroundColor = '#dc3545'; // Very weak - red
+        if (strengthPercentage <= 20) { // Very Weak
+            strengthMeter.style.backgroundColor = 'var(--bs-danger, #dc3545)';
             strengthText.textContent = 'Very weak';
-            strengthText.style.color = '#dc3545';
-        } else if (strengthPercentage <= 40) {
-            strengthMeter.style.backgroundColor = '#ffc107'; // Weak - yellow
+            strengthText.style.color = 'var(--bs-danger, #dc3545)';
+        } else if (strengthPercentage <= 40) { // Weak
+            strengthMeter.style.backgroundColor = 'var(--bs-warning, #ffc107)';
             strengthText.textContent = 'Weak';
-            strengthText.style.color = '#ffc107';
-        } else if (strengthPercentage <= 60) {
-            strengthMeter.style.backgroundColor = '#fd7e14'; // Moderate - orange
+            strengthText.style.color = 'var(--bs-warning, #ffc107)';
+        } else if (strengthPercentage <= 60) { // Moderate
+            strengthMeter.style.backgroundColor = 'var(--bs-info, #0ea5e9)';
             strengthText.textContent = 'Moderate';
-            strengthText.style.color = '#fd7e14';
-        } else if (strengthPercentage <= 80) {
-            strengthMeter.style.backgroundColor = '#20c997'; // Strong - teal
+            strengthText.style.color = 'var(--bs-info, #0ea5e9)';
+        } else if (strengthPercentage <= 80) { // Strong
+            strengthMeter.style.backgroundColor = 'var(--bs-success, #198754)';
             strengthText.textContent = 'Strong';
-            strengthText.style.color = '#20c997';
-        } else {
-            strengthMeter.style.backgroundColor = '#28a745'; // Very strong - green
+            strengthText.style.color = 'var(--bs-success, #198754)';
+        } else { // Very Strong
+            strengthMeter.style.backgroundColor = uiaPrimaryColor;
             strengthText.textContent = 'Very strong';
-            strengthText.style.color = '#28a745';
+            strengthText.style.color = uiaPrimaryColor;
         }
     }
     
