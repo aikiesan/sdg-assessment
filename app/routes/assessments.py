@@ -89,100 +89,31 @@ def map_option_to_direct_score(option):
 @assessments_bp.route('/<int:id>')
 @login_required
 def show(id):
-    """Display assessment results."""
-    try:
-        user_id = getattr(current_user, 'id', None) or session.get('user_id')
-
-        assessment = Assessment.query.get(id)
-        if not assessment:
-            flash('Assessment not found', 'danger')
-            return redirect(url_for('projects.index'))
-
-        # Ensure this is not an expert assessment being viewed via the wrong route
-        if assessment.assessment_type == 'expert':
-            flash('Expert assessments should be viewed via their specific results page.', 'warning')
-            # Redirect to the correct expert results page
-            return redirect(url_for('projects.show_expert_results', assessment_id=assessment.id))
-
-        project = Project.query.get(assessment.project_id)
-        if not project or project.user_id != user_id:
-            flash('You do not have permission to view this assessment', 'danger')
-            return redirect(url_for('projects.index'))
-
-        # Fetch scores along with goal details using the ORM relationship
-        sdg_scores_orm = SdgScore.query.filter_by(assessment_id=assessment.id)\
-                                    .join(SdgGoal)\
-                                    .order_by(SdgGoal.number)\
-                                    .all()
-
-        # Convert ORM objects to dictionaries suitable for JSON serialization AND template access
-        sdg_scores_data = []
-        for score_obj in sdg_scores_orm:
-            goal_obj = score_obj.sdg_goal # Access the relationship
-            score_dict = {
-                'id': score_obj.id,
-                'assessment_id': score_obj.assessment_id,
-                'sdg_id': score_obj.sdg_id,
-                # Include all relevant scores, handling None
-                'direct_score': round(score_obj.direct_score, 1) if score_obj.direct_score is not None else 0.0,
-                'bonus_score': round(score_obj.bonus_score, 1) if score_obj.bonus_score is not None else 0.0,
-                'total_score': round(score_obj.total_score, 1) if score_obj.total_score is not None else 0.0,
-                'raw_score': round(score_obj.raw_score, 1) if score_obj.raw_score is not None else 0.0,
-                'max_possible': round(score_obj.max_possible, 1) if score_obj.max_possible is not None else 0.0,
-                'percentage_score': round(score_obj.percentage_score, 1) if score_obj.percentage_score is not None else 0.0,
-                'question_count': int(score_obj.question_count) if score_obj.question_count is not None else 0,
-                'response_text': score_obj.response_text or '',
-                'notes': score_obj.notes or '',
-                # Include SDG Goal details
-                'number': goal_obj.number if goal_obj else None,
-                'name': goal_obj.name if goal_obj else 'N/A',
-                'color_code': goal_obj.color_code if goal_obj else '#CCCCCC',
-                'description': goal_obj.description if goal_obj else '',
-                'icon': goal_obj.icon if goal_obj else 'fa-question-circle'
-            }
-            sdg_scores_data.append(score_dict)
-
-        overall_score = getattr(assessment, 'overall_score', 0.0)
-
-        return render_template(
-            'questionnaire/results.html',
-            assessment=assessment,
-            project=project,
-            sdg_scores=sdg_scores_data,
-            scores_json=json.dumps(sdg_scores_data),
-            overall_score_display=round(overall_score, 1) if overall_score is not None else 0.0
-        )
-    except Exception as e:
-        current_app.logger.error(f"Error in show assessment (route: /assessments/<id>): {str(e)}")
-        current_app.logger.error(traceback.format_exc())
-        flash(f"An error occurred displaying assessment results: {str(e)}", 'danger')
-        # Try to redirect to the project page
-        try:
-            assessment_for_redirect = Assessment.query.get(id)
-            if assessment_for_redirect:
-                return redirect(url_for('projects.show', id=assessment_for_redirect.project_id))
-        except:
-            pass
-        return redirect(url_for('projects.index'))
+    """Show assessment details."""
+    assessment = db.session.get(Assessment, id)
+    if not assessment:
+        abort(404)
+    
+    project = db.session.get(Project, assessment.project_id)
+    if not project or project.user_id != current_user.id:
+        abort(403)
+    
+    return render_template('assessments/show.html', assessment=assessment, project=project)
 
 
 @assessments_bp.route('/projects/<int:project_id>/new', methods=['GET', 'POST'])
 @login_required
 def new(project_id):
     """Create a new assessment for a project and redirect to the first step."""
-    current_app.logger.critical(f"NEW_ROUTE: === VERY TOP of 'new' function for project {project_id} ===")
-    current_app.logger.info(f"NEW_ROUTE: === BEFORE assessment creation for project {project_id} ===")
-    current_app.logger.info(f"Attempting to create new assessment for project {project_id}")
     try:
         user_id = getattr(current_user, 'id', None) or session.get('user_id')
 
-        project = Project.query.filter_by(id=project_id, user_id=user_id).first()
-        if not project:
+        project = db.session.get(Project, project_id)
+        if not project or project.user_id != user_id:
             flash('Project not found or you do not have permission to access it', 'danger')
-            current_app.logger.warning(f"New assessment failed: Project {project_id} not found or access denied for user {user_id}")
             return redirect(url_for('projects.index'))
 
-        # --- Always create the assessment on GET ---
+        # Create the assessment
         assessment = Assessment(
             project_id=project_id,
             user_id=user_id,
@@ -191,28 +122,19 @@ def new(project_id):
             updated_at=datetime.now()
         )
         db.session.add(assessment)
-        db.session.commit() # Commit to get the assessment ID
-        current_app.logger.info(f"Successfully created new assessment with ID {assessment.id} for project {project_id}")
-        current_app.logger.info(f"NEW_ROUTE: === AFTER assessment creation for project {project_id}, assessment_id {assessment.id} ===")
+        db.session.commit()
 
         flash('New assessment started. Complete the questionnaire to evaluate your project.', 'success')
 
-        # --- Always redirect to the first questionnaire step ---
         return redirect(url_for('assessments.questionnaire_step',
                               project_id=project_id,
-                              assessment_id=assessment.id, # Use the newly created ID
+                              assessment_id=assessment.id,
                               step=1))
 
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f"Error creating new assessment for project {project_id}: {str(e)}", exc_info=True)
-        flash('Error starting new assessment. Please try again.', 'danger')
-        # *** IMPORTANT: DO NOT CALL url_for('assessments.submit_assessment') here ***
-        # If the error was the BuildError, redirecting simply avoids logging it again.
-        return redirect(url_for('projects.index'))
-    except Exception as e:
         current_app.logger.error(f"Error creating new assessment: {str(e)}")
-        flash(f"An error occurred: {str(e)}", 'danger')
+        flash('Error starting new assessment. Please try again.', 'danger')
         return redirect(url_for('projects.index'))
 
 
@@ -237,8 +159,8 @@ def questionnaire_step(project_id, assessment_id, step):
         }
         
         # Verify project and assessment
-        project = Project.query.filter_by(id=project_id, user_id=user_id).first()
-        assessment = Assessment.query.get(assessment_id)
+        project = db.session.get(Project, project_id)
+        assessment = db.session.get(Assessment, assessment_id)
         
         if not project or not assessment or assessment.project_id != project.id:
             flash('Project or assessment not found, or permission denied.', 'danger')
@@ -317,13 +239,13 @@ def finalize(id):
     try:
         user_id = getattr(current_user, 'id', None) or session.get('user_id')
         
-        assessment = Assessment.query.get(id)
+        assessment = db.session.get(Assessment, id)
         if not assessment:
             flash('Assessment not found', 'danger')
             return redirect(url_for('projects.index'))
         
         project_id = assessment.project_id
-        project = Project.query.get(project_id)
+        project = db.session.get(Project, project_id)
         
         if not project or project.user_id != user_id:
             flash('You do not have permission to finalize this assessment', 'danger')
@@ -361,35 +283,25 @@ def finalize(id):
         return redirect(url_for('projects.index'))
 
 
-@assessments_bp.route('/<int:assessment_id>/delete', methods=['POST'])
+@assessments_bp.route('/<int:id>/delete', methods=['POST'])
 @login_required
-def delete(assessment_id):
-    """Delete an assessment and its associated SDG direct_scores."""
-    try:
-        user_id = getattr(current_user, 'id', None) or session.get('user_id')
-        
-        assessment = Assessment.query.get(assessment_id)
-        if not assessment:
-            flash('Assessment not found.', 'danger')
-            return redirect(url_for('projects.index'))
-        
-        project = Project.query.get(assessment.project_id)
-        if not project or project.user_id != user_id:
-            flash('You do not have permission to delete this assessment.', 'danger')
-            return redirect(url_for('projects.index'))
-        
-        # Delete SDG direct_scores and the assessment
-        SdgScore.query.filter_by(assessment_id=assessment_id).delete()
-        db.session.delete(assessment)
-        db.session.commit()
-        
-        flash('Assessment deleted successfully.', 'success')
-        return redirect(url_for('projects.show', id=project.id))
-    except Exception as e:
-        db.session.rollback()
-        current_app.logger.error(f"Error deleting assessment: {str(e)}")
-        flash(f"An error occurred: {str(e)}", 'danger')
-        return redirect(url_for('projects.index'))
+def delete(id):
+    """Delete an assessment."""
+    assessment = db.session.get(Assessment, id)
+    if not assessment:
+        abort(404)
+    
+    project = db.session.get(Project, assessment.project_id)
+    if not project or project.user_id != current_user.id:
+        abort(403)
+    
+    # Delete SDG scores and the assessment
+    SdgScore.query.filter_by(assessment_id=id).delete()
+    db.session.delete(assessment)
+    db.session.commit()
+    
+    flash('Assessment deleted successfully.', 'success')
+    return redirect(url_for('projects.show', id=project.id))
 
 
 @assessments_bp.route('/<int:id>/finalize-api', methods=['POST'])
@@ -402,11 +314,11 @@ def finalize_assessment(id):
     try:
         user_id = getattr(current_user, 'id', None) or session.get('user_id')
         
-        assessment = Assessment.query.get(id)
+        assessment = db.session.get(Assessment, id)
         if not assessment:
             return jsonify({'success': False, 'message': 'Assessment not found'}), 404
         
-        project = Project.query.get(assessment.project_id)
+        project = db.session.get(Project, assessment.project_id)
         if not project or project.user_id != user_id:
             return jsonify({'success': False, 'message': 'Permission denied'}), 403
         
@@ -428,12 +340,12 @@ def results(project_id, assessment_id):
     try:
         user_id = getattr(current_user, 'id', None) or session.get('user_id')
 
-        assessment = Assessment.query.get(assessment_id)
+        assessment = db.session.get(Assessment, assessment_id)
         if not assessment:
             flash('Assessment not found', 'danger')
             return redirect(url_for('projects.index'))
 
-        project = Project.query.get(assessment.project_id)
+        project = db.session.get(Project, assessment.project_id)
         if not project or project.user_id != user_id:
             flash('You do not have permission to view this assessment', 'danger')
             return redirect(url_for('projects.index'))
@@ -493,12 +405,12 @@ def recalculate_direct_scores(assessment_id):
     try:
         user_id = getattr(current_user, 'id', None) or session.get('user_id')
 
-        assessment = Assessment.query.get(assessment_id)
+        assessment = db.session.get(Assessment, assessment_id)
         if not assessment:
             flash('Assessment not found', 'danger')
             return redirect(url_for('projects.index'))
 
-        project = Project.query.get(assessment.project_id)
+        project = db.session.get(Project, assessment.project_id)
         if not project or project.user_id != user_id:
             flash('You do not have permission to recalculate this assessment', 'danger')
             return redirect(url_for('projects.index'))
@@ -540,7 +452,7 @@ def save_draft(project_id, assessment_id):
 
         user_id = getattr(current_user, 'id', None) or session.get('user_id')
 
-        assessment = Assessment.query.filter_by(id=assessment_id, project_id=project_id).first()
+        assessment = db.session.get(Assessment, assessment_id)
         # Ensure user owns the assessment
         if not assessment or assessment.user_id != user_id:
             return jsonify({'success': False, 'message': 'Assessment not found or permission denied'}), 404
@@ -565,7 +477,7 @@ def load_draft(project_id, assessment_id):
     try:
         user_id = getattr(current_user, 'id', None) or session.get('user_id')
 
-        assessment = Assessment.query.filter_by(id=assessment_id, project_id=project_id).first()
+        assessment = db.session.get(Assessment, assessment_id)
         # Ensure user owns the assessment
         if not assessment or assessment.user_id != user_id:
             return jsonify({'success': False, 'message': 'Assessment not found or permission denied'}), 404
@@ -599,13 +511,13 @@ def submit_assessment(project_id, assessment_id):
         current_app.logger.info(f"Submit request for project {project_id}, assessment {assessment_id} by user {user_id}")
 
         # --- Basic Project/Assessment Verification ---
-        project = Project.query.filter_by(id=project_id, user_id=user_id).first()
+        project = db.session.get(Project, project_id)
         if not project:
             current_app.logger.warning(f"Submit failed: Project {project_id} not found or access denied for user {user_id}")
             # Return JSON error for AJAX
             return jsonify({'success': False, 'message': 'Project not found or permission denied'}), 404
 
-        assessment = Assessment.query.get(assessment_id)
+        assessment = db.session.get(Assessment, assessment_id)
         if not assessment or assessment.project_id != project_id:
             current_app.logger.warning(f"Submit failed: Assessment {assessment_id} not found or permission denied for user {user_id}")
             # Return JSON error for AJAX

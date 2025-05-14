@@ -396,9 +396,10 @@
                         <table class="table assessment-table table-hover mb-0">
                             <thead>
                                 <tr>
+                                    <th>ID</th>
                                     <th>Type</th>
                                     <th>Status</th>
-                                    <th class="text-center">Score</th> {# Centered score header #}
+                                    <th class="text-center">Score</th>
                                     <th>Last Updated</th>
                                     <th class="text-end">Actions</th>
                                 </tr>
@@ -406,6 +407,7 @@
                             <tbody>
                                 {% for assessment in assessments %}
                                 <tr>
+                                    <td>Assessment ID: {{ assessment.id }}</td>
                                     <td>
                                         {% if assessment.assessment_type == 'expert' %}
                                             <span class="badge bg-info text-dark" title="Expert Assessment"><i class="bi bi-star-fill me-1"></i>Expert</span>
@@ -539,7 +541,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form action="{{ url_for('assessments.delete', assessment_id=assessment.id) }}" method="POST" class="d-inline">
+                <form action="{{ url_for('assessments.delete', id=assessment.id) }}" method="POST" class="d-inline">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-danger">
                        <i class="bi bi-trash3-fill me-2"></i> Yes, Delete Assessment

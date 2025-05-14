@@ -12,24 +12,30 @@ from app import db
 from app.models.assessment import Assessment, SdgScore
 from app.models.project import Project
 
-def get_assessment(assessment_id, user_id):
-    """
-    Get assessment and verify user has access.
-    
-    Returns:
-        tuple: (assessment, project, error)
-    """
-    assessment = Assessment.query.get(assessment_id)
-    
+def get_assessment(assessment_id):
+    """Get an assessment by ID."""
+    return db.session.get(Assessment, assessment_id)
+
+def get_project_for_assessment(assessment_id):
+    """Get the project associated with an assessment."""
+    assessment = db.session.get(Assessment, assessment_id)
+    if assessment:
+        return db.session.get(Project, assessment.project_id)
+    return None
+
+def update_assessment(assessment_id, data):
+    """Update an assessment."""
+    assessment = db.session.get(Assessment, assessment_id)
     if not assessment:
-        return None, None, 'Assessment not found'
+        return None
     
-    project = Project.query.get(assessment.project_id)
+    for key, value in data.items():
+        if hasattr(assessment, key):
+            setattr(assessment, key, value)
     
-    if not project or project.user_id != user_id:
-        return None, None, 'You do not have permission to access this assessment'
-    
-    return assessment, project, None
+    assessment.updated_at = datetime.now()
+    db.session.commit()
+    return assessment
 
 def create_assessment(project_id, user_id):
     """Create a new assessment for a project."""
@@ -69,7 +75,7 @@ def save_assessment_scores(assessment_id, sdgs, form_data):
                     db.session.add(new_score)
         
         # Update assessment timestamp
-        assessment = Assessment.query.get(assessment_id)
+        assessment = db.session.get(Assessment, assessment_id)
         assessment.updated_at = datetime.now()
         
         db.session.commit()

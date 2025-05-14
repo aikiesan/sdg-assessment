@@ -15,7 +15,7 @@ class Config:
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')  # Your email address
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')  # Your email password or app password
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER') or (MAIL_USERNAME if 'MAIL_USERNAME' in os.environ else None)
-    ADMINS = [os.environ.get('ADMIN_EMAIL') or 'your-admin-email@example.com']  # For error reporting maybe
+    ADMINS = [os.environ.get('ADMIN_EMAIL') or 'lucassnakamura@gmail.com']  # For error reporting
     # --- End Flask-Mail Config ---
 
 class DevelopmentConfig(Config):

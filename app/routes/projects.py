@@ -12,156 +12,221 @@ from app import db
 from datetime import datetime
 from ..scoring_logic import calculate_scores_python  # Import the scoring function
 from app.utils.sdg_data import SDG_INFO  # Import SDG_INFO for the results page
+from app.forms.project_forms import ProjectForm
 
 projects_bp = Blueprint('projects', __name__)
 
 @projects_bp.route('/', strict_slashes=False)
 @login_required
 def index():
-    """Display all projects for the current user with search and sort functionality."""
-    user_id = current_user.id
+    """Show all projects for the current user."""
+    page = request.args.get('page', 1, type=int)
+    sort = request.args.get('sort', 'created_at')
+    order = request.args.get('order', 'desc')
+    project_type = request.args.get('type')
+    status = request.args.get('status')
+    min_budget = request.args.get('min_budget', type=float)
+    max_budget = request.args.get('max_budget', type=float)
     
-    # Get search and sort parameters from URL
-    search_term = request.args.get('search', '').strip()
-    sort_by = request.args.get('sort', 'name')  # Default sort by name
+    query = Project.query.filter_by(user_id=current_user.id)
     
-    # Start with base query
-    query = Project.query.filter_by(user_id=user_id)
-    
-    # Apply search filter if present
-    if search_term:
-        query = query.filter(
-            Project.name.ilike(f'%{search_term}%') |
-            Project.description.ilike(f'%{search_term}%') |
-            Project.location.ilike(f'%{search_term}%')
-        )
+    # Apply filters
+    if project_type:
+        query = query.filter_by(project_type=project_type)
+    if status:
+        query = query.filter_by(status=status)
+    if min_budget is not None:
+        query = query.filter(Project.budget >= min_budget)
+    if max_budget is not None:
+        query = query.filter(Project.budget <= max_budget)
     
     # Apply sorting
-    if sort_by == 'name':
-        query = query.order_by(Project.name.asc())
-    elif sort_by == 'name_desc':
-        query = query.order_by(Project.name.desc())
-    elif sort_by == 'date_desc':
-        query = query.order_by(Project.updated_at.desc())
-    elif sort_by == 'date_asc':
-        query = query.order_by(Project.updated_at.asc())
-    elif sort_by == 'assessment_count_desc':
-        # For assessment_count, we'll use a subquery
-        assessment_count_subquery = db.session.query(
-            Assessment.project_id,
-            db.func.count(Assessment.id).label('assessment_count')
-        ).group_by(Assessment.project_id).subquery()
-        
-        query = query.outerjoin(
-            assessment_count_subquery,
-            Project.id == assessment_count_subquery.c.project_id
-        ).order_by(
-            db.case(
-                [(assessment_count_subquery.c.assessment_count == None, 0)],
-                else_=assessment_count_subquery.c.assessment_count
-            ).desc()
-        )
-    elif sort_by == 'assessment_count_asc':
-        assessment_count_subquery = db.session.query(
-            Assessment.project_id,
-            db.func.count(Assessment.id).label('assessment_count')
-        ).group_by(Assessment.project_id).subquery()
-        
-        query = query.outerjoin(
-            assessment_count_subquery,
-            Project.id == assessment_count_subquery.c.project_id
-        ).order_by(
-            db.case(
-                [(assessment_count_subquery.c.assessment_count == None, 0)],
-                else_=assessment_count_subquery.c.assessment_count
-            ).asc()
-        )
-    else:
-        query = query.order_by(Project.updated_at.desc())  # Default sort
+    if sort == 'name':
+        query = query.order_by(Project.name.desc() if order == 'desc' else Project.name.asc())
+    elif sort == 'budget':
+        query = query.order_by(Project.budget.desc() if order == 'desc' else Project.budget.asc())
+    else:  # default to created_at
+        query = query.order_by(Project.created_at.desc() if order == 'desc' else Project.created_at.asc())
     
-    # Execute query and add assessment_count to each project
-    projects = query.all()
-    for project in projects:
-        project.assessment_count = len(project.assessments)
-    
-    return render_template('projects/index.html', 
-                         projects=projects, 
-                         search_term=search_term, 
-                         current_sort=sort_by)
+    projects = query.paginate(page=page, per_page=10)
+    return render_template('projects/index.html', projects=projects)
 
 @projects_bp.route('/<int:id>')
 @login_required
 def show(id):
-    # --- Use get_or_404 ---
-    project = Project.query.get_or_404(id)
-    # --- END ---
+    """Show a specific project."""
+    project = db.session.get(Project, id)
+    if project is None:
+        abort(404)
     if project.user_id != current_user.id:
-        abort(403)
-    assessments = Assessment.query.filter_by(project_id=id).order_by(Assessment.created_at.desc()).all()
-    return render_template('projects/show.html', project=project, assessments=assessments)
-
+        abort(403)  # Forbidden
+    return render_template('projects/show.html', project=project)
 
 @projects_bp.route('/new', methods=['GET', 'POST'])
 @login_required
 def new_project():
-    if request.method == 'POST':
-        name = request.form.get('name')
-        description = request.form.get('description')
-        project_type = request.form.get('project_type')
-        location = request.form.get('location')
-        size_sqm = request.form.get('size_sqm')
-        
-        if not name:
-            flash('Project name is required.', 'danger')
-            return render_template('projects/new.html')
-        
+    """Create a new project."""
+    form = ProjectForm()
+    if form.validate_on_submit():
         project = Project(
-            name=name,
-            description=description,
-            project_type=project_type,
-            location=location,
-            size_sqm=float(size_sqm) if size_sqm else None,
+            name=form.name.data,
+            description=form.description.data,
+            project_type=form.project_type.data,
+            location=form.location.data,
+            size_sqm=form.size_sqm.data,
+            start_date=form.start_date.data,
+            end_date=form.end_date.data,
+            budget=form.budget.data,
+            sector=form.sector.data,
             user_id=current_user.id
         )
         db.session.add(project)
-        try:
-            db.session.commit()
-            flash('Project created successfully!', 'success')
-            return redirect(url_for('projects.index'))
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error creating project: {str(e)}', 'danger')
-            return render_template('projects/new.html')
-    
-    return render_template('projects/new.html')
+        db.session.commit()
+        flash('Project created successfully', 'success')
+        return redirect(url_for('projects.show', id=project.id))
+    return render_template('projects/new.html', form=form)
 
 @projects_bp.route('/<int:id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit(id):
-    """Edit an existing project."""
-    project = Project.query.filter_by(id=id, user_id=current_user.id).first()
-    if not project:
-        flash('Project not found or you don\'t have permission to edit it', 'danger')
-        return redirect(url_for('projects.index'))
-    if request.method == 'POST':
-        name = request.form.get('name')
-        description = request.form.get('description')
-        project_type = request.form.get('project_type')
-        location = request.form.get('location')
-        size_sqm = request.form.get('size_sqm')
-        try:
-            project.name = name
-            project.description = description
-            project.project_type = project_type
-            project.location = location
-            project.size_sqm = float(size_sqm) if size_sqm else None
-            db.session.commit()
-            flash('Project updated successfully!', 'success')
-            return redirect(url_for('projects.show', id=id))
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error updating project: {str(e)}', 'danger')
-    return render_template('projects/edit.html', project=project)
+    """Edit a project."""
+    project = db.session.get(Project, id)
+    if project is None:
+        abort(404)
+    if project.user_id != current_user.id:
+        abort(403)  # Forbidden
+    
+    form = ProjectForm(obj=project)
+    if form.validate_on_submit():
+        form.populate_obj(project)
+        db.session.commit()
+        flash('Project updated successfully', 'success')
+        return redirect(url_for('projects.show', id=project.id))
+    return render_template('projects/edit.html', form=form, project=project)
+
+@projects_bp.route('/<int:id>/delete', methods=['POST'])
+@login_required
+def delete(id):
+    """Delete a project."""
+    project = db.session.get(Project, id)
+    if project is None:
+        abort(404)
+    if project.user_id != current_user.id:
+        abort(403)  # Forbidden
+    
+    db.session.delete(project)
+    db.session.commit()
+    flash('Project deleted successfully', 'success')
+    return redirect(url_for('projects.index'))
+
+@projects_bp.route('/<int:id>/status', methods=['POST'])
+@login_required
+def update_status(id):
+    """Update project status."""
+    project = db.session.get(Project, id)
+    if project is None:
+        abort(404)
+    if project.user_id != current_user.id:
+        abort(403)  # Forbidden
+    
+    status = request.form.get('status')
+    if status not in ['planning', 'in_progress', 'completed', 'on_hold', 'cancelled']:
+        flash('Invalid status', 'error')
+        return redirect(url_for('projects.show', id=id))
+    
+    project.status = status
+    db.session.commit()
+    flash(f'Project status updated to {status}', 'success')
+    return redirect(url_for('projects.show', id=id))
+
+@projects_bp.route('/search')
+@login_required
+def search():
+    """Search projects."""
+    query = request.args.get('q', '')
+    project_type = request.args.get('type')
+    
+    search_query = Project.query.filter_by(user_id=current_user.id)
+    
+    if query:
+        search_query = search_query.filter(Project.name.ilike(f'%{query}%'))
+    if project_type:
+        search_query = search_query.filter_by(project_type=project_type)
+    
+    projects = search_query.all()
+    return render_template('projects/search.html', projects=projects, query=query)
+
+@projects_bp.route('/<int:id>/export')
+@login_required
+def export(id):
+    """Export project data."""
+    project = db.session.get(Project, id)
+    if project is None:
+        abort(404)
+    if project.user_id != current_user.id:
+        abort(403)  # Forbidden
+    
+    format = request.args.get('format', 'csv')
+    if format == 'csv':
+        # Generate CSV
+        import csv
+        from io import StringIO
+        si = StringIO()
+        cw = csv.writer(si)
+        cw.writerow(['Project Name', 'Description', 'Type', 'Location', 'Size (sqm)', 'Budget'])
+        cw.writerow([
+            project.name,
+            project.description or '',
+            project.project_type,
+            project.location,
+            project.size_sqm,
+            project.budget
+        ])
+        output = si.getvalue()
+        return current_app.response_class(
+            output,
+            mimetype='text/csv',
+            headers={'Content-Disposition': f'attachment; filename=project_{id}.csv'}
+        )
+    elif format == 'pdf':
+        # Generate PDF
+        from weasyprint import HTML
+        html = render_template('projects/export_pdf.html', project=project)
+        pdf = HTML(string=html).write_pdf()
+        return current_app.response_class(
+            pdf,
+            mimetype='application/pdf',
+            headers={'Content-Disposition': f'attachment; filename=project_{id}.pdf'}
+        )
+    else:
+        abort(400)  # Bad Request
+
+@projects_bp.route('/<int:id>/duplicate', methods=['POST'])
+@login_required
+def duplicate(id):
+    """Duplicate a project."""
+    project = db.session.get(Project, id)
+    if project is None:
+        abort(404)
+    if project.user_id != current_user.id:
+        abort(403)  # Forbidden
+    
+    new_project = Project(
+        name=f'Copy of {project.name}',
+        description=project.description,
+        project_type=project.project_type,
+        location=project.location,
+        size_sqm=project.size_sqm,
+        start_date=project.start_date,
+        end_date=project.end_date,
+        budget=project.budget,
+        sector=project.sector,
+        user_id=current_user.id
+    )
+    db.session.add(new_project)
+    db.session.commit()
+    flash('Project duplicated successfully', 'success')
+    return redirect(url_for('projects.show', id=new_project.id))
 
 @projects_bp.route('/<int:id>/assessments/new', methods=['GET', 'POST'], strict_slashes=False)
 @login_required
@@ -189,25 +254,6 @@ def new_assessment(id):
 
     # GET: show the form for creating an assessment
     return render_template('projects/new.html', project=project)
-
-@projects_bp.route('/<int:id>/delete', methods=['POST'])
-@login_required
-def delete(id):
-    """Delete a project and all its associated data."""
-    project = Project.query.filter_by(id=id, user_id=current_user.id).first()
-    if not project:
-        flash('Project not found or you don\'t have permission to delete it', 'danger')
-        return redirect(url_for('projects.index'))
-    try:
-        # Optionally, delete related assessments and their data here if not handled by cascade
-        # Example: Assessment.query.filter_by(project_id=id).delete()
-        db.session.delete(project)
-        db.session.commit()
-        flash('Project deleted successfully', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error deleting project: {str(e)}', 'danger')
-    return redirect(url_for('projects.index'))
 
 @projects_bp.route('/api/test', methods=['GET'])
 def test_api():

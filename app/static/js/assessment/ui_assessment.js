@@ -287,11 +287,9 @@ function getPerformanceLevelDetails(score) {
  }
 
 function generatePDF() {
-    // Placeholder - Requires jsPDF/html2canvas implementation
-     const alertKey = 'pdf_alert';
-     const alertText = (typeof translations !== 'undefined' && translations[currentLanguage])
-                        ? (translations[currentLanguage][alertKey] || translations['en'][alertKey])
-                        : "PDF Generation is not fully implemented. Printing the page might be a temporary alternative.";
+    const alertKey = 'pdf_alert';
+    const alertText = (typeof translations !== 'undefined' && translations[currentLanguage])
+                    ? (translations[currentLanguage][alertKey] || translations['en'][alertKey])
+                    : "PDF Generation is not fully implemented. Printing the page might be a temporary alternative.";
     alert(alertText);
-    console.warn("PDF Generation requires jsPDF and html2canvas libraries and implementation.");
 }

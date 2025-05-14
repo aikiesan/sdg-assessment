@@ -6,8 +6,8 @@ from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_mail import Mail
 from flask_wtf.csrf import CSRFProtect
-import os
 from config import Config, DevelopmentConfig, TestingConfig, ProductionConfig, config
+from sqlalchemy import text
 
 # --- Instantiate Extensions ---
 db = SQLAlchemy()
@@ -18,8 +18,9 @@ csrf = CSRFProtect()
 
 @login_manager.user_loader
 def load_user(user_id):
+    """Load user by ID."""
     from app.models.user import User
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 def create_app(config_name=None):
     import logging
@@ -75,33 +76,49 @@ def create_app(config_name=None):
     @click.command('update-schema')
     @with_appcontext
     def update_schema_command():
-        """Add or modify columns in assessments and sdg_scores tables as needed for new model fields."""
-        conn = get_db()
+        """Update database schema for new features."""
+        try:
+            # Check if draft_data column exists in assessments table
+            result = db.session.execute(text("PRAGMA table_info(assessments)"))
+            columns = [row[1] for row in result.fetchall()]  # Column names are in index 1
+            has_draft_data = 'draft_data' in columns
 
-        columns = [col['name'] for col in conn.execute("PRAGMA table_info(assessments)").fetchall()]
-        if 'draft_data' not in columns:
-            conn.execute('ALTER TABLE assessments ADD COLUMN draft_data TEXT')
-            conn.commit()
-            click.echo('Added draft_data column to assessments table')
+            if not has_draft_data:
+                # Add draft_data column
+                db.session.execute(text("""
+                    ALTER TABLE assessments 
+                    ADD COLUMN draft_data TEXT
+                """))
+                print("Added draft_data column to assessments table")
 
+            # Check if response_text and notes columns exist in sdg_scores table
+            result = db.session.execute(text("PRAGMA table_info(sdg_scores)"))
+            columns = [row[1] for row in result.fetchall()]  # Column names are in index 1
+            has_response_text = 'response_text' in columns
 
-        sdg_columns = [col['name'] for col in conn.execute("PRAGMA table_info(sdg_scores)").fetchall()]
-        if 'response_text' not in sdg_columns:
-            conn.execute('ALTER TABLE sdg_scores ADD COLUMN response_text TEXT')
-            conn.commit()
-            click.echo('Added response_text column to sdg_scores table')
-        if 'notes' not in sdg_columns:
-            conn.execute('ALTER TABLE sdg_scores ADD COLUMN notes TEXT')
-            conn.commit()
-            click.echo('Added notes column to sdg_scores table')
-        if 'final_score' in sdg_columns and 'total_score' not in sdg_columns:
-            conn.execute('ALTER TABLE sdg_scores ADD COLUMN total_score FLOAT')
-            conn.execute('UPDATE sdg_scores SET total_score = final_score')
-            conn.commit()
-            click.echo('Copied final_score data to total_score column in sdg_scores table')
-            conn.execute('ALTER TABLE sdg_scores DROP COLUMN final_score')
-            conn.commit()
-            click.echo('Dropped final_score column from sdg_scores table')
+            if not has_response_text:
+                # Add response_text and notes columns
+                db.session.execute(text("""
+                    ALTER TABLE sdg_scores 
+                    ADD COLUMN response_text TEXT,
+                    ADD COLUMN notes TEXT
+                """))
+                print("Added response_text and notes columns to sdg_scores table")
+
+                # Copy data from score_text to response_text
+                db.session.execute(text("""
+                    UPDATE sdg_scores 
+                    SET response_text = score_text 
+                    WHERE score_text IS NOT NULL
+                """))
+                print("Copied data from score_text to response_text")
+
+            db.session.commit()
+            print("Schema update completed successfully")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error updating schema: {e}")
+            raise
 
     app.cli.add_command(update_schema_command)
 
@@ -172,26 +189,22 @@ def create_app(config_name=None):
                 '''))
 
 
-    from app.routes.main import main_bp
-    from app.routes.auth import auth_bp
-    from app.routes.projects import projects_bp
-    from app.routes.assessments import assessments_bp
-    from app.routes.questionnaire import questionnaire_bp
-    from app.routes.dashboard import dashboard_bp
+    # Register blueprints
+    from app.routes import main_bp, auth_bp, projects_bp, assessments_bp, questionnaire_bp, api_bp, dashboard_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(projects_bp, url_prefix='/projects')
     app.register_blueprint(assessments_bp, url_prefix='/assessments')
     app.register_blueprint(questionnaire_bp, url_prefix='/questionnaire')
-    app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
+    app.register_blueprint(api_bp, url_prefix='/api')
 
+    # Register error handlers
+    from app.utils.errors import register_error_handlers
+    register_error_handlers(app)
 
-    from app.routes.assessments_cli import register_cli_commands
+    # Register CLI commands
+    from app.cli import register_cli_commands
     register_cli_commands(app)
 
-
-    from app.routes.goals_cli import populate_goals_command
-    app.cli.add_command(populate_goals_command)
-    
     return app

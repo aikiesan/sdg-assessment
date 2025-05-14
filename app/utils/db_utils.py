@@ -2,11 +2,34 @@
 from flask import current_app
 from app import db
 from app.models.sdg import SdgGoal, SdgQuestion
+from app.models import SdgScore, Project, Assessment, QuestionResponse
+from datetime import datetime
+import logging
+from sqlalchemy import text
+
+logger = logging.getLogger(__name__)
 
 SDG_GOAL_DATA = [
-    {'number': 1, 'name': 'No Poverty', 'color_code': '#E5243B', 'description': 'End poverty...'},
-    # ... all 17 goals (add the rest as needed)
+    {
+        'number': 1,
+        'name': 'No Poverty',
+        'color_code': '#E5243B',
+        'description': 'End poverty in all its forms everywhere'
+    },
+    {
+        'number': 2,
+        'name': 'Zero Hunger',
+        'color_code': '#DDA63A',
+        'description': 'End hunger, achieve food security and improved nutrition and promote sustainable agriculture'
+    }
+    # Add more goals as needed for other tests or application functionality
+    # {'number': 3, 'name': 'Good Health and Well-being', ...},
+    # ... up to 17
 ]
+
+def get_db():
+    """Get the current SQLAlchemy session."""
+    return db.session
 
 def populate_goals():
     """Populates the sdg_goals table using SQLAlchemy session."""
@@ -39,54 +62,85 @@ def populate_goals():
         return False
 
 def populate_questions():
-    """Populates the sdg_questions table using SQLAlchemy session."""
-    print("populate_questions: Starting...")
-    added_count = 0
+    """Populate the sdg_questions table with all required questions."""
     final_success = False
     try:
-        COL_ID = 'id'
-        COL_TEXT = 'text'
-        COL_TYPE = 'type'
-        COL_SDG_ID = 'sdg_id'
-        COL_MAX_SCORE = 'max_score'
+        # Check existing questions
+        existing_ids = [q.id for q in db.session.query(SdgQuestion).all()]
+        questions_to_add = []
+        current_app.logger.info(f"Existing question IDs in DB: {existing_ids}")
 
-        existing_ids = [q.id for q in db.session.execute(db.select(SdgQuestion.id)).scalars()]
-        questions_to_add_data = []
-        print(f"populate_questions: Existing IDs = {existing_ids}")
-
-        for i in range(1, 32):
+        for i in range(1, 32):  # Questions 1-31
             if i not in existing_ids:
                 target_sdg_id = ((i - 1) % 17) + 1
                 q_type = 'checkbox' if i % 2 == 0 else 'radio'
                 q_text = f'PLACEHOLDER TEXT: Question {i} (SDG {target_sdg_id})'
                 q_max_score = 5.0
-                questions_to_add_data.append({
-                    COL_TEXT: q_text, COL_TYPE: q_type,
-                    COL_SDG_ID: target_sdg_id, COL_MAX_SCORE: q_max_score,
-                    'id': i
-                })
 
-        if not questions_to_add_data:
-            print("populate_questions: No missing questions (1-31) found to add.")
+                new_question = SdgQuestion(
+                    id=i,
+                    text=q_text,
+                    type=q_type,
+                    sdg_id=target_sdg_id,
+                    max_score=q_max_score
+                )
+                questions_to_add.append(new_question)
+
+        if not questions_to_add:
+            current_app.logger.info("No missing questions (1-31) found to add. Table already populated.")
             final_success = True
         else:
-            print(f"populate_questions: Found {len(questions_to_add_data)} missing questions to add.")
-            objects_to_add = []
-            for q_data in questions_to_add_data:
-                new_q = SdgQuestion(**q_data)
-                objects_to_add.append(new_q)
-
-            db.session.add_all(objects_to_add)
-            print(f"populate_questions: Added {len(objects_to_add)} questions to session.")
+            current_app.logger.info(f"Found {len(questions_to_add)} missing questions to add.")
+            db.session.add_all(questions_to_add)
+            db.session.commit()
             final_success = True
 
     except Exception as e:
+        current_app.logger.error(f"Error populating questions: {str(e)}")
         db.session.rollback()
-        print(f"ERROR populating questions: {e}")
         final_success = False
-    finally:
-        if final_success:
-            print("populate_questions: Succeeded.")
-        else:
-            print("populate_questions: Failed.")
+
+    if final_success:
+        print("populate_questions: Succeeded.")
+    else:
+        print("populate_questions: Failed.")
     return final_success
+
+def populate_sdg_relationships():
+    """Populate the sdg_relationships table with relationships between SDGs."""
+    try:
+        # Check if relationships already exist
+        existing_count = db.session.query(SdgRelationship).count()
+        if existing_count > 0:
+            current_app.logger.info(f"SDG relationships table already has {existing_count} entries")
+            return True
+        
+        # Define relationships (source_sdg_id, target_sdg_id, relationship_strength)
+        relationships = [
+            # SDG 1 (No Poverty) relationships
+            (1, 2, 0.8),  # Strong relationship with SDG 2 (Zero Hunger)
+            (1, 3, 0.7),  # Strong relationship with SDG 3 (Good Health)
+            (1, 4, 0.9),  # Very strong relationship with SDG 4 (Education)
+            
+            # SDG 2 (Zero Hunger) relationships
+            (2, 1, 0.8),  # Strong relationship with SDG 1 (No Poverty)
+            (2, 3, 0.9),  # Very strong relationship with SDG 3 (Good Health)
+            (2, 15, 0.7),  # Strong relationship with SDG 15 (Life on Land)
+        ]
+        
+        # Create and add relationship objects
+        for source_id, target_id, strength in relationships:
+            relationship = SdgRelationship(
+                source_sdg_id=source_id,
+                target_sdg_id=target_id,
+                relationship_strength=strength
+            )
+            db.session.add(relationship)
+            
+        db.session.commit()
+        current_app.logger.info(f"Added {len(relationships)} SDG relationships to the database")
+        return True
+    except Exception as e:
+        current_app.logger.error(f"Error populating SDG relationships: {str(e)}")
+        db.session.rollback()
+        return False

@@ -7,6 +7,17 @@ from flask.cli import with_appcontext
 from app import db
 from app.utils.db import get_db
 
+@click.command('init-db')
+@with_appcontext
+def init_db_command():
+    """Initialize the database."""
+    try:
+        db.create_all()
+        click.echo('Database initialized.')
+    except Exception as e:
+        click.echo(f'Error initializing database: {str(e)}')
+        raise
+
 @click.command('init-sdg-data')
 @with_appcontext
 def init_sdg_data_command():
@@ -41,5 +52,6 @@ def init_sdg_data_command():
 
 def register_cli_commands(app):
     """Register CLI commands with the Flask app."""
+    app.cli.add_command(init_db_command)
     app.cli.add_command(init_sdg_data_command)
     # Add other commands here

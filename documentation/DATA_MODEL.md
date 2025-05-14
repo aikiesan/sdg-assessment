@@ -51,7 +51,7 @@ sdg_goals ---< sdg_relationships
 SELECT a.* FROM assessments a
 JOIN projects p ON a.project_id = p.id
 JOIN users u ON p.user_id = u.id
-WHERE u.email = 'user@example.com';
+WHERE u.email = 'lucassnakamura@gmail.com';
 ```
 
 ## Troubleshooting

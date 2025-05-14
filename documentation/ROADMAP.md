@@ -28,7 +28,7 @@
 **Stakeholders:** Lucas Nakamura (maintainer), pilot users, privacy/legal advisor
 
 ## Phase 2: Feature Expansion _(Medium/High Priority)_
-- AI-powered trend analysis and benchmarking  
+- Advanced trend analysis and benchmarking  
   _Dependency: Assessment data, initial reporting_
 - Additional SDG modules and project types (e.g., public space, social housing)  
   _Dependency: Core assessment_

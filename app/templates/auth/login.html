@@ -271,7 +271,7 @@
     }
 
     // Login form submission handling
-    const loginForm = document.querySelector('form[action="{{ url_for('auth.login') }}"]');
+    const loginForm = document.querySelector('form[action="{{ url_for('auth.login')|tojson|safe }}"]');
     const loginButton = document.getElementById('loginButton');
     const buttonText = loginButton.querySelector('.button-text');
     const buttonIcon = loginButton.querySelector('i');

@@ -4,6 +4,8 @@ from app.services import scoring_service
 from app.models.response import QuestionResponse
 from app.models.assessment import Assessment
 from app.models.project import Project
+from app.models.sdg import SdgGoal, SdgQuestion
+from app.models.assessment import SdgScore
 from app import db
 
 def test_scoring_basic(session, app, test_user):

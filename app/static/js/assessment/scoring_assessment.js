@@ -495,22 +495,16 @@ function calculateAllSdgScores(data) {
             //     bonusScore = 1;
             // }
         } else if (sdgId === 'sdg-27') {
-            // Score based on the innovation/infrastructure summary radio button
             const innovationSummaryValue = sdgInputData.inputs['sdg27_innovation_summary'];
             switch (innovationSummaryValue) {
-                case '0': directScore = 0; break;  // None
-                case '1': directScore = 1.5; break; // 1 aspect addressed
-                case '2': directScore = 3.5; break; // 2 aspects addressed
-                case '3': directScore = 5.5; break; // 3 aspects addressed
-                case '4': directScore = 7.5; break; // 4 aspects addressed
-                case '5': directScore = 10; break;  // All 5 aspects addressed (Max score)
-                default: directScore = 0; break;   // Other / Not selected
+                case '0': directScore = 0; break;
+                case '1': directScore = 1.5; break;
+                case '2': directScore = 3.5; break;
+                case '3': directScore = 5.5; break;
+                case '4': directScore = 7.5; break;
+                case '5': directScore = 10; break;
+                default: directScore = 0; break;
             }
-            // Optional Bonus: Could add bonus based on specific checkboxes ticked or comments
-            // const checks = sdgInputData.inputs['sdg27_checks'] || [];
-            // if (innovationSummaryValue === '5' && (checks.includes('innovate_process') || checks.includes('renovation')) ) {
-            //    bonusScore = 1; // Example: Bonus for specific high-impact items within the 'all' category
-            // }
         }
         // --- TODO: Add scoring logic for SDGs 18-27 ---
 
@@ -522,10 +516,10 @@ function calculateAllSdgScores(data) {
 
         scores.push({
             number: i,
-            name: SDG_INFO[i]?.name || `SDG ${i}`, // Use SDG_INFO if available
-            color_code: SDG_INFO[i]?.color || '#CCCCCC', // Use SDG_INFO if available
+            name: SDG_INFO[i]?.name || `SDG ${i}`,
+            color_code: SDG_INFO[i]?.color || '#CCCCCC',
             total_score: parseFloat(totalScore.toFixed(1)),
-            notes: sdgInputData.notes || '' // Include notes if needed later
+            notes: sdgInputData.notes || ''
         });
     }
     return scores;

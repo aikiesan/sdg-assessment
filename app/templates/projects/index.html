@@ -262,7 +262,7 @@
                     <a href="{{ url_for('projects.show', id=project.id) }}" class="stretched-link" title="View details for {{ project.name }}">{{ project.name }}</a>
                 </h3>
                 <p class="project-card-description">
-                    {{ project.description|default('No description available.')|truncate(80) }} {# Shorter truncate for description #}
+                    {{ project.description|default('', true)|truncate(80) }}
                 </p>
                 <div class="project-card-tags">
                     {% if project.project_type %}

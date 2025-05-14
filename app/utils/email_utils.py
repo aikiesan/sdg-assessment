@@ -9,10 +9,10 @@ def send_async_email(app, msg):
         mail.send(msg)  # This mail reference comes from the app context
 
 def send_email(subject, recipients, html_body, text_body=None):
-    sender = current_app.config.get('MAIL_DEFAULT_SENDER')
+    sender = current_app.config['MAIL_DEFAULT_SENDER']
     if not sender:
-        sender = 'fallback@example.com'
-        print("Warning: MAIL_DEFAULT_SENDER not configured, using fallback.")
+        raise ValueError("MAIL_DEFAULT_SENDER not configured")
+        
     msg = Message(subject, sender=sender, recipients=recipients)
     msg.body = text_body or html_body
     msg.html = html_body

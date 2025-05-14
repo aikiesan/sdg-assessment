@@ -5,6 +5,7 @@ Represents architectural projects in the application.
 
 from app import db
 from datetime import datetime
+from sqlalchemy.orm import validates
 
 class Project(db.Model):
     __tablename__ = 'projects'
@@ -18,9 +19,72 @@ class Project(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    start_date = db.Column(db.DateTime)
+    end_date = db.Column(db.DateTime)
+    budget = db.Column(db.Float)
+    sector = db.Column(db.String(100))
+    status = db.Column(db.String(50), nullable=True, default='planning')
 
     user = db.relationship('User', back_populates='projects')
     assessments = db.relationship('Assessment', back_populates='project', cascade='all, delete-orphan')
+
+    @validates('size_sqm')
+    def validate_size_sqm(self, key, value):
+        if value is not None:
+            if not isinstance(value, (int, float)):
+                raise ValueError("Size must be a number.")
+            if value <= 0:
+                raise ValueError("Size must be a positive number.")
+            if value > 1000000:
+                raise ValueError("Size must be less than 1,000,000 sq meters.")
+        return value
+    
+    @validates('budget')
+    def validate_budget(self, key, value):
+        if value is not None:
+            if not isinstance(value, (int, float)):
+                raise ValueError("Budget must be a number.")
+            if value <= 0:
+                raise ValueError("Budget must be a positive number.")
+        return value
+    
+    @validates('end_date')
+    def validate_end_date(self, key, value):
+        if value is not None and self.start_date is not None:
+            if value < self.start_date:
+                raise ValueError("End date must be after start date.")
+        return value
+    
+    @validates('name')
+    def validate_name(self, key, value):
+        if not value:
+            raise ValueError("Project name is required.")
+        if len(value) > 100:
+            raise ValueError("Project name must be less than 100 characters.")
+        return value
+    
+    @validates('description')
+    def validate_description(self, key, value):
+        if value and len(value) > 500:
+            raise ValueError("Description must be less than 500 characters.")
+        return value
+    
+    @validates('location')
+    def validate_location(self, key, value):
+        if value and len(value) > 255:
+            raise ValueError("Location must be less than 255 characters.")
+        return value
+    
+    @validates('sector')
+    def validate_sector(self, key, value):
+        valid_sectors = [
+            'Residential', 'Commercial', 'Education', 'Healthcare', 
+            'Transportation', 'Technology', 'Energy', 'Industrial',
+            'Agriculture', 'Entertainment', 'Hospitality', 'Public', 'Other'
+        ]
+        if value and value not in [s.lower() for s in valid_sectors]:
+            return value.title() if value.title() in valid_sectors else value
+        return value
 
     def __repr__(self):
         return f'<Project {self.name}>'
@@ -38,7 +102,11 @@ class Project(db.Model):
                 size_sqm=project_data['size_sqm'],
                 user_id=project_data['user_id'],
                 created_at=project_data['created_at'],
-                updated_at=project_data['updated_at']
+                updated_at=project_data['updated_at'],
+                start_date=project_data.get('start_date'),
+                end_date=project_data.get('end_date'),
+                budget=project_data.get('budget'),
+                sector=project_data.get('sector')
             )
             # Add assessment count as an attribute
             project.assessment_count = project_data['assessment_count']
@@ -52,16 +120,20 @@ class Project(db.Model):
             # Update existing project
             conn.execute('''
                 UPDATE projects
-                SET name = ?, description = ?, project_type = ?, location = ?, size_sqm = ?, updated_at = CURRENT_TIMESTAMP
+                SET name = ?, description = ?, project_type = ?, location = ?, size_sqm = ?, 
+                    start_date = ?, end_date = ?, budget = ?, sector = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ? AND user_id = ?
-            ''', (self.name, self.description, self.project_type, self.location, self.size_sqm, self.id, self.user_id))
+            ''', (self.name, self.description, self.project_type, self.location, self.size_sqm,
+                  self.start_date, self.end_date, self.budget, self.sector, self.id, self.user_id))
         else:
             # Create new project
             cursor = conn.cursor()
             cursor.execute('''
-                INSERT INTO projects (name, description, project_type, location, size_sqm, user_id, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-            ''', (self.name, self.description, self.project_type, self.location, self.size_sqm, self.user_id))
+                INSERT INTO projects (name, description, project_type, location, size_sqm, user_id, 
+                                    start_date, end_date, budget, sector, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            ''', (self.name, self.description, self.project_type, self.location, self.size_sqm, self.user_id,
+                  self.start_date, self.end_date, self.budget, self.sector))
             self.id = cursor.lastrowid
         conn.commit()
         return self

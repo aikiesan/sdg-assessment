@@ -10,6 +10,7 @@ from app.models.sdg import SdgQuestion, SdgGoal  # For verification
 from config import TestingConfig
 from werkzeug.security import generate_password_hash
 from app.utils.db_utils import populate_goals, populate_questions
+from datetime import datetime
 
 @pytest.fixture(scope='session')
 def app():
@@ -141,7 +142,12 @@ def test_project(session, test_user):  # Depends on function-scoped session
         name="Test Project Fixture",
         user_id=test_user.id,
         project_type='commercial',
-        location='Test Location Fixture'
+        location='Test Location Fixture',
+        description='A test project fixture description.',
+        start_date=datetime(2024, 1, 1),
+        end_date=datetime(2024, 12, 31),
+        budget=50000.0,
+        sector='Technology'
     )
     session.add(project)
     session.flush()

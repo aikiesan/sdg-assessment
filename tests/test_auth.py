@@ -43,9 +43,8 @@ def test_login_logout(auth, client, test_user, session):
 
     # Check accessing protected route after logout
     response_projects_after_logout = client.get('/projects/')
-    assert response_projects_after_logout.status_code == 401  # Changed from 302 to 401
-    # Remove the location check since we're not redirecting anymore
-    # assert '/auth/login' in response_projects_after_logout.headers['Location']
+    assert response_projects_after_logout.status_code == 302  # Expect redirect to login page
+    assert '/auth/login' in response_projects_after_logout.headers['Location']  # Verify redirect location
 
 
 def test_login_invalid_password(auth, client, test_user):
