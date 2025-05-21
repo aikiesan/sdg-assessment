@@ -1,24 +1,46 @@
+"""
+Standalone script to populate the 'sdg_relationships' table.
+
+This script defines a comprehensive set of relationships between Sustainable
+Development Goals (SDGs), including their interaction strength. It is designed
+to be run directly to initialize or update the SDG relationship data in the database.
+It ensures that the Flask application context is available for database operations.
+
+Note: This script provides a more detailed set of relationships compared to the
+example `populate_sdg_relationships` function in `app/utils/db_utils.py`.
+The `db_utils.py` version might be intended for a minimal initial setup or testing,
+whereas this script is for populating a more complete dataset.
+"""
 import os
 import sys
-from decimal import Decimal # Use Decimal for potentially more precise strength values
+from decimal import Decimal # Used for precise numerical representation of relationship strengths.
 
 # --- Path Setup ---
-# Add the project root directory to the Python path
-# This allows us to import the 'app' module
+# This block dynamically modifies the Python path to include the project's root directory.
+# This is crucial for standalone scripts like this one, as it allows importing modules
+# from the main application (e.g., `app`, `app.models`) as if the script were run
+# from the root directory.
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 # --- End Path Setup ---
 
-from app import create_app, db
-from app.models.sdg import SdgGoal # Needed to verify SDG IDs exist (optional but good)
-from app.models.sdg_relationship import SdgRelationship
+from app import create_app, db  # `create_app` to initialize the Flask app, `db` for SQLAlchemy session.
+from app.models.sdg import SdgGoal # Model for SDG Goals, used here to validate SDG IDs.
+from app.models.sdg_relationship import SdgRelationship # Model for SDG Relationships, which this script populates.
 
-# --- Define Your Relationship Data ---
-# (Source_ID, Target_ID, Strength)
-# Strength: Use a scale meaningful to your bonus logic.
-# Example: 1.0 (Strong Positive), 0.5 (Moderate Positive), 0 (Neutral), -0.5 (Conflict), etc.
-# NOTE: This is just example data based on common knowledge, refine based on expert sources!
+# --- SDG Relationship Data Definition ---
+# RELATIONSHIP_DATA: A list of dictionaries, each defining a directional relationship between two SDGs.
+# - 'source' (int): The ID of the source SDG (the one that influences).
+# - 'target' (int): The ID of the target SDG (the one being influenced).
+# - 'strength' (float/Decimal): A numeric value representing the nature and intensity of the relationship.
+#   The scale is application-specific. For example:
+#     Positive values: Synergistic relationship (e.g., progress in source SDG helps target SDG).
+#     Negative values: Conflict/Trade-off (e.g., progress in source SDG hinders target SDG).
+#     Magnitude: Indicates the degree of influence (e.g., 0.8 is stronger than 0.5).
+#   A special case `target: -1` for SDG 17 (Partnerships) indicates a general positive influence on all other SDGs.
+# NOTE: The specific strength values and relationships should be based on expert knowledge or established research.
+# The current data is illustrative.
 RELATIONSHIP_DATA = [
     # Positive Synergies (Examples)
     {'source': 1, 'target': 2, 'strength': 0.8},   # Poverty -> Hunger
@@ -95,87 +117,109 @@ RELATIONSHIP_DATA = [
     {'source': 16, 'target': 8, 'strength': 0.6},  # Peace/Justice -> Decent Work
     {'source': 16, 'target': 10, 'strength': 0.7}, # Peace/Justice -> Inequality
 
-    {'source': 17, 'target': -1, 'strength': 0.2} # Partnerships helps all others generally (use -1 or handle in logic)
-    # Add potential negative interactions / trade-offs if your bonus logic uses them
-    # {'source': 7, 'target': 13, 'strength': -0.6}, # Fossil fuel energy conflicts with climate action
-    # {'source': 8, 'target': 15, 'strength': -0.5}, # Unsustainable growth conflicts with life on land
+    # Special handling for SDG 17 (Partnerships for the Goals)
+    # target: -1 signifies a general positive influence on all other SDGs (1-16).
+    # This is interpreted in the script to create individual relationships from 17 to each of 1-16.
+    {'source': 17, 'target': -1, 'strength': 0.2} 
+    # Add potential negative interactions / trade-offs if your bonus logic uses them.
+    # Example: {'source': 7, 'target': 13, 'strength': -0.6}, # Fossil fuel energy conflicts with climate action
+    # Example: {'source': 8, 'target': 15, 'strength': -0.5}, # Unsustainable growth conflicts with life on land
 ]
 
 def populate_relationships():
-    """Populates the sdg_relationships table."""
-    app = create_app() # Create the Flask app instance
-    with app.app_context(): # Push an application context
+    """
+    Populates the `sdg_relationships` table with data from `RELATIONSHIP_DATA`.
+
+    This function initializes the Flask application to establish an app context,
+    allowing database operations. It checks if relationships already exist and
+    skips population if the table is not empty. It validates SDG IDs against
+    the `SdgGoal` table and handles a special case for SDG 17 to create
+    relationships with all other SDGs. Uses `Decimal` for precision in 'strength'.
+    Commits transactions on success, rolls back on error.
+    """
+    app = create_app() # Create an instance of the Flask application.
+    # `app.app_context()` is essential for SQLAlchemy and other Flask extensions
+    # to work correctly when the script is run outside of a typical request cycle.
+    with app.app_context(): 
         print("Checking existing relationships...")
+        # Query the database to see if any SdgRelationship records already exist.
         existing_count = db.session.query(SdgRelationship).count()
 
         if existing_count > 0:
             print(f"Database already contains {existing_count} relationships. Skipping population.")
-            # Option: Add logic here to clear existing relationships if needed
+            # Optional logic to clear existing relationships could be added here if re-population is desired.
+            # Example:
             # db.session.query(SdgRelationship).delete()
             # db.session.commit()
             # print("Cleared existing relationships.")
-            return
+            return # Exit if data already exists.
 
         print("Populating SDG relationships...")
         added_count = 0
         skipped_count = 0
         try:
-            # Optional: Fetch valid SDG IDs once to check if source/target exist
+            # Fetch all valid SDG IDs from the SdgGoal table once.
+            # This set is used to validate source and target IDs in RELATIONSHIP_DATA.
             valid_sdg_ids = {goal.id for goal in db.session.query(SdgGoal.id).all()}
 
             for rel_data in RELATIONSHIP_DATA:
                 source_id = rel_data['source']
                 target_id = rel_data['target']
-                strength = Decimal(str(rel_data['strength'])) # Use Decimal for precision
+                # Convert strength to Decimal for precise storage, from string to avoid float inaccuracies.
+                strength = Decimal(str(rel_data['strength'])) 
 
-                # Handle the general partnership case (SDG 17)
+                # Special handling for SDG 17 (Partnerships for the Goals).
+                # If source is 17 and target is -1, create relationships from SDG 17
+                # to all other valid SDGs (1-16).
                 if source_id == 17 and target_id == -1:
-                    # Create relationships from 17 to all other SDGs (1-16)
-                    for actual_target_id in range(1, 17):
-                         # Check if relationship already exists (optional, good practice)
+                    for actual_target_id in range(1, 17): # Assuming SDGs 1-16
+                         # Check if this specific relationship (17 -> actual_target_id) already exists.
+                         # This is good practice, though less critical if `existing_count` check at the start is done.
                          exists = db.session.query(SdgRelationship).filter_by(source_sdg_id=source_id, target_sdg_id=actual_target_id).first()
                          if not exists:
                              relationship = SdgRelationship(
                                  source_sdg_id=source_id,
                                  target_sdg_id=actual_target_id,
-                                 relationship_strength=strength
+                                 strength=strength # Using 'strength' as per SdgRelationship model
                              )
-                             db.session.add(relationship)
+                             db.session.add(relationship) # Add the new relationship to the session.
                              added_count += 1
                          else:
-                            skipped_count +=1
+                            skipped_count +=1 # Count as skipped if it somehow already exists.
+                # Standard relationship processing for other SDGs.
                 elif source_id in valid_sdg_ids and target_id in valid_sdg_ids:
-                     # Check if relationship already exists
+                     # Check if this specific relationship already exists.
                      exists = db.session.query(SdgRelationship).filter_by(source_sdg_id=source_id, target_sdg_id=target_id).first()
                      if not exists:
                         relationship = SdgRelationship(
                             source_sdg_id=source_id,
                             target_sdg_id=target_id,
-                            relationship_strength=strength
+                            strength=strength # Using 'strength' as per SdgRelationship model
                         )
-                        db.session.add(relationship)
+                        db.session.add(relationship) # Add to session.
                         added_count += 1
                      else:
-                        skipped_count += 1
+                        skipped_count += 1 # Count as skipped.
                 else:
+                    # Log a warning if source_id or target_id is not found in SdgGoal table.
                     print(f"  Warning: Skipping invalid relationship ({source_id} -> {target_id}). Check SDG IDs.")
                     skipped_count += 1
 
-            db.session.commit()
+            db.session.commit() # Commit all added relationships to the database.
             print(f"Successfully added {added_count} new SDG relationships.")
             if skipped_count > 0:
                 print(f"Skipped {skipped_count} relationships (duplicates or invalid IDs).")
 
         except Exception as e:
-            db.session.rollback()
+            db.session.rollback() # Rollback the transaction in case of any error.
             print(f"\nAn error occurred: {e}")
             print("Database transaction rolled back.")
         finally:
-             # The context is popped automatically by the 'with' statement
+             # The application context is popped automatically when exiting the 'with' block.
              pass
 
-# Make the script runnable
+# This block allows the script to be run directly from the command line (e.g., `python app/utils/populate_relationships.py`).
 if __name__ == "__main__":
     print("Attempting to populate SDG relationships...")
-    populate_relationships()
+    populate_relationships() # Call the main function to populate data.
     print("Script finished.")
