@@ -53,7 +53,7 @@ The SDG Assessment Toolkit is a digital platform developed for architects and ur
 - To contribute, please contact the project team or submit issues/PRs.
 
 ## Contact & Support
-- **Lead Developer:** Lucas (UIA Technical Expert)
+- **Lead Developer:** Lucas (UIA Technical Volunteer)
 - **Project Team:** Rui (Secretary General, UIA), Carla, Yves, Patrick, and other UIA members
 - For questions or collaboration, contact the UIA or the project team via the official UIA website.
 
