@@ -3,7 +3,7 @@ Project management routes.
 Handles creating, viewing, editing, and deleting projects.
 """
 
-from flask import Blueprint, render_template, redirect, url_for, request, flash, abort, jsonify, json, current_app
+from flask import Blueprint, render_template, redirect, url_for, request, flash, abort, jsonify, json, current_app, session
 from flask_login import login_required, current_user
 from app.models.project import Project
 from app.models.assessment import Assessment, SdgScore
@@ -23,12 +23,26 @@ def index():
     page = request.args.get('page', 1, type=int)
     sort = request.args.get('sort', 'created_at')
     order = request.args.get('order', 'desc')
+    search_term = request.args.get('search', '')
+    
+    # Handle combined sort parameters from the frontend
+    if sort in ['name_desc', 'budget_desc', 'budget_asc', 'date_desc', 'date_asc', 'assessment_count_desc', 'assessment_count_asc']:
+        if sort.endswith('_desc'):
+            order = 'desc'
+            sort = sort.replace('_desc', '')
+        elif sort.endswith('_asc'):
+            order = 'asc'
+            sort = sort.replace('_asc', '')
     project_type = request.args.get('type')
     status = request.args.get('status')
     min_budget = request.args.get('min_budget', type=float)
     max_budget = request.args.get('max_budget', type=float)
     
     query = Project.query.filter_by(user_id=current_user.id)
+    
+    # Apply search filter
+    if search_term:
+        query = query.filter(Project.name.ilike(f'%{search_term}%'))
     
     # Apply filters
     if project_type:
@@ -42,14 +56,42 @@ def index():
     
     # Apply sorting
     if sort == 'name':
-        query = query.order_by(Project.name.desc() if order == 'desc' else Project.name.asc())
+        if order == 'desc':
+            current_sort = 'name_desc'
+            query = query.order_by(Project.name.desc())
+        else:
+            current_sort = 'name'
+            query = query.order_by(Project.name.asc())
     elif sort == 'budget':
-        query = query.order_by(Project.budget.desc() if order == 'desc' else Project.budget.asc())
+        if order == 'desc':
+            current_sort = 'budget_desc'
+            query = query.order_by(Project.budget.desc())
+        else:
+            current_sort = 'budget_asc'
+            query = query.order_by(Project.budget.asc())
+    elif sort == 'assessment_count':
+        # Join with assessments to get count for sorting
+        from sqlalchemy import func
+        query = query.outerjoin(Assessment).group_by(Project.id)
+        if order == 'desc':
+            current_sort = 'assessment_count_desc'
+            query = query.order_by(func.count(Assessment.id).desc())
+        else:
+            current_sort = 'assessment_count_asc'
+            query = query.order_by(func.count(Assessment.id).asc())
     else:  # default to created_at
-        query = query.order_by(Project.created_at.desc() if order == 'desc' else Project.created_at.asc())
+        if order == 'desc':
+            current_sort = 'date_desc'
+            query = query.order_by(Project.created_at.desc())
+        else:
+            current_sort = 'date_asc'
+            query = query.order_by(Project.created_at.asc())
     
     projects = query.paginate(page=page, per_page=10)
-    return render_template('projects/index.html', projects=projects)
+    return render_template('projects/index.html', 
+                         projects=projects, 
+                         search_term=search_term,
+                         current_sort=current_sort)
 
 @projects_bp.route('/<int:id>')
 @login_required
@@ -60,7 +102,11 @@ def show(id):
         abort(404)
     if project.user_id != current_user.id:
         abort(403)  # Forbidden
-    return render_template('projects/show.html', project=project)
+    
+    # Get assessments for this project
+    assessments = Assessment.query.filter_by(project_id=project.id).order_by(Assessment.id.desc()).all()
+    
+    return render_template('projects/show.html', project=project, assessments=assessments)
 
 @projects_bp.route('/new', methods=['GET', 'POST'])
 @login_required
@@ -259,6 +305,37 @@ def new_assessment(id):
 def test_api():
     """Test API endpoint."""
     return jsonify({"message": "API is working"})
+
+@projects_bp.route('/save-progress', methods=['POST'])
+@login_required
+def save_progress():
+    """Save expert assessment progress (session-based authentication)."""
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+    
+    project_id = data.get('project_id')
+    if not project_id:
+        return jsonify({'error': 'No project ID provided'}), 400
+    
+    # Verify user owns the project
+    project = Project.query.filter_by(id=project_id, user_id=current_user.id).first()
+    if not project:
+        return jsonify({'error': 'Project not found or access denied'}), 404
+    
+    # For expert assessments, we can store progress in session or temporary storage
+    # Since these are typically completed in one session, we'll use session storage
+    session_key = f'expert_assessment_progress_{project_id}'
+    if 'expert_assessment_progress' not in session:
+        session['expert_assessment_progress'] = {}
+    
+    session['expert_assessment_progress'][str(project_id)] = {
+        'section_id': data.get('section_id'),
+        'section_data': data.get('section_data'),
+        'timestamp': datetime.utcnow().isoformat()
+    }
+    
+    return jsonify({'message': 'Progress saved successfully'}), 200
 
 @projects_bp.route('/project/<int:project_id>/expert_assessment/save', methods=['POST'])
 @login_required

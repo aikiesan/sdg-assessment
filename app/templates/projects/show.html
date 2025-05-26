@@ -174,23 +174,46 @@
         width: 100%;
         margin-bottom: 0;
         font-size: 0.9rem;
+        table-layout: fixed; /* Add fixed table layout */
     }
     .assessment-table th,
     .assessment-table td {
-        padding: 0.9rem 1rem; /* Consistent padding */
+        padding: 0.75rem 0.5rem; /* Reduced padding */
         vertical-align: middle;
-        white-space: normal; /* Allow wrapping for longer names/statuses */
+        white-space: nowrap; /* Prevent wrapping */
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
-    .assessment-table td:first-child, .assessment-table th:first-child { padding-left: 1.5rem; }
-    .assessment-table td:last-child, .assessment-table th:last-child { padding-right: 1.5rem; text-align: right; }
+    .assessment-table td:first-child, .assessment-table th:first-child { 
+        padding-left: 1rem;
+        width: 15%; /* ID column */
+    }
+    .assessment-table td:nth-child(2), .assessment-table th:nth-child(2) {
+        width: 15%; /* Type column */
+    }
+    .assessment-table td:nth-child(3), .assessment-table th:nth-child(3) {
+        width: 15%; /* Status column */
+    }
+    .assessment-table td:nth-child(4), .assessment-table th:nth-child(4) {
+        width: 20%; /* Score column */
+    }
+    .assessment-table td:nth-child(5), .assessment-table th:nth-child(5) {
+        width: 20%; /* Last Updated column */
+    }
+    .assessment-table td:last-child, .assessment-table th:last-child { 
+        padding-right: 1rem;
+        width: 15%; /* Actions column */
+        text-align: right;
+    }
 
     .assessment-table thead th {
         background-color: var(--bs-tertiary-bg, #f8f9fa);
         border-bottom: 2px solid var(--bs-border-color, #dee2e6);
         font-weight: 600;
         color: var(--bs-emphasis-color, #495057);
-        text-transform: none; /* No uppercase for better readability */
+        text-transform: none;
         font-size: 0.85rem;
+        white-space: nowrap;
     }
     .assessment-table tbody tr {
         border-bottom: 1px solid var(--bs-border-color-subtle, #e9ecef);
@@ -199,32 +222,31 @@
     .assessment-table.table-hover tbody tr:hover {
         background-color: var(--bs-secondary-bg-subtle, #f1f3f5);
     }
-    .assessment-table .badge {
-        font-size: 0.8rem; /* Slightly larger badges */
-        padding: 0.4em 0.7em;
-        font-weight: 500;
+
+    /* Score display improvements */
+    .score-display {
+        min-width: 120px; /* Ensure minimum width for score display */
+    }
+    .score-display .progress {
+        height: 8px; /* Make progress bar thinner */
+        margin-bottom: 0.25rem;
+    }
+    .score-text {
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    .score-text .text-muted {
+        font-size: 0.75rem;
     }
 
-    /* Score Progress Bar Styling */
-    .score-display .progress {
-        height: 8px; /* Thicker progress bar */
-        width: 100px; /* Wider bar */
-        margin-bottom: 0.25rem; /* Space between bar and text */
-        background-color: var(--bs-secondary-bg, #e9ecef);
-        border-radius: var(--bs-border-radius-pill, 50rem);
+    /* Badge improvements */
+    .assessment-table .badge {
+        font-size: 0.75rem;
+        padding: 0.35em 0.65em;
+        white-space: nowrap;
     }
-    .score-display .progress-bar {
-        border-radius: var(--bs-border-radius-pill, 50rem);
-    }
-    .score-display .score-text {
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-    .score-display .score-text .text-muted { /* For "/10" part */
-        font-weight: 400;
-        font-size: 0.8rem;
-    }
-    
+
+    /* Assessment actions */
     .assessment-actions .btn { /* Styling for action buttons in table */
         padding: 0.35rem 0.7rem; /* Smaller buttons for table */
         font-size: 0.85rem;
