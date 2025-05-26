@@ -27,6 +27,45 @@ SDG_GOAL_DATA = [
     # ... up to 17
 ]
 
+SDG_QUESTION_DATA = [
+    {
+        'id': 1,
+        'text': 'How does your project address poverty reduction?',
+        'type': 'radio',
+        'sdg_id': 1,
+        'max_score': 5.0
+    },
+    {
+        'id': 2,
+        'text': 'Does your project contribute to food security?',
+        'type': 'checkbox',
+        'sdg_id': 2,
+        'max_score': 5.0
+    },
+    {
+        'id': 3,
+        'text': 'How does your project promote health and well-being?',
+        'type': 'radio',
+        'sdg_id': 3,
+        'max_score': 5.0
+    },
+    {
+        'id': 4,
+        'text': 'Does your project support quality education?',
+        'type': 'checkbox',
+        'sdg_id': 4,
+        'max_score': 5.0
+    },
+    {
+        'id': 5,
+        'text': 'How does your project promote gender equality?',
+        'type': 'radio',
+        'sdg_id': 5,
+        'max_score': 5.0
+    }
+    # Add more questions as needed - this is a basic set for testing
+]
+
 def get_db():
     """Get the current SQLAlchemy session."""
     return db.session

@@ -234,7 +234,7 @@ function saveCurrentSectionData() {
     document.body.appendChild(savingIndicator);
 
     // Make AJAX request to save progress
-    fetch('/api/save-progress', {
+    fetch('/projects/save-progress', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -286,12 +286,41 @@ function handleAssessmentCompletion() {
         return;
      }
 
-     // --- Display Results (call function from ui_assessment.js) ---
-      if (typeof displayResults === 'function') {
-        displayResults(calculatedScores);
+     // Ensure assessment data is populated in the hidden input before submission
+     const assessmentDataInput = document.getElementById('assessment-data');
+     if (assessmentDataInput) {
+         // Collect all form data including the final section
+         const allFormData = {};
+         const formElement = document.getElementById('sdg-assessment-form');
+         if (formElement) {
+             const formData = new FormData(formElement);
+             for (let [key, value] of formData.entries()) {
+                 if (allFormData[key]) {
+                     // Handle multiple values (checkboxes)
+                     if (Array.isArray(allFormData[key])) {
+                         allFormData[key].push(value);
+                     } else {
+                         allFormData[key] = [allFormData[key], value];
+                     }
+                 } else {
+                     allFormData[key] = value;
+                 }
+             }
+         }
+         
+         // Set the assessment data
+         assessmentDataInput.value = JSON.stringify(allFormData);
+         console.log("Assessment data populated for form submission");
+     }
+
+     // Submit the form to save to database
+     const formElement = document.getElementById('sdg-assessment-form');
+     if (formElement) {
+         console.log("Submitting assessment form to server...");
+         formElement.submit();
      } else {
-        console.error("displayResults function not found. UI script might be missing.");
-        alert("Error: Could not display results.");
+         console.error("Assessment form not found!");
+         alert("Error: Could not submit assessment.");
      }
 }
 
@@ -329,22 +358,82 @@ function autoFillTestData() {
         };
 
         // Fill test data for each SDG
-        // SDG 1
+        // SDG 1 - No Poverty
         setRadioValue('sdg-1', 'sdg1_cost_reduction', 'cost_reduc_3');
         setInputValue('sdg-1', 'sdg1_baseline_cost', 'Baseline: $500/month, Project: $167/month');
         setInputValue('sdg-1', 'sdg1_notes', 'Implemented solar panels and improved insulation for significant cost reduction.');
 
-        // SDG 2
+        // SDG 2 - Zero Hunger
         setRadioValue('sdg-2', 'sdg2_food_integration', 'community');
         setInputValue('sdg-2', 'sdg2_notes', 'Added community garden with educational programs and composting facilities.');
 
-        // SDG 3
+        // SDG 3 - Good Health and Well-being
         checkCheckboxes('sdg-3', 'sdg3_actions', ['materials', 'air_quality', 'water_quality', 'lighting_quality', 'acoustic_comfort']);
         setRadioValue('sdg-3', 'sdg3_health_summary', '5');
         setInputValue('sdg-3', 'sdg3_notes', 'Used low-VOC materials, HEPA filters, UV water treatment, and acoustic insulation.');
 
-        // Continue for SDGs 4-17...
-        // Add similar test data for remaining SDGs
+        // SDG 4 - Quality Education
+        setRadioValue('sdg-4', 'sdg4_education_integration', 'dedicated');
+        setInputValue('sdg-4', 'sdg4_notes', 'Incorporated educational spaces with digital learning facilities and accessibility features.');
+
+        // SDG 5 - Gender Equality
+        checkCheckboxes('sdg-5', 'sdg5_features', ['safe_spaces', 'equal_access', 'childcare']);
+        setInputValue('sdg-5', 'sdg5_notes', 'Designed inclusive spaces with equal access and safety features for all genders.');
+
+        // SDG 6 - Clean Water and Sanitation
+        setRadioValue('sdg-6', 'sdg6_water_conservation', 'high');
+        checkCheckboxes('sdg-6', 'sdg6_features', ['rainwater', 'greywater', 'efficient_fixtures']);
+        setInputValue('sdg-6', 'sdg6_notes', 'Implemented comprehensive water management with rainwater harvesting and greywater recycling.');
+
+        // SDG 7 - Affordable and Clean Energy
+        setRadioValue('sdg-7', 'sdg7_renewable_energy', 'high');
+        checkCheckboxes('sdg-7', 'sdg7_features', ['solar', 'efficient_systems', 'smart_grid']);
+        setInputValue('sdg-7', 'sdg7_notes', 'Integrated solar panels, efficient HVAC, and smart energy management systems.');
+
+        // SDG 8 - Decent Work and Economic Growth
+        setRadioValue('sdg-8', 'sdg8_local_economy', 'high');
+        setInputValue('sdg-8', 'sdg8_notes', 'Prioritized local suppliers and created spaces for economic activities.');
+
+        // SDG 9 - Industry, Innovation and Infrastructure
+        setRadioValue('sdg-9', 'sdg9_innovation', 'high');
+        checkCheckboxes('sdg-9', 'sdg9_features', ['smart_tech', 'resilient_design', 'accessibility']);
+        setInputValue('sdg-9', 'sdg9_notes', 'Incorporated smart technologies and resilient infrastructure design.');
+
+        // SDG 10 - Reduced Inequalities
+        setRadioValue('sdg-10', 'sdg10_accessibility', 'high');
+        setInputValue('sdg-10', 'sdg10_notes', 'Designed with universal accessibility and inclusive community spaces.');
+
+        // SDG 11 - Sustainable Cities and Communities
+        setRadioValue('sdg-11', 'sdg11_urban_planning', 'high');
+        checkCheckboxes('sdg-11', 'sdg11_features', ['public_transport', 'green_space', 'disaster_resilience']);
+        setInputValue('sdg-11', 'sdg11_notes', 'Integrated with public transport, created green spaces, and designed for climate resilience.');
+
+        // SDG 12 - Responsible Consumption and Production
+        setRadioValue('sdg-12', 'sdg12_materials', 'high');
+        checkCheckboxes('sdg-12', 'sdg12_features', ['recycled_materials', 'waste_reduction', 'local_sourcing']);
+        setInputValue('sdg-12', 'sdg12_notes', 'Used recycled materials, implemented waste reduction strategies, and sourced locally.');
+
+        // SDG 13 - Climate Action
+        setRadioValue('sdg-13', 'sdg13_carbon_reduction', 'high');
+        checkCheckboxes('sdg-13', 'sdg13_features', ['energy_efficiency', 'carbon_storage', 'adaptation']);
+        setInputValue('sdg-13', 'sdg13_notes', 'Achieved carbon neutrality through efficiency measures and renewable energy.');
+
+        // SDG 14 - Life Below Water
+        setRadioValue('sdg-14', 'sdg14_water_protection', 'medium');
+        setInputValue('sdg-14', 'sdg14_notes', 'Implemented stormwater management to protect local water bodies.');
+
+        // SDG 15 - Life on Land
+        setRadioValue('sdg-15', 'sdg15_biodiversity', 'high');
+        checkCheckboxes('sdg-15', 'sdg15_features', ['native_plants', 'wildlife_habitat', 'soil_protection']);
+        setInputValue('sdg-15', 'sdg15_notes', 'Created habitat corridors and used native landscaping to support biodiversity.');
+
+        // SDG 16 - Peace, Justice and Strong Institutions
+        setRadioValue('sdg-16', 'sdg16_community_engagement', 'high');
+        setInputValue('sdg-16', 'sdg16_notes', 'Facilitated community participation throughout the design and planning process.');
+
+        // SDG 17 - Partnerships for the Goals
+        setRadioValue('sdg-17', 'sdg17_partnerships', 'high');
+        setInputValue('sdg-17', 'sdg17_notes', 'Collaborated with multiple stakeholders including NGOs, government, and private sector.')
 
         console.log('Test data auto-filled successfully');
     } catch (error) {

@@ -28,6 +28,11 @@ class Project(db.Model):
     user = db.relationship('User', back_populates='projects')
     assessments = db.relationship('Assessment', back_populates='project', cascade='all, delete-orphan')
 
+    @property
+    def assessment_count(self):
+        """Return the number of assessments for this project."""
+        return len(self.assessments)
+
     @validates('size_sqm')
     def validate_size_sqm(self, key, value):
         if value is not None:

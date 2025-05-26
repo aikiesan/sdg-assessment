@@ -193,7 +193,7 @@
             <h1 class="projects-page-title">
                 My Projects 
                 {% if projects is defined %}
-                <span class="project-count-badge">{{ projects|length }}</span>
+                <span class="project-count-badge">{{ projects.total }}</span>
                 {% endif %}
             </h1>
             <p class="projects-page-subtitle">Organize, assess, and track the sustainability impact of your architectural designs.</p>
@@ -208,7 +208,7 @@
 
 <!-- Controls Toolbar: Search and Sort -->
 <div class="controls-toolbar d-flex flex-column flex-md-row justify-content-md-between align-items-md-center mb-4">
-    {% if projects|length > 0 or search_term %}
+    {% if projects.items|length > 0 or search_term %}
     <form action="{{ url_for('projects.index') }}" method="GET" class="projects-search-form mb-3 mb-md-0 me-md-2" role="search">
         <div class="position-relative">
             <i class="bi bi-search projects-search-icon"></i>
@@ -220,7 +220,7 @@
     </form>
     {% endif %}
 
-    {% if projects|length > 1 %}
+    {% if projects.items|length > 1 %}
     <div class="dropdown sort-dropdown">
         <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
           <i class="bi bi-arrow-down-up me-1"></i> Sort By: <span class="current-sort-label fw-semibold">{{ current_sort|default('name')|replace('_', ' ')|title }}</span>
@@ -240,10 +240,10 @@
 </div>
 
 
-{% if projects|length > 0 %}
+{% if projects.items|length > 0 %}
 <!-- Projects Grid -->
 <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 project-grid" id="projectsGrid"> {# Adjusted row-cols for responsiveness, g-3 for gap #}
-    {% for project in projects %}
+    {% for project in projects.items %}
     <div class="col project-card-wrapper"> 
         <div class="card project-card">
             <div class="project-card-visual">
