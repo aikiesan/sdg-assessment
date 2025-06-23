@@ -220,6 +220,18 @@ function displayResults(scores) {
 
 function populateDetailedBreakdown(scores) {
     console.log('[ui] Entered populateDetailedBreakdown. Data:', scores);
+    
+    // Validate scores data
+    if (!scores || !Array.isArray(scores)) {
+        console.error('[ui] Invalid scores data:', scores);
+        return;
+    }
+    
+    if (scores.length === 0) {
+        console.warn('[ui] No scores data provided');
+        return;
+    }
+    
     // Get the container element *inside* the function
     const breakdownContainer = document.getElementById('sdg-breakdown-details'); // Use a local variable
 
@@ -230,7 +242,9 @@ function populateDetailedBreakdown(scores) {
     }
     breakdownContainer.innerHTML = ''; // Clear previous results
 
-    scores.forEach(sdg => {
+    console.log(`[ui] Processing ${scores.length} SDG scores`);
+    scores.forEach((sdg, index) => {
+        console.log(`[ui] Processing SDG ${index + 1}:`, sdg);
         const score = sdg.total_score;
         const performance = getPerformanceLevelDetails(score); // Assumes this helper is OK
 

@@ -44,6 +44,12 @@
     // Main initialization function
     function initializeResultsDisplay() {
         console.log('Initializing results display...');
+        console.log('Available global data:', {
+            sdgScoresData: window.sdgScoresData,
+            SDG_INFO: window.SDG_INFO,
+            translations: window.translations,
+            currentLanguage: window.currentLanguage
+        });
 
         try {
             // Check dependencies first
@@ -58,11 +64,17 @@
                 return;
             }
 
+            console.log('Starting chart and breakdown rendering...');
+            
             // Render the charts
+            console.log('Rendering radar chart...');
             renderRadarChart(window.sdgScoresData);
+            
+            console.log('Rendering bar chart...');
             renderBarChart(window.sdgScoresData);
 
             // Update detailed breakdown
+            console.log('Populating detailed breakdown...');
             populateDetailedBreakdown(window.sdgScoresData);
 
             // Set up print button if it exists

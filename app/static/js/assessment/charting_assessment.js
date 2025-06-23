@@ -23,7 +23,7 @@ function renderRadarChart(scores) {
 
     const labels = scores.map(s => `SDG ${s.number}`); // Keep labels simple for chart data
     const data = scores.map(s => s.total_score);
-    const pointColors = scores.map(s => s.color_code);
+    const pointColors = scores.map(s => s.color_code || s.color || '#CCCCCC');
 
     radarChartInstance = new Chart(radarCtx, {
          type: 'radar',
@@ -105,7 +105,7 @@ function renderBarChart(scores) {
 
     const labels = scores.map(s => `SDG ${s.number}`);
     const data = scores.map(s => s.total_score);
-    const backgroundColors = scores.map(s => s.color_code);
+    const backgroundColors = scores.map(s => s.color_code || s.color || '#CCCCCC');
 
     barChartInstance = new Chart(barCtx, {
         type: 'bar',

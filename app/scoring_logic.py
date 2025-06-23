@@ -32,6 +32,7 @@ def calculate_scores_python(assessment_data):
         print("Error: Invalid assessment_data input to calculate_scores_python")
         return []
 
+    print(f"DEBUG: calculate_scores_python called with data keys: {list(assessment_data.keys())}")
     scores = []
 
     for i in range(1, TOTAL_SDGS + 1):
@@ -275,15 +276,20 @@ def calculate_scores_python(assessment_data):
         total_score = max(total_score, 0.0)
 
         # --- Append Result ---
-        scores.append({
+        score_entry = {
             'number': i,
             'total_score': round(total_score, 1), # Use the final capped score
             'notes': notes or '', # Ensure notes is a string
             # Include direct/bonus for potential storage or analysis
             'direct_score': round(direct_score, 1),
             'bonus_score': round(bonus_score, 1)
-        })
+        }
+        scores.append(score_entry)
+        
+        if total_score > 0:  # Only log if there's actually a score
+            print(f"DEBUG: SDG {i} scored {total_score} (direct: {direct_score}, bonus: {bonus_score})")
 
+    print(f"DEBUG: calculate_scores_python returning {len(scores)} scores with non-zero: {len([s for s in scores if s['total_score'] > 0])}")
     return scores
 
 # Example Usage (for testing):

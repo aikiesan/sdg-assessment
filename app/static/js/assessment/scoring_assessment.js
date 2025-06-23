@@ -517,7 +517,7 @@ function calculateAllSdgScores(data) {
         scores.push({
             number: i,
             name: SDG_INFO[i]?.name || `SDG ${i}`,
-            color_code: SDG_INFO[i]?.color || '#CCCCCC',
+            color_code: SDG_INFO[i]?.color_code || SDG_INFO[i]?.color || '#CCCCCC',
             total_score: parseFloat(totalScore.toFixed(1)),
             notes: sdgInputData.notes || ''
         });

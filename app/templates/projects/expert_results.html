@@ -10,8 +10,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     {# FontAwesome Icons #}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
-    {# Chart.js Library #}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     {# Custom CSS #}
     <style>
         body { background-color: #f8fafc; /* Light gray background */ }
@@ -45,7 +43,6 @@
     {# ---- JavaScript Includes (Order Matters!) ---- #}
     {# Defer ensures they load after HTML parsing but execute in order before DOMContentLoaded #}
     <script src="{{ url_for('static', filename='js/assessment/i18n_assessment.js') }}" defer></script>
-    {# Removed main_assessment.js as it's not needed for results page #}
     <script src="{{ url_for('static', filename='js/assessment/charting_assessment.js') }}" defer></script> {# Provides chart rendering functions #}
     <script src="{{ url_for('static', filename='js/assessment/ui_assessment.js') }}" defer></script> {# Provides populateDetailedBreakdown #}
     <script src="{{ url_for('static', filename='js/assessment/results_display.js') }}" defer></script> {# Orchestrates results display #}
@@ -131,20 +128,75 @@
     {# ---- Embed Data for JavaScript ---- #}
     {# Place right before closing body tag, after all HTML elements are defined #}
     <script>
+        // Define constants that charting code expects
+        const TOTAL_SDGS = 17;
+        
         // Make data available globally for other scripts
         window.sdgScoresData = {{ scores_json | safe }};
         window.SDG_INFO = {{ SDG_INFO_json | safe }};  // Add SDG_INFO for charting
         
+        // Make SDG_INFO available as global constant (charting expects this)
+        window.SDG_INFO = {{ SDG_INFO_json | safe }};
+        // Also define it as SDG_INFO constant for backward compatibility
+        const SDG_INFO = {{ SDG_INFO_json | safe }};
+        
+        // Ensure SDG_INFO has both color and color_code fields for compatibility
+        Object.keys(SDG_INFO).forEach(sdgNum => {
+            const sdgInfo = SDG_INFO[sdgNum];
+            if (sdgInfo) {
+                // Ensure both color and color_code are available
+                if (sdgInfo.color_code && !sdgInfo.color) {
+                    sdgInfo.color = sdgInfo.color_code;
+                } else if (sdgInfo.color && !sdgInfo.color_code) {
+                    sdgInfo.color_code = sdgInfo.color;
+                }
+            }
+        });
+        
         // Add missing variables that charts expect
         window.currentLanguage = '{{ request.accept_languages.best_match(["en", "fr"]) or "en" }}';
         window.translations = {
-            en: { score_label: 'Score' },
-            fr: { score_label: 'Score' }
+            en: { 
+                score_label: 'Score',
+                perf_excellent: 'Excellent',
+                perf_good: 'Good', 
+                perf_fair: 'Fair',
+                perf_needs_improvement: 'Needs Improvement',
+                pdf_alert: 'PDF Generation is not fully implemented. Printing the page might be a temporary alternative.'
+            },
+            fr: { 
+                score_label: 'Score',
+                perf_excellent: 'Excellent',
+                perf_good: 'Bon', 
+                perf_fair: 'Passable',
+                perf_needs_improvement: 'À améliorer',
+                pdf_alert: 'La génération PDF n\'est pas entièrement implémentée. Imprimer la page pourrait être une alternative temporaire.'
+            }
         };
+        
+        // Add SDG title translations that the UI code expects
+        const sdgTitles = {
+            en: {},
+            fr: {}
+        };
+        
+        // Populate SDG title translations from SDG_INFO
+        Object.keys(SDG_INFO).forEach(sdgNum => {
+            const sdgInfo = SDG_INFO[sdgNum];
+            if (sdgInfo && sdgInfo.name) {
+                sdgTitles.en[`sdg${sdgNum}_title`] = sdgInfo.name;
+                sdgTitles.fr[`sdg${sdgNum}_title`] = sdgInfo.name; // Use English names for now
+            }
+        });
+        
+        // Merge SDG titles into translations
+        Object.assign(window.translations.en, sdgTitles.en);
+        Object.assign(window.translations.fr, sdgTitles.fr);
         
         console.log("Embedded sdgScoresData:", window.sdgScoresData);
         console.log("Embedded SDG_INFO:", window.SDG_INFO);  // Log to verify
         console.log("Current language:", window.currentLanguage);
+        console.log("Translations:", window.translations);
     </script>
 
 </body>
