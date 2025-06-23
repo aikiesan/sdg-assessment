@@ -124,9 +124,15 @@ def create_app(config_name=None):
 
 
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', app.config.get('SECRET_KEY', 'your-default-secret-key'))
-    if 'DATABASE_URI' in os.environ:
-        app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URI']
-    
+    # --- Database URI Configuration ---
+    database_url = os.environ.get('DATABASE_URL')
+    if database_url:
+        # SQLAlchemy prefers postgresql:// over postgres://
+        if database_url.startswith('postgres://'):
+            database_url = database_url.replace('postgres://', 'postgresql://', 1)
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    # Otherwise, config class fallback is used
+
     # --- Initialize Extensions ---
     db.init_app(app)
     login_manager.init_app(app)
