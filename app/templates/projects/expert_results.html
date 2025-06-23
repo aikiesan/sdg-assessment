@@ -134,8 +134,17 @@
         // Make data available globally for other scripts
         window.sdgScoresData = {{ scores_json | safe }};
         window.SDG_INFO = {{ SDG_INFO_json | safe }};  // Add SDG_INFO for charting
+        
+        // Add missing variables that charts expect
+        window.currentLanguage = '{{ request.accept_languages.best_match(["en", "fr"]) or "en" }}';
+        window.translations = {
+            en: { score_label: 'Score' },
+            fr: { score_label: 'Score' }
+        };
+        
         console.log("Embedded sdgScoresData:", window.sdgScoresData);
         console.log("Embedded SDG_INFO:", window.SDG_INFO);  // Log to verify
+        console.log("Current language:", window.currentLanguage);
     </script>
 
 </body>
