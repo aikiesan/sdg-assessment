@@ -1,6 +1,10 @@
-from flask import Blueprint, render_template, jsonify, current_app
+from flask import Blueprint, render_template, jsonify, current_app, request, abort
 import os
 import sqlite3
+from app import db
+from sqlalchemy import inspect, text
+from alembic.config import Config as AlembicConfig
+from alembic import command as alembic_command
 
 main_bp = Blueprint('main', __name__)
 
@@ -320,3 +324,28 @@ def about():
 def privacy_policy():
     """Renders the privacy policy page."""
     return render_template('privacy_policy.html', title='Privacy Policy')
+
+@main_bp.route('/super-secret-db-initialize/<path:secret_key>')
+def initialize_database(secret_key):
+    expected_secret = os.environ.get('DB_INIT_SECRET_KEY')
+    if not expected_secret or secret_key != expected_secret:
+        current_app.logger.warning("Unauthorized attempt to initialize database.")
+        abort(403)
+
+    try:
+        with current_app.app_context():
+            current_app.logger.info("Attempting to initialize database via secret endpoint...")
+            # Run Alembic migrations
+            alembic_cfg = AlembicConfig(os.path.join(os.path.dirname(__file__), '../../migrations/alembic.ini'))
+            alembic_cfg.set_main_option("sqlalchemy.url", current_app.config['SQLALCHEMY_DATABASE_URI'])
+            alembic_command.upgrade(alembic_cfg, "head")
+            current_app.logger.info("Alembic migrations applied via secret endpoint.")
+            # Optionally, create views here if needed
+        return "Database initialization process completed.", 200
+    except Exception as e:
+        current_app.logger.error(f"Error during database initialization via secret endpoint: {e}")
+        return f"Error initializing database: {str(e)}", 500
+
+@main_bp.route('/ping')
+def ping():
+    return "pong"
