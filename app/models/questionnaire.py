@@ -1,15 +1,8 @@
 from app import db
 from datetime import datetime
 
-class QuestionResponse(db.Model):
-    __tablename__ = 'question_responses'
-    id = db.Column(db.Integer, primary_key=True)
-    assessment_id = db.Column(db.Integer, db.ForeignKey('assessments.id'), nullable=False)
-    question_id = db.Column(db.Integer, db.ForeignKey('sdg_questions.id'), nullable=False)
-    response = db.Column(db.Text)
-    response_score = db.Column(db.Float)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+# Import the correct QuestionResponse model instead of redefining it
+from app.models.response import QuestionResponse
 
 # Existing raw SQL helpers below
 
