@@ -1,5 +1,17 @@
+"""create sdg questions view
+
+Revision ID: xxxx
+Revises: a67153dd301b
+Create Date: 2025-06-23
+"""
 from alembic import op
 import sqlalchemy as sa
+
+# revision identifiers, used by Alembic.
+revision = 'xxxx'
+down_revision = 'a67153dd301b'
+branch_labels = None
+depends_on = None
 
 def upgrade():
     op.execute("""
