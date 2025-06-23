@@ -174,25 +174,9 @@ def create_app(config_name=None):
     if hasattr(app, 'before_serving'):
         @app.before_serving
         def init_db():
-            from sqlalchemy import text
-            with db.engine.connect() as connection:
-                connection.execute(text('''
-                    CREATE VIEW IF NOT EXISTS sdg_questions_view AS
-                    SELECT q.id, q.text, q.type, q.sdg_id as primary_sdg_id, g.number as sdg_number, g.name as sdg_name, q.max_score
-                    FROM sdg_questions q
-                    JOIN sdg_goals g ON q.sdg_id = g.id
-                '''))
+            pass
     else:
-
-        from sqlalchemy import text
-        with app.app_context():
-            with db.engine.connect() as connection:
-                connection.execute(text('''
-                    CREATE VIEW IF NOT EXISTS sdg_questions_view AS
-                    SELECT q.id, q.text, q.type, q.sdg_id as primary_sdg_id, g.number as sdg_number, g.name as sdg_name, q.max_score
-                    FROM sdg_questions q
-                    JOIN sdg_goals g ON q.sdg_id = g.id
-                '''))
+        pass
 
 
     # Register blueprints
