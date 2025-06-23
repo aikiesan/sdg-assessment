@@ -335,8 +335,9 @@ def initialize_database(secret_key):
     try:
         with current_app.app_context():
             current_app.logger.info("Attempting to initialize database via secret endpoint...")
-            # Run Alembic migrations
-            alembic_cfg = AlembicConfig(os.path.join(os.path.dirname(__file__), '../../migrations/alembic.ini'))
+            # Use absolute path for alembic.ini
+            alembic_ini_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../migrations/alembic.ini'))
+            alembic_cfg = AlembicConfig(alembic_ini_path)
             alembic_cfg.set_main_option("sqlalchemy.url", current_app.config['SQLALCHEMY_DATABASE_URI'])
             alembic_command.upgrade(alembic_cfg, "head")
             current_app.logger.info("Alembic migrations applied via secret endpoint.")
