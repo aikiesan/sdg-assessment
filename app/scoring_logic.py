@@ -36,21 +36,19 @@ def calculate_scores_python(assessment_data):
     scores = []
 
     for i in range(1, TOTAL_SDGS + 1):
-        sdg_id = f"sdg-{i}"
-        # Get data for the current SDG, default to empty if not present
-        sdg_input_data = assessment_data.get(sdg_id, {'inputs': {}, 'notes': ''})
-        inputs = sdg_input_data.get('inputs', {})
-        # Ensure inputs is a dictionary, handle potential non-dict values if needed
-        if not isinstance(inputs, dict):
-            inputs = {}
-        notes = sdg_input_data.get('notes', '')
+        # Handle flat form data structure instead of nested sdg-{i} structure
+        # Form sends data like: sdg1_cost_reduction, sdg1_notes, etc.
+        notes = assessment_data.get(f'sdg{i}_notes', '')
+        
+        # Inputs are directly in the assessment_data with sdg{i}_ prefix
+        inputs = assessment_data  # Use the whole dict as inputs for backward compatibility
 
         direct_score = 0.0 # Use float for scores
         bonus_score = 0.0
 
         # --- Scoring Logic (Translated from JS - Finalized Version) ---
         try: # Add try-except for robustness within the loop
-            if sdg_id == 'sdg-1':
+            if i == 1:
                 # Scale: 0, 3, 5, 7, 9, 10
                 value = inputs.get('sdg1_cost_reduction')
                 if value == 'cost_reduc_2': direct_score = 3.0
@@ -59,7 +57,7 @@ def calculate_scores_python(assessment_data):
                 elif value == 'self_sufficient': direct_score = 9.0
                 elif value == 'energy_producing': direct_score = 10.0
 
-            elif sdg_id == 'sdg-2':
+            elif i == 2:
                 # Scale: 0, 2, 4, 6, 8, 10
                 value = inputs.get('sdg2_food_integration')
                 if value == 'study': direct_score = 2.0
@@ -68,7 +66,7 @@ def calculate_scores_python(assessment_data):
                 elif value == 'private': direct_score = 8.0
                 elif value == 'production': direct_score = 10.0
 
-            elif sdg_id == 'sdg-3':
+            elif i == 3:
                 # Scale: 0, 2, 4, 6, 8, 10 + Bonus
                 # Input name from HTML: sdg3_health_summary (Value 0-5 or other)
                 value = inputs.get('sdg3_health_summary')
@@ -82,7 +80,7 @@ def calculate_scores_python(assessment_data):
                 if value == '5' and isinstance(actions_checked, list) and len(actions_checked) >= 6:
                     bonus_score = 1.0
 
-            elif sdg_id == 'sdg-4':
+            elif i == 4:
                 # Scale: 0, 2, 3, 5, 7, 10
                 # Input name from HTML: sdg4_accessibility_summary (Value 0, study, 1-4, other)
                 value = inputs.get('sdg4_accessibility_summary')
@@ -92,7 +90,7 @@ def calculate_scores_python(assessment_data):
                 elif value == '3': direct_score = 7.0
                 elif value == '4': direct_score = 10.0
 
-            elif sdg_id == 'sdg-5':
+            elif i == 5:
                 # Scale: 0, 2, 4, 6, 8, 10 + Bonus
                 # Input name from HTML: sdg5_equality_summary (Value 0-5 or other)
                 value = inputs.get('sdg5_equality_summary')
@@ -106,7 +104,7 @@ def calculate_scores_python(assessment_data):
                 if value == '5' and isinstance(actions_checked, list) and len(actions_checked) >= 5:
                     bonus_score = 1.0
 
-            elif sdg_id == 'sdg-6':
+            elif i == 6:
                 # Scale: 0, 1.5, 3, 5, 7, 8.5, 10 (Keep existing)
                 # Input name from HTML: sdg6_water_summary (Value 0-5, exceptional, other)
                 value = inputs.get('sdg6_water_summary')
@@ -117,7 +115,7 @@ def calculate_scores_python(assessment_data):
                 elif value == '5': direct_score = 8.5
                 elif value == 'exceptional': direct_score = 10.0
 
-            elif sdg_id == 'sdg-7':
+            elif i == 7:
                 # Scale: 0, 2, 4, 6, 8, 10 (Keep existing)
                 # Input name from HTML: sdg7_renewable_impact (Value none, reduc_25/50/75, neutral, positive, other)
                 value = inputs.get('sdg7_renewable_impact')
@@ -127,7 +125,7 @@ def calculate_scores_python(assessment_data):
                 elif value == 'neutral': direct_score = 8.0
                 elif value == 'positive': direct_score = 10.0
 
-            elif sdg_id == 'sdg-8':
+            elif i == 8:
                 # Two Parts, each 0-5 points. Scale: 0, 1, 2, 3, 4, 5 for each part.
                 score_social = 0.0
                 social_value = inputs.get('sdg8_social_summary') # Input name (Value 0-5, other)
@@ -147,7 +145,7 @@ def calculate_scores_python(assessment_data):
 
                 direct_score = score_social + score_technical
 
-            elif sdg_id == 'sdg-9':
+            elif i == 9:
                 # Scale: 0, 2, 4, 6, 8, 10
                 # Input name from HTML: sdg9_innovation_summary (Value 0-5, other)
                 value = inputs.get('sdg9_innovation_summary')
@@ -157,7 +155,7 @@ def calculate_scores_python(assessment_data):
                 elif value == '4': direct_score = 8.0
                 elif value == '5': direct_score = 10.0
 
-            elif sdg_id == 'sdg-10':
+            elif i == 10:
                 # Scale: 0, 2, 4, 6, 8, 10
                 # Input name from HTML: sdg10_inclusion_summary (Value 0-5, other)
                 value = inputs.get('sdg10_inclusion_summary')
@@ -167,7 +165,7 @@ def calculate_scores_python(assessment_data):
                 elif value == '4': direct_score = 8.0
                 elif value == '5': direct_score = 10.0
 
-            elif sdg_id == 'sdg-11':
+            elif i == 11:
                  # Scale: 0, 2, 4, 6, 8, 10
                  # Input name from HTML: sdg11_measures (Value none, one, two, three, four, five, other)
                  value = inputs.get('sdg11_measures')
@@ -177,7 +175,7 @@ def calculate_scores_python(assessment_data):
                  elif value == 'four': direct_score = 8.0
                  elif value == 'five': direct_score = 10.0
 
-            elif sdg_id == 'sdg-12':
+            elif i == 12:
                  # Scale: 0, 2, 4, 6, 7.5, 9, 10
                  # Input name from HTML: sdg12_consumption_summary (Value 0-6, other)
                  value = inputs.get('sdg12_consumption_summary')
@@ -188,7 +186,7 @@ def calculate_scores_python(assessment_data):
                  elif value == '5': direct_score = 9.0
                  elif value == '6': direct_score = 10.0
 
-            elif sdg_id == 'sdg-13':
+            elif i == 13:
                  # Two Parts, each 0-5 points. Scale: 0, 1, 2, 3, 4, 5 for each part.
                  score_env = 0.0
                  env_value = inputs.get('sdg13_env_summary') # Input name (Value 0-5, other)
@@ -208,7 +206,7 @@ def calculate_scores_python(assessment_data):
 
                  direct_score = score_env + score_carbon
 
-            elif sdg_id == 'sdg-14':
+            elif i == 14:
                 # Scale: 0, 2, 4, 6, 8, 10
                 # Input name from HTML: sdg14_pollution_summary (Value 0-5, other)
                 value = inputs.get('sdg14_pollution_summary')
@@ -218,7 +216,7 @@ def calculate_scores_python(assessment_data):
                 elif value == '4': direct_score = 8.0
                 elif value == '5': direct_score = 10.0
 
-            elif sdg_id == 'sdg-15':
+            elif i == 15:
                  # Two Parts, each 0-5 points. Scale: 0, 1, 2, 3, 4, 5 for each part.
                  score_ecosystem = 0.0
                  eco_value = inputs.get('sdg15_ecosystem_summary') # Input name (Value 0-5, other)
@@ -238,7 +236,7 @@ def calculate_scores_python(assessment_data):
 
                  direct_score = score_ecosystem + score_artificialisation
 
-            elif sdg_id == 'sdg-16':
+            elif i == 16:
                 # Scale: 0, 2, 4, 6, 8, 10
                 # Input name from HTML: sdg16_peace_summary (Value 0-5, other)
                 value = inputs.get('sdg16_peace_summary')
@@ -248,7 +246,7 @@ def calculate_scores_python(assessment_data):
                 elif value == '4': direct_score = 8.0
                 elif value == '5': direct_score = 10.0
 
-            elif sdg_id == 'sdg-17':
+            elif i == 17:
                  # Scale: 0, 2, 4, 6, 7.5, 9, 10
                  # Input name from HTML: sdg17_partnership_summary (Value 0-6, other)
                  value = inputs.get('sdg17_partnership_summary')
@@ -262,7 +260,7 @@ def calculate_scores_python(assessment_data):
             # --- Add logic for any SDGs beyond 17 if they exist ---
 
         except Exception as e:
-             print(f"Error processing scoring logic for {sdg_id}: {e}")
+             print(f"Error processing scoring logic for SDG {i}: {e}")
              # Keep scores at 0 if specific SDG logic fails
              direct_score = 0.0
              bonus_score = 0.0
