@@ -14,7 +14,7 @@ import traceback
 # Import models
 from app.models.assessment import Assessment, SdgScore
 from app.models.project import Project
-from app.models.sdg import SdgGoal
+from app.models.sdg import SdgGoal, SdgQuestion
 from app import db
 
 # Import utilities
@@ -640,6 +640,111 @@ def submit_assessment(project_id, assessment_id):
         current_app.logger.error(f"Error in submit_assessment: {str(e)}")
         current_app.logger.error(traceback.format_exc())
         return jsonify({'success': False, 'message': f'An internal error occurred: {str(e)}'}), 500
+
+
+@assessments_bp.route('/admin/populate-database', methods=['GET', 'POST'])
+def admin_populate_database():
+    """
+    TEMPORARY ADMIN ROUTE: Populate SDG questions and goals.
+    Call this route to fix the production database.
+    DELETE THIS ROUTE AFTER USE FOR SECURITY!
+    """
+    try:
+        # Check current state
+        goal_count = SdgGoal.query.count()
+        question_count = SdgQuestion.query.count()
+        
+        results = {
+            'initial_goals': goal_count,
+            'initial_questions': question_count,
+            'actions_taken': []
+        }
+        
+        # Populate SDG Goals if needed
+        if goal_count == 0:
+            current_app.logger.info("Populating SDG Goals...")
+            
+            sdg_goals = [
+                {"number": 1, "name": "No Poverty", "description": "End poverty in all its forms everywhere"},
+                {"number": 2, "name": "Zero Hunger", "description": "End hunger, achieve food security and improved nutrition and promote sustainable agriculture"},
+                {"number": 3, "name": "Good Health and Well-being", "description": "Ensure healthy lives and promote well-being for all at all ages"},
+                {"number": 4, "name": "Quality Education", "description": "Ensure inclusive and equitable quality education and promote lifelong learning opportunities for all"},
+                {"number": 5, "name": "Gender Equality", "description": "Achieve gender equality and empower all women and girls"},
+                {"number": 6, "name": "Clean Water and Sanitation", "description": "Ensure availability and sustainable management of water and sanitation for all"},
+                {"number": 7, "name": "Affordable and Clean Energy", "description": "Ensure access to affordable, reliable, sustainable and modern energy for all"},
+                {"number": 8, "name": "Decent Work and Economic Growth", "description": "Promote sustained, inclusive and sustainable economic growth, full and productive employment and decent work for all"},
+                {"number": 9, "name": "Industry, Innovation and Infrastructure", "description": "Build resilient infrastructure, promote inclusive and sustainable industrialization and foster innovation"},
+                {"number": 10, "name": "Reduced Inequalities", "description": "Reduce inequality within and among countries"},
+                {"number": 11, "name": "Sustainable Cities and Communities", "description": "Make cities and human settlements inclusive, safe, resilient and sustainable"},
+                {"number": 12, "name": "Responsible Consumption and Production", "description": "Ensure sustainable consumption and production patterns"},
+                {"number": 13, "name": "Climate Action", "description": "Take urgent action to combat climate change and its impacts"},
+                {"number": 14, "name": "Life Below Water", "description": "Conserve and sustainably use the oceans, seas and marine resources for sustainable development"},
+                {"number": 15, "name": "Life on Land", "description": "Protect, restore and promote sustainable use of terrestrial ecosystems, sustainably manage forests, combat desertification, and halt and reverse land degradation and halt biodiversity loss"},
+                {"number": 16, "name": "Peace, Justice and Strong Institutions", "description": "Promote peaceful and inclusive societies for sustainable development, provide access to justice for all and build effective, accountable and inclusive institutions at all levels"},
+                {"number": 17, "name": "Partnerships for the Goals", "description": "Strengthen the means of implementation and revitalize the global partnership for sustainable development"}
+            ]
+            
+            for goal_data in sdg_goals:
+                goal = SdgGoal(
+                    number=goal_data["number"],
+                    name=goal_data["name"],
+                    description=goal_data["description"],
+                    color_code=f"#sdg{goal_data['number']}"
+                )
+                db.session.add(goal)
+            
+            db.session.commit()
+            results['actions_taken'].append(f"Added {len(sdg_goals)} SDG Goals")
+        else:
+            results['actions_taken'].append("SDG Goals already exist")
+        
+        # Populate SDG Questions if needed
+        if question_count == 0:
+            current_app.logger.info("Populating SDG Questions...")
+            
+            sdg_goals = SdgGoal.query.all()
+            question_id = 1
+            
+            for goal in sdg_goals:
+                # Create 2 questions per SDG (adjust as needed)
+                for i in range(2):
+                    question_type = 'radio' if i % 2 == 0 else 'checkbox'
+                    question_text = f"How does your project contribute to {goal.name}? (Question {i+1})"
+                    
+                    question = SdgQuestion(
+                        id=question_id,
+                        text=question_text,
+                        type=question_type,
+                        sdg_id=goal.id,
+                        max_score=5.0,
+                        display_order=question_id,
+                        options='["Not at all", "Slightly", "Moderately", "Significantly", "Extremely"]' if question_type == 'radio' else '["Option A", "Option B", "Option C", "Option D"]'
+                    )
+                    db.session.add(question)
+                    question_id += 1
+            
+            db.session.commit()
+            results['actions_taken'].append(f"Added {question_id - 1} SDG Questions")
+        else:
+            results['actions_taken'].append("SDG Questions already exist")
+        
+        # Final counts
+        results['final_goals'] = SdgGoal.query.count()
+        results['final_questions'] = SdgQuestion.query.count()
+        results['success'] = True
+        
+        current_app.logger.info(f"Database population completed: {results}")
+        
+        return jsonify(results), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error populating database: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'message': 'Database population failed'
+        }), 500
 
 
 # --- Database Management Functions ---
