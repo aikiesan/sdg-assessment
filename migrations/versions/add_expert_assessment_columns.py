@@ -11,7 +11,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = 'add_expert_assessment_cols'
-down_revision = None  # This will be updated by Flask-Migrate
+down_revision = 'a67153dd301b'
 branch_labels = None
 depends_on = None
 
