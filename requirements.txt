@@ -14,7 +14,7 @@ Werkzeug==2.3.7  # Already included, used for password hashing
 # Utilities
 python-dotenv==1.0.0
 itsdangerous==2.1.2
-email-validator==2.1.0
+email-validator
 
 # HTML Parsing for Tests
 beautifulsoup4==4.12.3  # For parsing HTML in tests
@@ -27,6 +27,7 @@ pytest-flask==1.2.0
 
 # Deployment
 gunicorn==21.2.0
+psycopg2-binary  # PostgreSQL adapter for SQLAlchemy
 
 # API Documentation
 flasgger==0.9.7.1
