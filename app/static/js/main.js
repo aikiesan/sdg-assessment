@@ -25,6 +25,61 @@
         
         // Initialize Bootstrap popovers
         initPopovers();
+        
+        // Mobile navigation improvements
+        const navbarToggler = document.querySelector('.navbar-toggler');
+        const navbarCollapse = document.querySelector('.navbar-collapse');
+        const body = document.body;
+        
+        // Add class to body when mobile menu is open
+        if (navbarToggler && navbarCollapse) {
+            navbarToggler.addEventListener('click', function() {
+                // Use a small delay to allow Bootstrap's collapse to process
+                setTimeout(() => {
+                    if (navbarCollapse.classList.contains('show')) {
+                        body.classList.add('navbar-open');
+                    } else {
+                        body.classList.remove('navbar-open');
+                    }
+                }, 50);
+            });
+            
+            // Listen for Bootstrap collapse events
+            navbarCollapse.addEventListener('shown.bs.collapse', function() {
+                body.classList.add('navbar-open');
+            });
+            
+            navbarCollapse.addEventListener('hidden.bs.collapse', function() {
+                body.classList.remove('navbar-open');
+            });
+        }
+        
+        // Close mobile menu when clicking on a nav link (better UX)
+        const navLinks = document.querySelectorAll('.navbar-nav .nav-link:not(.dropdown-toggle)');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth < 992 && navbarCollapse.classList.contains('show')) {
+                    navbarToggler.click();
+                }
+            });
+        });
+        
+        // Improve dropdown behavior on mobile
+        const dropdownToggles = document.querySelectorAll('.navbar-nav .dropdown-toggle');
+        dropdownToggles.forEach(toggle => {
+            toggle.addEventListener('click', function(e) {
+                if (window.innerWidth < 992) {
+                    e.preventDefault();
+                    const dropdownMenu = this.nextElementSibling;
+                    if (dropdownMenu) {
+                        dropdownMenu.classList.toggle('show');
+                        this.setAttribute('aria-expanded', 
+                            dropdownMenu.classList.contains('show') ? 'true' : 'false'
+                        );
+                    }
+                }
+            });
+        });
     });
 
     /**
@@ -528,4 +583,21 @@
         validateField: validateField,
         refreshCSRFToken: refreshCSRFToken
     };
+
+    // Utility function for responsive navigation
+    function handleResponsiveNav() {
+        const navbarCollapse = document.querySelector('.navbar-collapse');
+        const body = document.body;
+        
+        // Close mobile menu when resizing to desktop
+        if (window.innerWidth >= 992) {
+            if (navbarCollapse && navbarCollapse.classList.contains('show')) {
+                navbarCollapse.classList.remove('show');
+            }
+            body.classList.remove('navbar-open');
+        }
+    }
+
+    // Handle window resize
+    window.addEventListener('resize', handleResponsiveNav);
 })();

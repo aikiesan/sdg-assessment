@@ -87,3 +87,43 @@ footer {
     border-color: #28a745;
     color: white;
 }
+
+/* --- MOBILE NAVIGATION ENHANCEMENTS --- */
+/* Additional mobile-specific improvements for better UX */
+@media (max-width: 991.98px) {
+    /* Smooth collapse animation */
+    .navbar-collapse {
+        transition: all 0.35s ease-in-out;
+    }
+    
+    /* Prevent horizontal scroll on mobile when menu is open */
+    body.navbar-open {
+        overflow-x: hidden;
+    }
+    
+    /* Add visual indicator for expandable dropdowns on mobile */
+    .navbar-nav .dropdown-toggle::after {
+        margin-left: auto;
+        transition: transform 0.2s ease;
+    }
+    
+    .navbar-nav .dropdown-toggle[aria-expanded="true"]::after {
+        transform: rotate(180deg);
+    }
+    
+    /* Improve touch targets for mobile */
+    .navbar-nav .nav-link {
+        min-height: 44px; /* iOS recommended touch target size */
+        display: flex;
+        align-items: center;
+    }
+    
+    /* Better spacing for mobile nav items */
+    .navbar-nav .nav-item {
+        margin-bottom: 0.25rem;
+    }
+    
+    .navbar-nav .nav-item:last-child {
+        margin-bottom: 0;
+    }
+}

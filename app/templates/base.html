@@ -294,6 +294,107 @@
         .alert-secondary { background-color: var(--bs-secondary-bg-subtle); color: var(--bs-secondary-text-emphasis); border-color: var(--bs-secondary-border-subtle); }
         /* Add for success, danger, warning, info if needed */
 
+        /* --- MOBILE NAVIGATION IMPROVEMENTS --- */
+        /* Ensure mobile navbar collapse has solid background and proper contrast */
+        @media (max-width: 991.98px) {
+            .navbar-custom .navbar-collapse {
+                background-color: var(--uia-bg-white);
+                border-radius: var(--bs-border-radius-md);
+                box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                margin-top: 0.75rem;
+                padding: 1rem;
+                border: 1px solid var(--uia-border-color);
+                /* Ensure it's above other content */
+                position: relative;
+                z-index: 1050;
+            }
+            
+            /* Add backdrop for better separation from background content */
+            .navbar-custom .navbar-collapse::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0, 0, 0, 0.3);
+                z-index: -1;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+                pointer-events: none;
+            }
+            
+            .navbar-custom .navbar-collapse.show::before {
+                opacity: 1;
+            }
+            
+            /* Improve mobile nav links readability */
+            .navbar-custom .navbar-nav {
+                margin-bottom: 1rem;
+            }
+            
+            .navbar-custom .nav-link {
+                padding: 0.75rem 1rem;
+                margin: 0.25rem 0;
+                border-radius: var(--bs-border-radius-md);
+                font-weight: 500;
+                color: var(--uia-text-dark) !important;
+                background-color: transparent;
+                transition: all 0.2s ease;
+            }
+            
+            .navbar-custom .nav-link:hover,
+            .navbar-custom .nav-link:focus {
+                background-color: var(--uia-bg-light) !important;
+                color: var(--uia-primary) !important;
+                transform: translateX(5px);
+            }
+            
+            .navbar-custom .nav-link.active {
+                background-color: var(--uia-primary) !important;
+                color: var(--uia-bg-white) !important;
+            }
+            
+            /* Mobile dropdown menu improvements */
+            .navbar-custom .dropdown-menu {
+                position: static !important;
+                transform: none !important;
+                box-shadow: none;
+                border: none;
+                background-color: var(--uia-bg-light);
+                margin: 0.5rem 0 0 1rem;
+                border-radius: var(--bs-border-radius-md);
+            }
+            
+            .navbar-custom .dropdown-item {
+                color: var(--uia-text-dark);
+                padding: 0.6rem 1rem;
+                border-radius: var(--bs-border-radius-sm);
+                margin: 0.25rem;
+            }
+            
+            .navbar-custom .dropdown-item:hover,
+            .navbar-custom .dropdown-item:focus {
+                background-color: var(--uia-bg-white);
+                color: var(--uia-primary);
+            }
+            
+            /* Authentication buttons in mobile */
+            .navbar-nav .btn {
+                width: 100%;
+                text-align: center;
+                margin: 0.25rem 0;
+            }
+        }
+
+        /* Ensure navbar content stays readable on hero sections */
+        @media (max-width: 991.98px) {
+            .hero-section + * .navbar-custom,
+            .hero-section-enhanced + * .navbar-custom {
+                background-color: var(--uia-bg-white) !important;
+            }
+        }
+
     </style>
     {% block head %}{% endblock %} {# For page-specific CSS files or styles #}
 </head>
