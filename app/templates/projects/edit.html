@@ -2,8 +2,25 @@
 
 {% block title %}Edit Project - SDG Assessment Tool{% endblock %}
 
+{% block head %}
+{{ super() }}
+<style>
+    body { font-family: 'Merriweather', serif; }
+    .form-control, .form-select { border-radius: 0 !important; }
+    .form-control:focus, .form-select:focus { border-color: var(--uia-blue); box-shadow: 0 0 0 2px rgba(87, 124, 179, 0.15); }
+    .card { border-radius: 0; border: 1px solid #e1e4e8; box-shadow: none; }
+    .card-body { background: #F7F6F6; }
+    h1 { font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #000; font-size: 1.5rem; }
+    .btn { border-radius: 0; }
+    .btn-primary { background: var(--uia-blue); border-color: var(--uia-blue); border-radius: 999px !important; text-transform: uppercase; font-weight: 700; font-size: 13px; font-family: 'Oswald', sans-serif; }
+    .btn-primary:hover { background: var(--uia-violet); color: #fff; border-color: var(--uia-violet); }
+    .btn-outline-secondary { border-radius: 999px !important; text-transform: uppercase; font-weight: 700; font-size: 13px; }
+    .input-group-text { border-radius: 0; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
+<div class="container-lg mt-4 py-3">
     <div class="row">
         <div class="col-lg-8 offset-lg-2">
             <h1 class="mb-4">Edit Project</h1>

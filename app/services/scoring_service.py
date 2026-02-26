@@ -54,6 +54,7 @@ from app.models.response import QuestionResponse
 from app.models.sdg import SdgGoal, SdgQuestion  # Assuming SdgQuestion is defined here or import separately
 from app.models.sdg_relationship import SdgRelationship  # Make sure this model exists and is imported
 from flask import current_app  # For logging
+from app.services.assessment_cache_service import invalidate_assessment_cache
 
 def calculate_sdg_scores(assessment_id):
     """
@@ -95,12 +96,21 @@ def calculate_sdg_scores(assessment_id):
         db.session.commit()
         return {'sdg_scores': {}, 'overall_score': 0}
 
+    # Pre-fetch all SDG goals and existing scores in single queries (avoid N+1)
+    all_sdg_goals = SdgGoal.query.all()
+    all_sdg_ids = [g.id for g in all_sdg_goals]
+
+    # Batch fetch existing scores for this assessment
+    existing_scores = {
+        score.sdg_id: score
+        for score in SdgScore.query.filter_by(assessment_id=assessment_id).all()
+    }
+
     if not responses:
         print(f"ORM: Query returned 0 responses for assessment_id {assessment_id}.")
         assessment.overall_score = 0
-        all_sdg_ids = [g.id for g in SdgGoal.query.all()]
         for sdg_id in all_sdg_ids:
-            sdg_score_obj = SdgScore.query.filter_by(assessment_id=assessment_id, sdg_id=sdg_id).first()
+            sdg_score_obj = existing_scores.get(sdg_id)
             if not sdg_score_obj:
                 sdg_score_obj = SdgScore(assessment_id=assessment_id, sdg_id=sdg_id)
                 db.session.add(sdg_score_obj)
@@ -120,7 +130,7 @@ def calculate_sdg_scores(assessment_id):
         print(f"  Row {i}: assessment={r.assessment_id}, q_id={r.question_id}, score={r.response_score}, text='{r.response_text}'")
 
     print("--- ORM: Starting Raw Score Calculation Loop ---")
-    all_sdg_ids = [g.id for g in SdgGoal.query.all()]
+    # Reuse all_sdg_ids and existing_scores from above to avoid redundant queries
     sdg_raw_scores = {sdg_id: 0.0 for sdg_id in all_sdg_ids}
     sdg_max_possible_raw = {sdg_id: 0.0 for sdg_id in all_sdg_ids}
     sdg_question_counts = {sdg_id: 0 for sdg_id in all_sdg_ids}
@@ -248,11 +258,12 @@ def calculate_sdg_scores(assessment_id):
     current_app.logger.info("--- ORM: Saving Calculated Scores to sdg_scores table ---")
     # (The saving loop should correctly pick up the new bonus_score_val and total_score_val)
     for sdg_id in all_sdg_ids:
-        # Fetch existing or create new SdgScore object
-        sdg_score_obj = SdgScore.query.filter_by(assessment_id=assessment_id, sdg_id=sdg_id).first()
+        # Use pre-fetched existing scores to avoid N+1 query
+        sdg_score_obj = existing_scores.get(sdg_id)
         if not sdg_score_obj:
             sdg_score_obj = SdgScore(assessment_id=assessment_id, sdg_id=sdg_id)
             db.session.add(sdg_score_obj)
+            existing_scores[sdg_id] = sdg_score_obj  # Add to cache
 
         # Assign calculated values
         direct_score_val = sdg_direct_scores.get(sdg_id, 0.0)
@@ -284,6 +295,15 @@ def calculate_sdg_scores(assessment_id):
     try:
         db.session.commit()
         print("--- ORM: Committed sdg_scores updates and assessment overall_score ---")
+
+        # Invalidate cache for this assessment after successful update
+        try:
+            invalidate_assessment_cache(assessment_id)
+            print(f"--- ORM: Invalidated cache for assessment {assessment_id} ---")
+        except Exception as cache_e:
+            # Don't fail if cache invalidation fails
+            print(f"Warning: Cache invalidation failed: {cache_e}")
+
     except Exception as final_commit_e:
         db.session.rollback()
         print(f"ERROR during final commit in scoring service: {final_commit_e}")

@@ -791,7 +791,7 @@ function generateRecommendations() {
 /**
  * Generates a PDF report using html2canvas and jsPDF.
  */
-function generatePDF() {
+async function generatePDF() {
     const downloadButton = document.getElementById('downloadPDF');
     if (!downloadButton) return;
 
@@ -803,7 +803,7 @@ function generatePDF() {
     }
 
     const originalHtml = downloadButton.innerHTML;
-    downloadButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Generating...';
+    downloadButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Generating PDF...';
     downloadButton.disabled = true;
 
     const elementToPrint = document.getElementById('results-report');
@@ -815,110 +815,162 @@ function generatePDF() {
         return;
     }
 
-    console.log("Starting PDF generation...");
-    // Temporarily hide non-print elements for cleaner capture
-    const noPrintElements = document.querySelectorAll('.no-print');
-    noPrintElements.forEach(el => el.style.visibility = 'hidden'); // Use visibility
+    try {
+        // CRITICAL: Wait for all charts to fully render
+        console.log("Waiting for charts to render...");
+        await new Promise(resolve => setTimeout(resolve, 500));  // Increased from 200ms
 
-    // Add a small delay for rendering changes
-    setTimeout(() => {
-        html2canvas(elementToPrint, {
-            scale: 1.5, // Adjust scale for balance between quality and file size
-            logging: false, // Disable verbose logging unless debugging
-            useCORS: true,
-            backgroundColor: '#ffffff',
-             // Capture full height
-             height: elementToPrint.scrollHeight,
-             windowHeight: elementToPrint.scrollHeight
-        }).then(canvas => {
-            console.log("html2canvas processing complete.");
-            const imgData = canvas.toDataURL('image/png');
-             const { jsPDF } = jspdf; // Destructure for convenience
-             const pdf = new jsPDF({
-                 orientation: 'p',
-                 unit: 'mm',
-                 format: 'a4'
-             });
+        // Force chart redraw to ensure canvas is populated
+        if (window.SDGCharts && window.SDGCharts.charts) {
+            Object.values(window.SDGCharts.charts).forEach(chart => {
+                if (chart && chart.update) {
+                    chart.update('none');  // Update without animation
+                }
+            });
+        }
 
-             const pdfWidth = pdf.internal.pageSize.getWidth();
-             const pdfHeight = pdf.internal.pageSize.getHeight();
-             const imgProps = pdf.getImageProperties(imgData);
-             const imgWidth = pdfWidth; // Fit image width to PDF width
-             const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+        // Wait for chart updates
+        await new Promise(resolve => setTimeout(resolve, 300));
 
-             let currentHeight = 0;
-             let page = 1;
-
-             // Add image, splitting across pages if necessary
-             while (currentHeight < imgHeight) {
-                 if (page > 1) {
-                     pdf.addPage();
-                 }
-                 // Calculate the portion of the image to draw on this page
-                 const sliceHeight = Math.min(imgHeight - currentHeight, pdfHeight * (imgHeight / imgHeight)); // Proportionally scale slice if needed conceptually, though imgHeight is calculated based on fitting width
-                 const yPosOnPage = 0; // Start drawing at top of each page
-                 const yPosOnCanvas = currentHeight * (canvas.height / imgHeight); // Y position on the source canvas
-                 const sliceHeightOnCanvas = pdfHeight * (canvas.height / imgHeight);
-
-                 // Add the image slice
-                  pdf.addImage(
-                      imgData,
-                      'PNG',
-                      0, // x position on PDF page
-                      yPosOnPage, // y position on PDF page
-                      imgWidth, // width on PDF page
-                      pdfHeight, // height on PDF page (stretch/crop slice to fit)
-                      null, // alias
-                      'FAST', // compression
-                      0, // rotation
-                       // Source image slicing parameters (x, y, width, height on canvas)
-                       // We are conceptually slicing vertically
-                       // Need to adjust source y and height
-                       // This part of addImage for slicing is complex and often needs trial/error
-                       // Simpler approach: add full image and let it clip, add new page if needed
-                       // Let's try the simpler approach first:
-                       // pdf.addImage(imgData, 'PNG', 0, -currentHeight, imgWidth, imgHeight); // Position full image, offsetting vertically
-                 );
-
-                // Use simpler approach: Add image, potentially offset, and add pages
-                 pdf.addImage(imgData, 'PNG', 0, -currentHeight, imgWidth, imgHeight);
-
-
-                 currentHeight += pdfHeight;
-                 page++;
-             }
-
-
-            const safeProjectName = window.projectName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-            pdf.save(`SDG_Assessment_${safeProjectName}_${window.assessmentId}.pdf`);
-            console.log("PDF saved.");
-
-        }).catch(error => {
-            console.error("PDF generation failed:", error);
-            alert(`Failed to generate PDF. Error: ${error.message}. Check console for details.`);
-        }).finally(() => {
-            // Restore non-print elements' visibility
-            noPrintElements.forEach(el => el.style.visibility = '');
-            // Restore button state
-            downloadButton.innerHTML = originalHtml;
-            downloadButton.disabled = false;
-             console.log("PDF generation process finished.");
+        // Temporarily hide non-print elements
+        const noPrintElements = document.querySelectorAll('.no-print');
+        noPrintElements.forEach(el => {
+            el.style.display = 'none';  // Use display instead of visibility
         });
-    }, 200); // Delay allows UI to update spinner
+
+        // Ensure all canvases are visible
+        const canvases = elementToPrint.querySelectorAll('canvas');
+        console.log(`Found ${canvases.length} canvas elements`);
+
+        canvases.forEach((canvas, idx) => {
+            canvas.style.display = 'block';
+            canvas.style.visibility = 'visible';
+            console.log(`Canvas ${idx}: ${canvas.width}x${canvas.height}`);
+        });
+
+        console.log("Starting html2canvas...");
+        const canvas = await html2canvas(elementToPrint, {
+            scale: 2,  // Higher quality
+            logging: true,  // Enable logging for debugging
+            useCORS: true,
+            allowTaint: false,
+            backgroundColor: '#ffffff',
+            height: elementToPrint.scrollHeight,
+            windowHeight: elementToPrint.scrollHeight + 100,  // Extra buffer
+            onclone: (clonedDoc) => {
+                // Ensure charts are visible in cloned document
+                const clonedCanvases = clonedDoc.querySelectorAll('canvas');
+                clonedCanvases.forEach(c => {
+                    c.style.display = 'block';
+                    c.style.visibility = 'visible';
+                });
+            }
+        });
+
+        console.log(`Canvas generated: ${canvas.width}x${canvas.height}`);
+
+        const imgData = canvas.toDataURL('image/png', 1.0);  // Maximum quality
+        const { jsPDF } = jspdf;
+        const pdf = new jsPDF({
+            orientation: 'p',
+            unit: 'mm',
+            format: 'a4',
+            compress: true
+        });
+
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const margin = 10;  // 10mm margins
+        const contentWidth = pdfWidth - (margin * 2);
+
+        const imgProps = pdf.getImageProperties(imgData);
+        const imgWidth = contentWidth;
+        const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+
+        let currentHeight = 0;
+        let page = 1;
+
+        // Multi-page handling with margins
+        while (currentHeight < imgHeight) {
+            if (page > 1) {
+                pdf.addPage();
+            }
+
+            // Add image with margins
+            pdf.addImage(
+                imgData,
+                'PNG',
+                margin,  // x position
+                margin - currentHeight,  // y position
+                imgWidth,
+                imgHeight
+            );
+
+            currentHeight += (pdfHeight - (margin * 2));
+            page++;
+        }
+
+        const safeProjectName = (window.projectName || 'project').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        const filename = `SDG_Assessment_${safeProjectName}_${window.assessmentId}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+        pdf.save(filename);
+        console.log(`PDF saved: ${filename}`);
+
+    } catch (error) {
+        console.error("PDF generation failed:", error);
+        alert(`Failed to generate PDF. Error: ${error.message}`);
+    } finally {
+        // Restore hidden elements
+        const noPrintElements = document.querySelectorAll('.no-print');
+        noPrintElements.forEach(el => {
+            el.style.display = '';
+        });
+
+        downloadButton.innerHTML = originalHtml;
+        downloadButton.disabled = false;
+    }
 }
 
 
 /**
- * Opens the Share modal.
+ * Opens the Share modal and generates a shareable link.
  */
-function shareResults() {
+async function shareResults() {
     const shareModalEl = document.getElementById('shareModal');
-    if (shareModalEl && window.bootstrap) {
-        const shareModal = bootstrap.Modal.getInstance(shareModalEl) || new bootstrap.Modal(shareModalEl);
-        shareModal.show();
-    } else {
+    if (!shareModalEl || !window.bootstrap) {
         console.error("Share modal element or Bootstrap Modal not found.");
         alert("Could not open the share dialog.");
+        return;
+    }
+
+    const shareModal = bootstrap.Modal.getInstance(shareModalEl) || new bootstrap.Modal(shareModalEl);
+
+    // Generate share link via API
+    try {
+        const response = await fetch(`/assessments/projects/${window.projectId}/assessments/${window.assessmentId}/share`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Display share URL in modal
+            const shareUrlInput = document.getElementById('shareUrl');
+            if (shareUrlInput) {
+                shareUrlInput.value = data.share_url;
+                shareUrlInput.select();  // Auto-select for easy copying
+            }
+
+            shareModal.show();
+        } else {
+            alert(`Failed to generate share link: ${data.message}`);
+        }
+    } catch (error) {
+        console.error("Error generating share link:", error);
+        alert("Failed to generate share link. Please try again.");
     }
 }
 
@@ -1062,3 +1114,30 @@ function createBasicCharts(sdgScoresData) {
          }
      });
 }
+
+// Copy share URL to clipboard
+document.addEventListener('DOMContentLoaded', function() {
+    const copyShareUrlBtn = document.getElementById('copyShareUrl');
+    if (copyShareUrlBtn) {
+        copyShareUrlBtn.addEventListener('click', async function() {
+            const shareUrlInput = document.getElementById('shareUrl');
+            if (!shareUrlInput) return;
+
+            try {
+                await navigator.clipboard.writeText(shareUrlInput.value);
+                this.innerHTML = '<i class="fas fa-check me-2"></i>Copied!';
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-copy me-2"></i>Copy Link';
+                }, 2000);
+            } catch (error) {
+                // Fallback for older browsers
+                shareUrlInput.select();
+                document.execCommand('copy');
+                this.innerHTML = '<i class="fas fa-check me-2"></i>Copied!';
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-copy me-2"></i>Copy Link';
+                }, 2000);
+            }
+        });
+    }
+});

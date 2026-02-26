@@ -172,3 +172,117 @@ class AuthActions:
 def auth(client):  # Depends on the function-scoped client
     """Fixture to perform login/logout actions."""
     return AuthActions(client)
+
+@pytest.fixture(scope='function')
+def admin_user(session):
+    """Creates an admin user within the function transaction."""
+    print("   -> Creating admin user object...")
+    user = User(
+        name='Admin User',
+        email=f"admin_{uuid.uuid4().hex[:8]}@example.com",
+        password_hash=generate_password_hash('adminpass'),
+        is_admin=True,
+        email_confirmed=True
+    )
+    session.add(user)
+    session.flush()
+    print(f"   <- Admin user flushed (ID: {user.id} - pending rollback).")
+    return user
+
+@pytest.fixture(scope='function')
+def assessment_with_responses(session, test_project):
+    """Creates an assessment with question responses."""
+    from app.models.response import QuestionResponse
+
+    print("   -> Creating assessment with responses...")
+    assessment = Assessment(
+        project_id=test_project.id,
+        user_id=test_project.user_id,
+        status='completed',
+        assessment_type='standard',
+        overall_score=7.5,
+        completed_at=datetime.utcnow(),
+        step1_completed=True,
+        step2_completed=True,
+        step3_completed=True,
+        step4_completed=True,
+        step5_completed=True
+    )
+    session.add(assessment)
+    session.flush()
+
+    # Add sample responses for the first 10 questions
+    questions = session.query(SdgQuestion).limit(10).all()
+    for i, question in enumerate(questions):
+        response = QuestionResponse(
+            assessment_id=assessment.id,
+            question_id=question.id,
+            response_score=float(3 + (i % 3)),  # Scores between 3-5
+            response_text=f"Sample response for question {question.id}"
+        )
+        session.add(response)
+
+    session.flush()
+    print(f"   <- Assessment with responses created (ID: {assessment.id}, {len(questions)} responses)")
+    return assessment
+
+@pytest.fixture(scope='function')
+def multiple_projects(session, test_user):
+    """Creates multiple projects for testing lists and pagination."""
+    print("   -> Creating multiple projects...")
+    projects = []
+    for i in range(5):
+        project = Project(
+            name=f"Test Project {i+1}",
+            user_id=test_user.id,
+            project_type=['residential', 'commercial', 'education', 'healthcare', 'technology'][i],
+            location=f'Location {i+1}',
+            description=f'Description for project {i+1}',
+            start_date=datetime(2024, i+1, 1),
+            end_date=datetime(2024, i+1, 28),
+            budget=float(10000 * (i+1)),
+            sector=['Technology', 'Healthcare', 'Education', 'Commercial', 'Residential'][i]
+        )
+        session.add(project)
+        projects.append(project)
+
+    session.flush()
+    print(f"   <- Created {len(projects)} projects")
+    return projects
+
+@pytest.fixture(scope='function')
+def completed_assessment(session, test_project):
+    """Creates a completed assessment without responses (for testing results display)."""
+    from app.models.assessment import SdgScore
+
+    print("   -> Creating completed assessment with SDG scores...")
+    assessment = Assessment(
+        project_id=test_project.id,
+        user_id=test_project.user_id,
+        status='completed',
+        assessment_type='standard',
+        overall_score=6.8,
+        completed_at=datetime.utcnow()
+    )
+    session.add(assessment)
+    session.flush()
+
+    # Add SDG scores for first 5 SDGs
+    sdg_goals = session.query(SdgGoal).limit(5).all()
+    for i, goal in enumerate(sdg_goals):
+        score = SdgScore(
+            assessment_id=assessment.id,
+            sdg_id=goal.id,
+            direct_score=float(5 + i * 0.5),
+            bonus_score=float(0.5),
+            total_score=float(5.5 + i * 0.5),
+            raw_score=float(10 + i),
+            max_possible=15.0,
+            percentage_score=float((10 + i) / 15.0 * 100),
+            question_count=3
+        )
+        session.add(score)
+
+    session.flush()
+    print(f"   <- Completed assessment created (ID: {assessment.id}, {len(sdg_goals)} SDG scores)")
+    return assessment

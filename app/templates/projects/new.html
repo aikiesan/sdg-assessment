@@ -5,58 +5,77 @@
 {% block head %}
 {{ super() }} {# Include head content from base.html #}
 <style>
+    body { font-family: 'Merriweather', serif; }
     .form-legend {
-        font-size: 1.2rem; /* Slightly larger legend */
-        font-weight: 600;
+        font-size: 0.8rem;
+        font-weight: 800;
         padding-bottom: 0.5rem;
-        margin-bottom: 1.5rem; /* More space below legend */
-        border-bottom: 1px solid #dee2e6;
-        color: #495057;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid #000000;
+        color: var(--uia-blue);
+        font-family: 'Oswald', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
     }
     .form-control:focus, .form-select:focus {
-        border-color: #0d6efd; /* Standard Bootstrap primary color */
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        border-color: var(--uia-blue);
+        box-shadow: 0 0 0 2px rgba(87, 124, 179, 0.15);
     }
     .character-counter {
-        font-size: 0.8rem; /* Slightly smaller counter */
+        font-size: 0.8rem;
         color: #6c757d;
         text-align: right;
         margin-top: 0.25rem;
     }
     .form-text {
-        font-size: 0.875rem; /* Standard help text size */
+        font-size: 0.875rem;
     }
     .card {
-        border: none; /* Remove default card border if using shadow */
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1); /* Softer shadow */
-        border-radius: 0.75rem; /* Slightly larger radius */
+        border: 1px solid #e1e4e8;
+        box-shadow: none;
+        border-radius: 0;
     }
     .card-header {
-        background-color: #f8f9fa; /* Lighter header */
-        border-bottom: 1px solid #dee2e6;
+        background-color: #F7F6F6;
+        border-bottom: 2px solid #000000;
         padding: 1rem 1.5rem;
     }
     .card-header h2 {
-        font-size: 1.5rem; /* Adjust header size */
+        font-size: 0.85rem;
         margin-bottom: 0;
-        font-weight: 500; /* Less heavy font */
-        color: #212529;
+        font-weight: 800;
+        color: var(--uia-blue);
+        font-family: 'Oswald', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
     }
     .form-actions {
         display: flex;
         justify-content: flex-end;
-        gap: 0.75rem; /* Space between buttons */
+        gap: 0.75rem;
         margin-top: 2rem;
         padding-top: 1.5rem;
-        border-top: 1px solid #dee2e6; /* Separator line */
+        border-top: 1px solid #dee2e6;
+    }
+    .form-actions .btn-primary {
+        border-radius: 999px;
+    }
+    .form-actions .btn-outline-secondary {
+        border-radius: 999px;
+    }
+    h1.h3 {
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #000000;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container my-4 my-md-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-9 col-xl-8">
+<div class="container-lg my-4 my-md-5">
+    <div class="row">
+        <div class="col-12 col-lg-8 offset-lg-2">
 
             <div class="d-flex justify-content-between align-items-center mb-4">
                  <h1 class="h3 mb-0">Create New Project</h1>

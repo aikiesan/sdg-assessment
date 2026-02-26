@@ -7,265 +7,236 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Karla:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/landing_page.css') }}">
 <style>
-  /* ... (your existing :root and body styles are fine) ... */
-  :root {
-    --uia-primary-blue: #003366;
-    --uia-secondary-blue: #005ea2;
-    --uia-accent-blue: #0078d4;
-    --uia-light-gray: #f0f2f5;
-    --uia-medium-gray: #d1d5db;
-    --uia-dark-gray: #374151;
-    --uia-text-light: #6b7280;
-    --uia-white: #ffffff;
-    --transition-speed: 0.3s;
-    --border-radius-md: 0.5rem;
-    --border-radius-lg: 0.75rem;
-  }
-
   body {
-    font-family: 'Inter', sans-serif;
-    color: var(--uia-dark-gray); /* Will be overridden in hero for text on image */
+    font-family: 'Karla', sans-serif;
+    color: #32373c;
     line-height: 1.7;
   }
 
-  /* --- HERO SECTION WITH SVG BACKGROUND --- */
+  /* --- HERO SECTION - Barcelona Banner Background --- */
   .hero-section {
-    /* Set the SVG as background */
-    background-image: 
-        /* Optional: Dark semi-transparent overlay for better text readability */
-        linear-gradient(rgba(0, 25, 51, 0.65), rgba(0, 40, 82, 0.55)), 
-        url("{{ url_for('static', filename='img/sustainable-building-illustration.svg') }}");
-    background-size: cover; /* Cover the entire area, may crop image */
-    background-position: center center; /* Center the image */
-    background-repeat: no-repeat;
-    
-    color: var(--uia-white); /* Text color on top of the background */
-    padding: 100px 0; /* Adjust padding as needed */
-    min-height: 75vh; /* Ensure section is tall enough to show background */
-    display: flex; /* For vertical centering of content */
-    align-items: center; /* For vertical centering */
-    text-align: center; /* Center hero content */
-    position: relative; /* For potential pseudo-elements if needed */
+    background: linear-gradient(rgba(87, 124, 179, 0.85), rgba(72, 70, 117, 0.85)),
+                url("{{ url_for('static', filename='img/Barcelona-banner-1024x536.jpg') }}") center/cover no-repeat;
+    color: #ffffff;
+    padding: 100px 0;
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    position: relative;
   }
 
   .hero-section .container {
-    position: relative; /* Ensure content is above any pseudo-elements of hero-section */
+    position: relative;
     z-index: 2;
-    max-width: 800px; /* Constrain content width for readability */
+    max-width: 800px;
   }
 
   .hero-section .display-4 {
     font-weight: 800;
-    color: var(--uia-white); /* Ensure heading is white */
+    color: #ffffff;
     margin-bottom: 1.5rem;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3); /* Subtle shadow for readability */
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
   }
 
   .hero-section .lead {
-    font-size: 1.3rem; /* Slightly larger lead */
-    color: rgba(255, 255, 255, 0.9); /* Slightly off-white for lead */
+    font-size: 1.2rem;
+    color: rgba(255, 255, 255, 0.85);
     margin-bottom: 2.5rem;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.2);
   }
 
   .education-badge {
-    /* Make badge stand out on image background */
-    background-color: rgba(255, 255, 255, 0.15); /* Semi-transparent white */
+    background-color: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.3);
-    color: var(--uia-white);
+    color: #ffffff;
     padding: 0.6rem 1.5rem;
-    border-radius: 50px;
+    border-radius: 999px;
     font-weight: 600;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     margin-bottom: 1.5rem;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
-   .education-badge i {
-    font-size: 1.1em;
-   }
 
   .hero-ctas .btn {
-    padding: 0.8rem 2rem;
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin: 0.5rem; /* Add margin for spacing if they wrap */
-    transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+    padding: 0.9rem 2.5rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 0.5rem;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.2s ease;
   }
   .hero-ctas .btn-primary {
-    background-color: var(--uia-accent-blue); /* Use accent for primary CTA on dark bg */
-    border-color: var(--uia-accent-blue);
-    color: var(--uia-white);
+    background-color: #32373c;
+    border-color: #32373c;
+    color: #ffffff;
+    font-family: 'Oswald', sans-serif;
   }
   .hero-ctas .btn-primary:hover {
-    background-color: #0067b3; /* Darken accent */
-    border-color: #0067b3;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    background-color: #1a1d1f;
+    border-color: #1a1d1f;
+    color: #ffffff;
   }
-  .hero-ctas .btn-outline-primary { /* This will be outline-light effectively */
-    border-color: rgba(255,255,255,0.8);
-    color: var(--uia-white);
+  .hero-ctas .btn-outline-light {
+    border-color: rgba(255,255,255,0.6);
+    color: #ffffff;
+    background: transparent;
   }
-  .hero-ctas .btn-outline-primary:hover {
-    background-color: rgba(255,255,255,0.15);
-    border-color: var(--uia-white);
-    color: var(--uia-white);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  .hero-ctas .btn-outline-light:hover {
+    background-color: rgba(255,255,255,0.1);
+    border-color: #ffffff;
+    color: #ffffff;
   }
 
-
-  /* ... (rest of your CSS for other sections: .section, .feature-card, etc. remain the same) ... */
+  /* Sections */
   .section {
     padding: 80px 0;
   }
   .section.bg-light-alt {
-    background-color: #f7f9fc; 
+    background-color: #F7F6F6;
   }
   .section-title {
-    font-size: 2.5rem; 
-    font-weight: 700;
+    font-size: 2rem;
+    font-weight: 800;
     margin-bottom: 1rem;
-    color: var(--uia-dark-gray);
+    color: #000000;
     text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
   .section-subtitle {
-    font-size: 1.15rem; 
-    color: var(--uia-text-light);
-    margin-bottom: 3rem; 
+    font-size: 1.1rem;
+    color: #6b7280;
+    margin-bottom: 3rem;
     text-align: center;
     max-width: 750px;
     margin-left: auto;
     margin-right: auto;
   }
+
+  /* Feature Cards */
   .feature-card {
-    background-color: #fff;
-    border: 1px solid var(--uia-medium-gray); 
-    border-radius: var(--border-radius-lg);
+    background-color: #F7F6F6;
+    border: none;
+    border-radius: 0;
     padding: 2rem;
     text-align: center;
-    transition: all var(--transition-speed) ease;
-    height: 100%; 
+    transition: all 0.2s ease;
+    height: 100%;
   }
   .feature-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 10px 30px rgba(0, 51, 102, 0.1); /* UIA primary blue shadow */
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
   }
   .feature-icon {
-    font-size: 2.5rem; 
-    color: var(--uia-primary-blue);
+    font-size: 2rem;
+    color: var(--uia-blue);
     margin-bottom: 1rem;
-    display: inline-block;
-    background-color: var(--uia-light-gray);
-    width: 70px;
-    height: 70px;
-    line-height: 70px;
-    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ffffff;
+    width: 64px;
+    height: 64px;
+    border: 2px solid var(--uia-dark);
   }
   .feature-card h5 {
-    font-weight: 600;
-    color: var(--uia-dark-gray);
+    font-weight: 700;
+    color: #000000;
     margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    font-size: 1rem;
+    letter-spacing: 0.03em;
   }
+
+  /* How It Works */
   .how-it-works-step {
     display: flex;
-    align-items: flex-start; 
+    align-items: flex-start;
     margin-bottom: 2rem;
   }
   .how-it-works-step .step-number {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--uia-primary-blue);
-    background-color: var(--uia-light-gray);
-    border-radius: 50%;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #ffffff;
+    background-color: #000000;
+    border-radius: 0;
     width: 50px;
     height: 50px;
     line-height: 50px;
     text-align: center;
     margin-right: 1.5rem;
-    flex-shrink: 0; 
+    flex-shrink: 0;
   }
   .how-it-works-step .step-content h5 {
-    font-weight: 600;
+    font-weight: 700;
     margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
   }
   .how-it-works-step .step-content p {
-    color: var(--uia-text-light);
+    color: #6b7280;
     margin-bottom: 0;
   }
+
+  /* Collaboration section */
   .collaboration-section img {
-    max-height: 60px; 
+    max-height: 60px;
     filter: grayscale(100%);
     opacity: 0.7;
-    transition: all var(--transition-speed) ease;
+    transition: all 0.2s ease;
   }
   .collaboration-section img:hover {
     filter: grayscale(0%);
     opacity: 1;
   }
+
+  /* Final CTA */
   .cta-section {
-    background-color: var(--uia-primary-blue);
+    background-color: #32373c;
     color: #fff;
     padding: 60px 0;
-    border-radius: var(--border-radius-lg);
+    border-radius: 0;
   }
   .cta-section h2 {
     color: #fff;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .cta-section .btn-light {
     font-weight: 700;
+    padding: 0.9rem 2.5rem;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #32373c;
   }
-  .cta-section .btn-light { 
-    font-weight: 600;
-    padding: 0.8rem 2rem;
-    color: var(--uia-primary-blue); /* Text color for light button */
+  .cta-section .btn-light:hover {
+    background-color: #F7F6F6;
   }
-   .cta-section .btn-light:hover {
-    background-color: var(--uia-light-gray); /* Slightly darker on hover */
-   }
-  .btn {
-    border-radius: var(--border-radius-md);
-    padding: 0.6rem 1.5rem; 
-    transition: all var(--transition-speed) ease;
-    text-transform: none; 
-  }
-  .btn-primary {
-    background-color: var(--uia-primary-blue); /* General primary button */
-    border-color: var(--uia-primary-blue);
-    color: var(--uia-white);
-  }
-  .btn-primary:hover {
-    background-color: var(--uia-secondary-blue);
-    border-color: var(--uia-secondary-blue);
-  }
-  .btn-outline-primary {
-    color: var(--uia-primary-blue);
-    border-color: var(--uia-primary-blue);
-    border-width: 2px; 
-  }
-  .btn-outline-primary:hover {
-    background-color: var(--uia-primary-blue);
-    color: white;
-  }
+
   @media (max-width: 992px) {
     .hero-section .display-4 { font-size: 2.5rem; }
-    .section-title { font-size: 2rem; }
+    .section-title { font-size: 1.75rem; }
   }
   @media (max-width: 768px) {
-    .hero-section { padding: 80px 0; min-height: 60vh; } /* Adjust padding/height for mobile */
-    .hero-section .display-4 { font-size: 2rem; }
-    .hero-section .lead { font-size: 1.15rem; }
-    .hero-ctas .btn { display: block; margin-left:auto; margin-right:auto; margin-bottom: 1rem; width: 80%; max-width:300px; }
-    .hero-ctas .btn:last-child { margin-bottom: 0; }
+    .hero-section { padding: 80px 0; min-height: 60vh; }
+    .hero-section .display-4 { font-size: 1.75rem; }
+    .hero-ctas .btn { display: block; margin-left: auto; margin-right: auto; margin-bottom: 1rem; width: 80%; max-width: 300px; }
     .section { padding: 60px 0; }
-    .section-title { font-size: 1.75rem; }
     .how-it-works-step { flex-direction: column; align-items: center; text-align: center; }
     .how-it-works-step .step-number { margin-right: 0; margin-bottom: 1rem; }
   }
-
 </style>
 {% endblock %}
 
@@ -285,17 +256,17 @@
         
         <div class="hero-ctas mt-4">
             {% if current_user.is_authenticated %}
-                <a href="{{ url_for('projects.index') }}" class="btn btn-primary btn-lg"> {# Was me-md-2 mb-2 mb-md-0 #}
+                <a href="{{ url_for('projects.index') }}" class="btn btn-primary btn-lg">
                     <i class="bi bi-folder2-open me-2"></i>Go to My Projects
                 </a>
-                <a href="{{ url_for('main.sdg_information_hub') }}" class="btn btn-outline-primary btn-lg"> {# Will become outline-light effectively #}
+                <a href="{{ url_for('main.sdg_information_hub') }}" class="btn btn-outline-light btn-lg">
                     <i class="bi bi-info-circle me-2"></i>Learn About SDGs
                 </a>
             {% else %}
-                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg"> {# Was me-md-2 mb-2 mb-md-0 #}
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
                     <i class="bi bi-check2-circle me-2"></i>Start Your First Assessment
                 </a>
-                <a href="{{ url_for('main.sdg_information_hub') }}" class="btn btn-outline-primary btn-lg"> {# Will become outline-light effectively #}
+                <a href="{{ url_for('main.sdg_information_hub') }}" class="btn btn-outline-light btn-lg">
                     <i class="bi bi-info-circle me-2"></i>Explore the SDGs
                 </a>
             {% endif %}
@@ -322,21 +293,21 @@
         
         <div class="row g-4">
             <div class="col-md-4">
-                <div class="feature-card">
+                <div class="feature-card uia-featured-card" data-category="priority">
                     <div class="feature-icon"><i class="bi bi-lightbulb-fill"></i></div>
                     <h5>Gain Clarity</h5>
                     <p class="text-muted">Understand how your design choices connect to global sustainability targets. Get a structured overview of your project's SDG impact.</p>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="feature-card">
+                <div class="feature-card uia-featured-card" data-category="tools">
                     <div class="feature-icon"><i class="bi bi-book-half"></i></div>
                     <h5>Enhance Learning</h5>
                     <p class="text-muted">Access curated information and insights about each SDG's relevance to architecture. Ideal for students and professionals alike.</p>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="feature-card">
+                <div class="feature-card uia-featured-card" data-category="resources">
                     <div class="feature-icon"><i class="bi bi-arrows-angle-expand"></i></div>
                     <h5>Broaden Perspective</h5>
                     <p class="text-muted">Think beyond traditional green building metrics. Consider social equity, economic viability, and environmental stewardship holistically.</p>
@@ -411,21 +382,21 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                 <i class="bi bi-stars text-primary" style="font-size: 3rem; margin-bottom: 1rem; color: var(--uia-accent-blue) !important;"></i> {# Use UIA accent blue #}
+                 <i class="bi bi-stars" style="font-size: 3rem; margin-bottom: 1rem; color: var(--uia-red); display: block;"></i>
                 <h2 class="section-title">Ready to Explore Your Project's Potential?</h2>
                 <p class="section-subtitle">
                     Join a growing community of forward-thinking architects and designers committed to a sustainable future.
                     Start your educational journey today.
                 </p>
                 {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('projects.index') }}" class="btn btn-primary btn-lg" style="background-color: var(--uia-primary-blue); border-color: var(--uia-primary-blue);"> {# UIA Primary Blue #}
+                    <a href="{{ url_for('projects.index') }}" class="btn btn-uia-primary btn-lg">
                         <i class="bi bi-arrow-right-circle me-2"></i>Access My Dashboard
                     </a>
                 {% else %}
-                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg" style="background-color: var(--uia-primary-blue); border-color: var(--uia-primary-blue);"> {# UIA Primary Blue #}
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-uia-primary btn-lg">
                         <i class="bi bi-person-plus-fill me-2"></i>Create Free Account
                     </a>
-                    <p class="mt-3"><small>Already have an account? <a href="{{ url_for('auth.login') }}" style="color: var(--uia-accent-blue);">Login here</a>.</small></p> {# UIA Accent Blue for link #}
+                    <p class="mt-3"><small>Already have an account? <a href="{{ url_for('auth.login') }}" style="color: var(--uia-red);">Login here</a>.</small></p>
                 {% endif %}
             </div>
         </div>

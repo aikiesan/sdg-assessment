@@ -180,7 +180,10 @@
 {% endblock %}
 
 {% block content %}
-<div class="auth-container">
+<div class="container-lg py-5">
+  <div class="row">
+    <div class="col-12 col-lg-8 offset-lg-2">
+<div class="auth-container" style="max-width: 100%; margin: 0;">
     <div class="card auth-card">
         <div class="card-header">
             <div class="text-center mb-4">
@@ -274,7 +277,10 @@
             <p class="mb-0">Already have an account? <a href="{{ url_for('auth.login') }}" class="fw-semibold">Sign In</a></p>
         </div>
     </div>
-</div>
+</div><!-- end auth-container -->
+    </div><!-- end col -->
+  </div><!-- end row -->
+</div><!-- end container-lg -->
 
 <!-- Terms of Service Modal -->
 <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">

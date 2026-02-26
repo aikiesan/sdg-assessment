@@ -13,8 +13,14 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
   .stat-card {
-    border-left: 4px solid #3f7e44;
-    border-radius: 0.25rem;
+    border-left: 4px solid var(--uia-red);
+    border-radius: 0;
+  }
+  .card-header h5 {
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
   }
   .stat-value {
     font-size: 2rem;
@@ -31,17 +37,25 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="mb-0">Dashboard</h1>
-    <div>
-      <a href="{{ url_for('dashboard.project_comparison') }}" class="btn btn-outline-primary me-2">
-        <i class="bi bi-bar-chart-line"></i> Project Comparison
-      </a>
-      <a href="{{ url_for('dashboard.generate_report') }}" class="btn btn-outline-secondary" target="_blank">
-        <i class="bi bi-file-earmark-text"></i> Generate Report
-      </a>
+<div class="container-lg py-5">
+  <div class="row gx-md-5">
+    <!-- Sidebar -->
+    <div class="col-12 col-lg-2">
+      <div class="sticky-top pt-2">
+        <nav class="d-flex flex-column gap-2">
+          <span class="sdg-section-header mb-2">Dashboard</span>
+          <a href="{{ url_for('dashboard.index') }}" class="btn btn-uia-outline w-100 text-start">Overview</a>
+          <a href="{{ url_for('dashboard.sdg_analysis') }}" class="btn btn-uia-outline w-100 text-start">SDG Analysis</a>
+          <a href="{{ url_for('dashboard.project_comparison') }}" class="btn btn-uia-outline w-100 text-start">Comparison</a>
+          <a href="{{ url_for('dashboard.generate_report') }}" class="btn btn-uia-primary w-100 text-start" target="_blank">Report</a>
+        </nav>
+      </div>
     </div>
+    <!-- Main Content -->
+    <div class="col-12 col-lg-10">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0" style="text-transform: uppercase; font-weight: 800;">Dashboard</h1>
   </div>
 
   <!-- Statistics Cards -->
@@ -55,7 +69,7 @@
               <span class="stat-value">{{ project_count }}</span>
             </div>
             <div class="align-self-center">
-              <i class="bi bi-building text-primary" style="font-size: 2rem;"></i>
+              <i class="bi bi-building" style="font-size: 2rem; color: var(--uia-red);"></i>
             </div>
           </div>
         </div>
@@ -63,7 +77,7 @@
     </div>
     
     <div class="col-md-3">
-      <div class="card stat-card shadow-sm" style="border-left-color: #dda63a;">
+      <div class="card stat-card shadow-sm">
         <div class="card-body">
           <div class="d-flex justify-content-between">
             <div>
@@ -71,7 +85,7 @@
               <span class="stat-value">{{ assessment_count }}</span>
             </div>
             <div class="align-self-center">
-              <i class="bi bi-clipboard-check text-warning" style="font-size: 2rem;"></i>
+              <i class="bi bi-clipboard-check" style="font-size: 2rem; color: var(--uia-red);"></i>
             </div>
           </div>
         </div>
@@ -79,7 +93,7 @@
     </div>
     
     <div class="col-md-3">
-      <div class="card stat-card shadow-sm" style="border-left-color: #4c9f38;">
+      <div class="card stat-card shadow-sm">
         <div class="card-body">
           <div class="d-flex justify-content-between">
             <div>
@@ -87,7 +101,7 @@
               <span class="stat-value">{{ completion_rate|round|int }}%</span>
             </div>
             <div class="align-self-center">
-              <i class="bi bi-graph-up-arrow text-success" style="font-size: 2rem;"></i>
+              <i class="bi bi-graph-up-arrow" style="font-size: 2rem; color: var(--uia-red);"></i>
             </div>
           </div>
         </div>
@@ -95,7 +109,7 @@
     </div>
     
     <div class="col-md-3">
-      <div class="card stat-card shadow-sm" style="border-left-color: #26bde2;">
+      <div class="card stat-card shadow-sm">
         <div class="card-body">
           <div class="d-flex justify-content-between">
             <div>
@@ -103,7 +117,7 @@
               <span class="stat-value">{{ avg_score|round(1) }}</span>
             </div>
             <div class="align-self-center">
-              <i class="bi bi-star-fill text-info" style="font-size: 2rem;"></i>
+              <i class="bi bi-star-fill" style="font-size: 2rem; color: var(--uia-red);"></i>
             </div>
           </div>
         </div>
@@ -119,7 +133,7 @@
       <div class="card dashboard-card shadow-sm mb-4">
         <div class="card-header bg-white d-flex justify-content-between align-items-center">
           <h5 class="mb-0">SDG Performance</h5>
-          <a href="{{ url_for('dashboard.sdg_analysis') }}" class="btn btn-sm btn-outline-primary">Detailed Analysis</a>
+          <a href="{{ url_for('dashboard.sdg_analysis') }}" class="btn btn-sm btn-uia-outline">Detailed Analysis</a>
         </div>
         <div class="card-body">
           <div class="chart-container">
@@ -217,7 +231,7 @@
       <div class="card dashboard-card shadow-sm mb-4">
         <div class="card-header bg-white d-flex justify-content-between align-items-center">
           <h5 class="mb-0">Recent Projects</h5>
-          <a href="{{ url_for('projects') }}" class="btn btn-sm btn-outline-primary">View All</a>
+          <a href="{{ url_for('projects') }}" class="btn btn-sm btn-uia-outline">View All</a>
         </div>
         <div class="card-body p-0">
           <div class="list-group list-group-flush">
@@ -270,7 +284,10 @@
       </div>
     </div>
   </div>
-</div>
+
+    </div><!-- end col-lg-10 -->
+  </div><!-- end row -->
+</div><!-- end container-lg -->
 {% endblock %}
 
 {% block scripts %}

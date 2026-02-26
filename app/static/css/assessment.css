@@ -1,7 +1,21 @@
-/* Assessment Educational Content Styling */
+/* Assessment Educational Content Styling - UIA Design System */
+
+/* UIA override: progress bar red */
+.progress-bar {
+  background-color: var(--uia-red) !important;
+}
+
+/* Evidence focus - UIA style */
+.evidence-field:focus {
+  border-color: var(--uia-blue) !important;
+  box-shadow: 0 0 0 2px rgba(87, 124, 179, 0.15) !important;
+}
+
+/* Educational Container */
 .educational-container {
   border: 1px solid rgba(0,0,0,0.125);
-  box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+  box-shadow: none;
+  background-color: #F7F6F6;
 }
 
 .sdg-header {
@@ -16,12 +30,13 @@
   background-color: rgba(0,0,0,0.03);
 }
 
-/* SDG Card Styling */
+/* SDG Card Styling - UIA boxy */
 .sdg-card {
-  border-radius: 0.5rem;
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+  box-shadow: none;
   margin-bottom: 1.5rem;
+  background-color: #F7F6F6;
 }
 
 .sdg-card-header {
@@ -32,11 +47,7 @@
 /* Evidence Field Styling */
 .evidence-field {
   transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-}
-
-.evidence-field:focus {
-  border-color: #80bdff;
-  box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+  border-radius: 6px !important;
 }
 
 /* Rating Options Styling */

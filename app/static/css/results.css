@@ -1,22 +1,26 @@
-/* static/css/results.css */
+/* static/css/results.css - UIA Design System */
 
-/* Custom project variables: override or supplement Bootstrap as needed. */
 :root {
-    --primary: #2563eb;
-    --primary-dark: #1d4ed8;
+    --primary: var(--uia-blue);
+    --primary-dark: #000000;
     --success: #10b981;
     --warning: #f59e0b;
     --danger: #ef4444;
-    --info: #0ea5e9;
-    --dark: #1f2937;
-    --light: #f9fafb;
+    --info: var(--uia-blue);
+    --dark: var(--uia-dark);
+    --light: #F7F6F6;
     --gray: #6b7280;
+    /* UIA accent */
+    --uia-red: #AF201C;
+    --uia-blue: #577CB3;
+    --uia-violet: #484675;
+    --uia-dark: #6C6B69;
 }
 
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Merriweather', serif;
     color: var(--dark);
-    background-color: #f8fafc;
+    background-color: #F7F6F6;
     line-height: 1.6;
 }
 
@@ -29,13 +33,15 @@ body {
 .section-container {
     background-color: white;
     border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: none;
+    border: 1px solid #e1e4e8;
     padding: 1.5rem;
     margin-bottom: 1.5rem;
 }
 
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
+    font-family: 'Oswald', sans-serif;
     font-weight: 600;
     line-height: 1.3;
 }
@@ -58,57 +64,44 @@ h1, h2, h3, h4, h5, h6 {
 /* Chart improvements */
 .chart-container {
     position: relative;
-    /* Increase the default height slightly */
-    height: 540px; /* Was 535px */
+    /* Remove fixed height, use min-height instead */
+    min-height: 450px;
+    height: auto;  /* Allow natural height */
+    max-height: 580px;  /* ✅ Prevents unlimited expansion */
     width: 100%;
     background-color: white;
     border-radius: 6px;
-    padding: 0.75rem; /* Keep padding reduced if that helped */
+    padding: 0.75rem;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     margin-bottom: 1.5rem;
-    overflow: hidden; /* Keep this enabled */
+    overflow: visible;  /* Allow overflow instead of clipping */
+    display: flex;
+    flex-direction: column;
 }
 
 /* Make Strengths & Improvement Areas Visualized chart taller */
 .chart-container[aria-label="Strengths and Improvement Areas Chart"] {
-    /* Specific taller height for this chart */
-    /* Chart cut-off fix: slightly increased height for Strengths & Improvement Areas */
-    overflow: hidden;
-    height: 620px !important; /* Was 600px, try adding 20px */
+    min-height: 550px;  /* Taller for horizontal bar chart */
+    max-height: 650px;  /* ✅ Taller for horizontal bar chart */
+    overflow: visible;
 }
 
 #dimensionsContainer {
-    overflow: hidden;
-    height: 420px; /* Was 400px, try adding 20px */
-    position: relative; /* Ensure positioning context */
+    overflow: visible;  /* Don't clip */
+    min-height: 380px;
+    height: auto;
+    max-height: 480px;  /* ✅ Reasonable limit for dimensions chart */
+    position: relative;
 }
 
 /* Ensure canvas tries to fill the container */
 .chart-container canvas {
     display: block;
     box-sizing: border-box;
-    width: 100% !important;  /* Force canvas width to fill container */
-    height: 100% !important; /* Force canvas height to fill container */
-    /* --- CRITICAL FIX: Removed max-height constraint --- */
-    /* max-height: 280px; <-- REMOVED THIS LINE */
-    /* --- ADDED: Explicitly remove any max-height limit --- */
-    max-height: none !important;
-}
-
-/* --- REMOVED CONFLICTING RULE --- */
-/* Removed the later '.chart-container { height: 400px; }' rule that was conflicting */
-
-
-/* Specific height for dimensions chart container */
-#dimensionsContainer {
-     height: 420px; /* Was 400px, try adding 20px */
-     position: relative; /* Ensure positioning context */
-}
-/* Ensure canvas within dimensionsContainer also fills */
-#dimensionsContainer canvas {
-     width: 100% !important;
-     height: 100% !important;
-     max-height: none; /* Override general max-height if needed (redundant but safe) */
+    width: 100% !important;
+    height: auto !important;  /* Auto instead of 100% */
+    min-height: 350px;  /* Minimum usable height */
+    /* max-height removed - canvas will respect container's max-height */
 }
 
 
@@ -118,6 +111,7 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
     margin-bottom: 1rem;
     flex-wrap: wrap; /* Allow wrapping on small screens */
+    flex-shrink: 0;  /* Don't shrink header */
 }
 
 .chart-title {
@@ -138,6 +132,10 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     gap: 0.5rem;
     margin-left: auto; /* Push actions to the right */
+}
+
+.chart-container > canvas {
+    flex-grow: 1;  /* Canvas takes remaining space */
 }
 
 /* SDG Badge styling */
@@ -168,16 +166,20 @@ h1, h2, h3, h4, h5, h6 {
     border-spacing: 0;
     border-radius: 6px;
     overflow: hidden;
-    border: 1px solid rgba(0,0,0,0.1); /* Add border for better definition */
+    border: 1px solid rgba(0,0,0,0.1);
 }
 
 .data-table th {
-    background-color: rgba(37, 99, 235, 0.05);
-    font-weight: 600;
+    background-color: #F7F6F6;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
     padding: 0.8rem 1rem;
     text-align: left;
-    color: var(--dark);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    color: var(--uia-blue);
+    border-bottom: 2px solid var(--uia-dark);
+    font-family: 'Oswald', sans-serif;
 }
  /* Remove border from last header cell */
  .data-table th:last-child {
@@ -199,7 +201,7 @@ h1, h2, h3, h4, h5, h6 {
  }
 
 .data-table tbody tr:hover {
-    background-color: rgba(37, 99, 235, 0.03);
+    background-color: rgba(50, 55, 60, 0.03);
 }
 
 
@@ -242,8 +244,9 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 2rem;
     font-weight: 700;
     margin: 0.5rem 0;
-    color: var(--primary);
-    line-height: 1.1; /* Adjust line height */
+    color: var(--uia-red);
+    line-height: 1.1;
+    font-family: 'Oswald', sans-serif;
 }
 
 .score-label {
@@ -374,26 +377,37 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .action-btn-primary {
-    background-color: var(--primary);
+    background-color: var(--uia-blue);
     color: white;
-    border-color: var(--primary);
+    border-color: var(--uia-blue);
+    border-radius: 999px;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    font-family: 'Oswald', sans-serif;
 }
 
 .action-btn-primary:hover {
-    background-color: var(--primary-dark);
-    border-color: var(--primary-dark);
+    background-color: var(--uia-violet);
+    border-color: var(--uia-violet);
     color: white;
 }
 
 .action-btn-outline {
     background-color: transparent;
-    color: var(--primary);
-    border: 1px solid var(--primary);
+    color: var(--uia-blue);
+    border: 1px solid var(--uia-dark);
+    border-radius: 999px;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    font-family: 'Oswald', sans-serif;
 }
 
 .action-btn-outline:hover {
-    background-color: rgba(37, 99, 235, 0.05);
-    color: var(--primary-dark); /* Darken text on hover */
+    background-color: #F7F6F6;
+    color: var(--uia-red);
+    border-color: var(--uia-red);
 }
 
 .action-btn i {
@@ -493,13 +507,20 @@ h1, h2, h3, h4, h5, h6 {
         box-shadow: none !important;
     }
     .section-container {
-        page-break-inside: avoid;
-        break-inside: avoid;
+        page-break-inside: auto;  /* Allow breaks if needed */
+        break-inside: auto;
         background: white !important;
         box-shadow: none !important;
-         border: 1px solid #ccc !important; /* Ensure border prints */
-         padding: 1rem !important;
-         margin-bottom: 1cm !important;
+        border: 1px solid #ccc !important;
+        padding: 1rem !important;
+        margin-bottom: 0.5cm !important;
+    }
+
+    /* Only avoid breaks for small sections */
+    .score-card,
+    .recommendation-card {
+        page-break-inside: avoid;
+        break-inside: avoid;
     }
     h1, h2, h3, h4, h5, h6 {
         color: #000 !important;
@@ -520,21 +541,36 @@ h1, h2, h3, h4, h5, h6 {
     }
 
     /* Ensure charts print properly */
-    /* Allow charts to take auto height in print, but prevent them being too large */
     .chart-container {
         height: auto !important;
-        max-height: 250px; /* Limit chart height in print */
+        min-height: 300px;  /* Increased from 250px */
+        max-height: 450px !important;  /* ✅ Limit for print */
         page-break-inside: avoid;
         border: 1px solid #eee;
         padding: 0.5rem;
-        overflow: hidden; /* Prevent content spill */
+        overflow: visible !important;  /* Show all content */
+        margin-bottom: 0.5cm;
     }
-    /* Canvas within the chart container should also be constrained */
-     .chart-container canvas {
-         max-height: 240px !important; /* Ensure canvas doesn't exceed container */
-         width: auto !important; /* Let width be determined by container */
-         height: auto !important; /* Let height be determined by container (up to max-height) */
-     }
+
+    .chart-container canvas {
+        max-height: 430px !important;  /* ✅ Limit for print canvas */
+        width: 100% !important;
+        height: auto !important;
+        min-height: 250px;
+    }
+
+    /* Ensure specific charts get enough space */
+    .chart-container[aria-label="Strengths and Improvement Areas Chart"] {
+        min-height: 400px;
+        max-height: 500px !important;  /* ✅ Limit for strengths in print */
+        page-break-before: always;  /* Start on new page */
+    }
+
+    #dimensionsContainer {
+        min-height: 300px;
+        max-height: 400px !important;  /* ✅ Limit for dimensions in print */
+        page-break-inside: avoid;
+    }
 
     /* Ensure tables print properly */
     .data-table {
@@ -567,29 +603,34 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Responsive adjustments */
-/* Adjust container heights for smaller screens AFTER fixing the canvas filling issue */
 @media (max-width: 992px) {
-    /* Keep containers relatively tall if charts fill them */
     .chart-container {
-        /* Consider reducing height slightly if needed, e.g., 400px */
-         height: 440px;
+        min-height: 400px;
+        max-height: 550px;  /* ✅ Tablet limit */
     }
-     .chart-container[aria-label="Strengths and Improvement Areas Chart"] {
-         height: 620px !important; /* Was 600px, try adding 20px */
-     }
-     #dimensionsContainer { height: 420px; } /* Was 400px, try adding 20px */
+    .chart-container[aria-label="Strengths and Improvement Areas Chart"] {
+        min-height: 500px;
+        max-height: 620px;  /* ✅ Tablet limit for strengths */
+    }
+    #dimensionsContainer {
+        min-height: 360px;
+        max-height: 460px;  /* ✅ Tablet limit for dimensions */
+    }
 }
 
 @media (max-width: 768px) {
     .chart-container {
-        /* Reduce more significantly for tablets/small laptops */
-         height: 390px;
+        min-height: 350px;
+        max-height: 500px;  /* ✅ Small tablet limit */
     }
-     .chart-container[aria-label="Strengths and Improvement Areas Chart"] {
-         height: 470px !important; /* Was 450px, try adding 20px */
-     }
-     #dimensionsContainer { height: 320px; } /* Reduce slightly */
-
+    .chart-container[aria-label="Strengths and Improvement Areas Chart"] {
+        min-height: 450px;
+        max-height: 570px;  /* ✅ Small tablet limit */
+    }
+    #dimensionsContainer {
+        min-height: 300px;
+        max-height: 400px;  /* ✅ Small tablet limit */
+    }
 
     .score-card {
         margin-bottom: 1rem;
@@ -602,14 +643,18 @@ h1, h2, h3, h4, h5, h6 {
      h2.h4 { font-size: 1.1rem; }
 }
  @media (max-width: 576px) {
-      /* Reduce heights further for mobile */
      .chart-container {
-          height: 340px; /* Adjust */
+          min-height: 320px;
+          max-height: 450px;  /* ✅ Mobile limit */
       }
       .chart-container[aria-label="Strengths and Improvement Areas Chart"] {
-          height: 420px !important;
+          min-height: 400px;
+          max-height: 520px;  /* ✅ Mobile limit */
       }
-      #dimensionsContainer { height: 300px; }
+      #dimensionsContainer {
+          min-height: 280px;
+          max-height: 380px;  /* ✅ Mobile limit */
+      }
 
      .chart-header {
          flex-direction: column;
@@ -777,34 +822,34 @@ a:focus, button:focus, input:focus, textarea:focus, select:focus, .action-btn:fo
 
 /* Resource Hub section */
 .resource-hub {
-    background-color: rgba(37, 99, 235, 0.03); /* Lighter background */
+    background-color: #F7F6F6;
     border-radius: 8px;
     padding: 1.5rem;
     margin-top: 1.5rem;
-    border-left: 4px solid var(--primary);
+    border-left: 4px solid #32373c;
 }
 
 .resource-link {
     display: inline-flex;
     align-items: center;
-    margin-right: 0.75rem; /* Reduced margin */
-    margin-bottom: 0.75rem; /* Add bottom margin */
-    padding: 0.4rem 0.8rem; /* Compact padding */
+    margin-right: 0.75rem;
+    margin-bottom: 0.75rem;
+    padding: 0.4rem 0.8rem;
     background-color: white;
-    border-radius: 4px;
+    border-radius: 999px;
     text-decoration: none;
-    color: var(--primary);
+    color: #32373c;
     transition: all 0.2s ease;
-    border: 1px solid rgba(37, 99, 235, 0.2);
-     font-size: 0.85rem;
+    border: 1px solid #ccc;
+    font-size: 0.85rem;
 }
 
 .resource-link:hover {
-    background-color: rgba(37, 99, 235, 0.08); /* Slightly darker hover */
-    transform: translateY(-1px); /* Less movement */
+    background-color: #F7F6F6;
+    transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-     border-color: rgba(37, 99, 235, 0.4); /* Darker border on hover */
-     color: var(--primary-dark);
+    border-color: #32373c;
+    color: #000000;
 }
 
 .resource-link i {

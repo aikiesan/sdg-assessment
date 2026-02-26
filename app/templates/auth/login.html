@@ -160,7 +160,10 @@
 {% endblock %}
 
 {% block content %}
-<div class="auth-container">
+<div class="container-lg py-5">
+  <div class="row">
+    <div class="col-12 col-lg-5 offset-lg-4">
+<div class="auth-container" style="max-width: 100%; margin: 0;">
     <div class="card auth-card">
         <div class="card-header">
             <div class="text-center mb-4">
@@ -228,7 +231,10 @@
             <p class="mb-0">Don't have an account? <a href="{{ url_for('auth.register') }}" class="fw-semibold">Register Now</a></p>
         </div>
     </div>
-</div>
+</div><!-- end auth-container -->
+    </div><!-- end col -->
+  </div><!-- end row -->
+</div><!-- end container-lg -->
 {% endblock %}
 
 {% block scripts %}

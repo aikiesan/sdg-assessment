@@ -14,6 +14,11 @@ class User(db.Model, UserMixin):
     is_admin = db.Column(db.Boolean, default=False)
     password_hash = db.Column(db.String(128))
 
+    # UIA integration fields (nullable — filled when UIA SSO is connected)
+    uia_user_id = db.Column(db.String(64), nullable=True, unique=True, index=True)
+    organization  = db.Column(db.String(256), nullable=True)
+    uia_role      = db.Column(db.String(64), nullable=True)
+
     projects = db.relationship('Project', back_populates='user', cascade='all, delete-orphan')
 
     def check_password(self, password_hash, password):

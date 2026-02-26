@@ -1787,51 +1787,69 @@ function exportChartImage(chartId, fileName = null) {
         alert('Chart export failed: Could not find chart element');
         return;
     }
-    
-    // Get chart instance
+
     const chartInstance = Chart.getChart(canvas);
     if (!chartInstance) {
         console.error(`No Chart.js instance found for canvas ${chartId}`);
         alert('Chart export failed: Chart not initialized');
         return;
     }
-    
-    // Get chart title from button's aria-label or chart title
-    let chartTitle = document.querySelector(`[data-chart="${chartId}"]`)?.ariaLabel || 
-                   chartInstance.options.plugins.title?.text || 
+
+    let chartTitle = document.querySelector(`[data-chart="${chartId}"]`)?.ariaLabel ||
+                   chartInstance.options.plugins.title?.text ||
                    'chart';
-    
-    // Remove "Download" from aria-label if present
+
     chartTitle = chartTitle.replace('Download ', '').replace(' as image', '');
-    
-    // Create filename
-    const safeName = chartTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-$/, '');
-    fileName = fileName || `sdg-${safeName}-${new Date().toISOString().split('T')[0]}.png`;
-    
+
     try {
-        // Create temporary canvas with white background
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = canvas.width;
-        tempCanvas.height = canvas.height;
-        const ctx = tempCanvas.getContext('2d');
-        
-        // Draw white background
+        // Create larger canvas with metadata footer
+        const originalWidth = canvas.width;
+        const originalHeight = canvas.height;
+        const footerHeight = 80;  // Space for metadata
+
+        const exportCanvas = document.createElement('canvas');
+        exportCanvas.width = originalWidth;
+        exportCanvas.height = originalHeight + footerHeight;
+        const ctx = exportCanvas.getContext('2d');
+
+        // White background
         ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-        
-        // Draw the chart
+        ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+        // Draw original chart
         ctx.drawImage(canvas, 0, 0);
-        
-        // Create accessible download link
+
+        // Add metadata footer
+        ctx.fillStyle = '#F7F6F6';
+        ctx.fillRect(0, originalHeight, originalWidth, footerHeight);
+
+        // Add metadata text
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 14px Arial';
+        ctx.fillText(`SDG Assessment: ${window.projectName || 'Project'}`, 20, originalHeight + 25);
+
+        ctx.font = '12px Arial';
+        ctx.fillStyle = '#6C6B69';
+        ctx.fillText(`Assessment ID: ${window.assessmentId || 'N/A'}`, 20, originalHeight + 45);
+        ctx.fillText(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 20, originalHeight + 65);
+
+        ctx.textAlign = 'right';
+        ctx.fillText('SDG Assessment Tool - UIA', originalWidth - 20, originalHeight + 55);
+
+        // Generate filename with context
+        const safeName = chartTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-$/, '');
+        const safeProjectName = (window.projectName || 'project').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        fileName = `sdg-${safeName}-${safeProjectName}-${window.assessmentId}-${new Date().toISOString().split('T')[0]}.png`;
+
+        // Download
         const link = document.createElement('a');
         link.download = fileName;
-        link.href = tempCanvas.toDataURL('image/png');
-        link.ariaLabel = `Download ${chartTitle} as PNG`;
+        link.href = exportCanvas.toDataURL('image/png', 1.0);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
-        console.log(`Chart exported as ${fileName}`);
+
+        console.log(`Chart exported with metadata: ${fileName}`);
     } catch (error) {
         console.error('Error exporting chart:', error);
         alert('Error exporting chart. Please try again.');

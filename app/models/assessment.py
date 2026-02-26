@@ -28,6 +28,10 @@ class Assessment(db.Model):
     raw_expert_data = db.Column(db.JSON)  # Stores the raw JSON data from expert assessment form
     assessment_type = db.Column(db.String(50), default='standard')  # 'standard' or 'expert'
 
+    # Shareable link support
+    share_token = db.Column(db.String(64), unique=True, nullable=True)
+    share_expires = db.Column(db.DateTime, nullable=True)
+
     project = db.relationship('Project', back_populates='assessments')
     sdg_scores = db.relationship('SdgScore', back_populates='assessment', cascade='all, delete-orphan')
 

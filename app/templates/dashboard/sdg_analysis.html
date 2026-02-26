@@ -7,7 +7,7 @@
   .sdg-header {
     padding: 20px;
     color: white;
-    border-radius: 5px;
+    border-radius: 0;
     margin-bottom: 20px;
   }
   .sdg-badge {
@@ -36,7 +36,7 @@
     height: 30px;
     margin-bottom: 10px;
     position: relative;
-    border-radius: 4px;
+    border-radius: 0;
     overflow: hidden;
     background-color: #f0f0f0;
   }
@@ -74,32 +74,35 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
+<div class="container-lg py-5">
+  <div class="row gx-md-5">
+    <!-- Sidebar -->
+    <div class="col-12 col-lg-2">
+      <div class="sticky-top pt-2">
+        <span class="sdg-section-header d-block mb-3">Select SDG</span>
+        <form action="{{ url_for('dashboard.sdg_analysis') }}" method="get">
+          <select class="form-select" name="sdg" id="sdgSelect" onchange="this.form.submit()">
+            {% for s in all_sdgs %}
+            <option value="{{ s.number }}" {% if s.number == sdg.number %}selected{% endif %}>
+              SDG {{ s.number }}: {{ s.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </form>
+        <div class="mt-4">
+          <a href="{{ url_for('dashboard.index') }}" class="btn btn-uia-outline w-100 text-start">
+            <i class="bi bi-arrow-left"></i> Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+    <!-- Main Content -->
+    <div class="col-12 col-lg-10">
+
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="mb-0">SDG Analysis</h1>
-    <div>
-      <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-primary">
-        <i class="bi bi-arrow-left"></i> Back to Dashboard
-      </a>
-    </div>
+    <h1 class="mb-0" style="text-transform: uppercase; font-weight: 800;">SDG Analysis</h1>
   </div>
-  
-  <!-- SDG Selection -->
-  <div class="card shadow-sm mb-4">
-    <div class="card-body">
-      <form action="{{ url_for('dashboard.sdg_analysis') }}" method="get" class="d-flex align-items-center">
-        <label for="sdgSelect" class="me-3">Select SDG:</label>
-        <select class="form-select sdg-dropdown me-3" name="sdg" id="sdgSelect" onchange="this.form.submit()">
-          {% for s in all_sdgs %}
-          <option value="{{ s.number }}" {% if s.number == sdg.number %}selected{% endif %}>
-            SDG {{ s.number }}: {{ s.name }}
-          </option>
-          {% endfor %}
-        </select>
-      </form>
-    </div>
-  </div>
-  
+
   <!-- SDG Header -->
   <div class="sdg-header" style="background-color: {{ sdg.color_code }};">
     <div class="d-flex align-items-center">
@@ -190,9 +193,8 @@
             <h6>Score by Project</h6>
             {% for project in project_scores %}
             <div class="project-score-bar">
-              <div class="project-score-fill" 
-                   style="width: {{ (project.score / 5 * 100)|round|int }}%; 
-                          background-color: {% if project.score >= 4 %}#198754{% elif project.score >= 3 %}#0d6efd{% elif project.score >= 2 %}#ffc107{% else %}#dc3545{% endif %};">
+              <div class="project-score-fill"
+                   style="width: {{ (project.score / 5 * 100)|round|int }}%; background-color: var(--uia-red);">
                 {{ project.project_name }}
               </div>
               <div class="project-score-label">{{ project.score }}</div>
@@ -372,7 +374,9 @@
       </div>
     </div>
   </div>
-</div>
+    </div><!-- end col-lg-10 -->
+  </div><!-- end row -->
+</div><!-- end container-lg -->
 {% endblock %}
 
 {% block scripts %}
@@ -450,50 +454,3 @@
   });
 </script>
 {% endblock %}
-<td>
-                      <span class="score-badge" 
-                            style="background-color: {% if project.score >= 4 %}#198754{% elif project.score >= 3 %}#0d6efd{% elif project.score >= 2 %}#ffc107{% else %}#dc3545{% endif %}; 
-                                   color: {% if project.score >= 2 %}white{% else %}white{% endif %};">
-                        {{ project.score }}
-                      </span>
-                    </td>
-                    <td>{{ project.notes or 'No notes provided' }}</td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          {% else %}
-          <div class="text-center py-5">
-            <i class="bi bi-bar-chart-line text-muted" style="font-size: 3rem;"></i>
-            <p class="text-muted mt-3">No project data available for SDG {{ sdg.number }}</p>
-          </div>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
-  
-  <!-- SDG Resources -->
-  <div class="card shadow-sm">
-    <div class="card-header bg-white">
-      <h5 class="mb-0">Resources for SDG {{ sdg.number }}</h5>
-    </div>
-    <div class="card-body">
-      <div class="row">
-        <div class="col-md-4">
-          <h6>Official Resources</h6>
-          <ul class="list-group list-group-flush">
-            <li class="list-group-item">
-              <i class="bi bi-globe2 me-2"></i>
-              <a href="https://sdgs.un.org/goals/goal{{ sdg.number }}" target="_blank">
-                United Nations SDG {{ sdg.number }} Official Page
-              </a>
-            </li>
-            <li class="list-group-item">
-              <i class="bi bi-file-earmark-pdf me-2"></i>
-              <a href="https://www.un.org/sustainabledevelopment/{{ sdg.number|lower }}-{{ sdg.name|lower|replace(' ', '-') }}" target="_blank">
-                UN Sustainable Development Goal {{ sdg.number }} Brief
-              </a>
-            </li>

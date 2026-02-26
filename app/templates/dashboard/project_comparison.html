@@ -7,6 +7,14 @@
   .comparison-table th, .comparison-table td {
     text-align: center;
   }
+  .comparison-table th {
+    background-color: #F7F6F6;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    border-bottom: 2px solid #000;
+  }
   .score-cell {
     font-weight: bold;
   }
@@ -36,40 +44,35 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="mb-0">Project Comparison</h1>
-    <div>
-      <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-primary">
-        <i class="bi bi-arrow-left"></i> Back to Dashboard
-      </a>
-    </div>
-  </div>
-  
-  <!-- Project Selection Form -->
-  <div class="card shadow-sm mb-4">
-    <div class="card-header bg-white">
-      <h5 class="mb-0">Select Projects to Compare</h5>
-    </div>
-    <div class="card-body">
-      <form action="{{ url_for('dashboard.project_comparison') }}" method="get" id="compareForm">
-        <div class="row">
-          <div class="col-md-10">
-            <select class="form-select" name="project_ids" multiple id="projectSelect">
-              {% for project in projects %}
-              <option value="{{ project.id }}" {% if project.id in selected_projects|map(attribute='id') %}selected{% endif %}>
-                {{ project.name }} {% if project.project_type %}({{ project.project_type }}){% endif %}
-              </option>
-              {% endfor %}
-            </select>
-            <div class="form-text">Hold Ctrl/Cmd to select multiple projects (up to 5)</div>
-          </div>
-          <div class="col-md-2">
-            <button type="submit" class="btn btn-primary w-100">Compare</button>
-          </div>
+<div class="container-lg py-5">
+  <div class="row gx-md-5">
+    <!-- Sidebar -->
+    <div class="col-12 col-lg-2">
+      <div class="sticky-top pt-2">
+        <span class="sdg-section-header d-block mb-3">Compare Projects</span>
+        <form action="{{ url_for('dashboard.project_comparison') }}" method="get" id="compareForm">
+          <select class="form-select mb-2" name="project_ids" multiple id="projectSelect" size="8">
+            {% for project in projects %}
+            <option value="{{ project.id }}" {% if project.id in selected_projects|map(attribute='id') %}selected{% endif %}>
+              {{ project.name }}
+            </option>
+            {% endfor %}
+          </select>
+          <div class="form-text mb-2">Ctrl/Cmd to multi-select (up to 5)</div>
+          <button type="submit" class="btn btn-uia-primary w-100">Compare</button>
+        </form>
+        <div class="mt-3">
+          <a href="{{ url_for('dashboard.index') }}" class="btn btn-uia-outline w-100 text-start">
+            <i class="bi bi-arrow-left"></i> Dashboard
+          </a>
         </div>
-      </form>
+      </div>
     </div>
+    <!-- Main Content -->
+    <div class="col-12 col-lg-10">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0" style="text-transform: uppercase; font-weight: 800;">Project Comparison</h1>
   </div>
   
   {% if selected_projects %}
@@ -134,7 +137,7 @@
               </tr>
             </tbody>
           </table>
-          <a href="{{ url_for('projects.show', id=project.id) }}" class="btn btn-outline-primary btn-sm w-100">View Project</a>
+          <a href="{{ url_for('projects.show', id=project.id) }}" class="btn btn-uia-outline btn-sm w-100">View Project</a>
         </div>
       </div>
     </div>
@@ -220,7 +223,10 @@
     <i class="bi bi-info-circle-fill me-2"></i> Please select at least one project to view comparison data.
   </div>
   {% endif %}
-</div>
+
+    </div><!-- end col-lg-10 -->
+  </div><!-- end row -->
+</div><!-- end container-lg -->
 {% endblock %}
 
 {% block scripts %}

@@ -3,12 +3,17 @@ __pycache__/
 *.py[cod] 
 *$py.class 
  
-# Virtual Environment 
-venv/ 
-.venv/ 
-env/ 
-.env/ 
-ENV/ 
+# Environment files (never commit secrets)
+.env
+.env.local
+.env.production
+
+# Virtual Environment
+venv/
+.venv/
+env/
+.env/
+ENV/
  
 # Coverage reports 
 .coverage 
@@ -30,3 +35,4 @@ test_results.log
 # IDE specific files (add more as needed) 
 .vscode/ 
 .idea/ 
+test-reports/

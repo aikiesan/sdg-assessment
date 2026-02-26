@@ -6,6 +6,7 @@ from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask_mail import Mail
 from flask_wtf.csrf import CSRFProtect
+from flask_caching import Cache
 from config import Config, DevelopmentConfig, TestingConfig, ProductionConfig, config
 from sqlalchemy import text
 
@@ -15,6 +16,7 @@ migrate = Migrate()
 login_manager = LoginManager()
 mail = Mail()
 csrf = CSRFProtect()
+cache = Cache()
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -25,9 +27,9 @@ def load_user(user_id):
 def create_app(config_name=None):
     import logging
     from datetime import datetime
-    
+
     app = Flask(__name__, instance_relative_config=True)
-    
+
     # Add format_date filter for templates
     def format_datetime(value, format='%b %d, %Y'):
         if value is None:
@@ -67,6 +69,13 @@ def create_app(config_name=None):
 
 
     app.logger.critical("Flask App Logger Initialized with Level: %s", app.logger.getEffectiveLevel())
+
+    # Validate required environment variables
+    required_env_vars = ['SECRET_KEY', 'DATABASE_URL']
+    missing_vars = [var for var in required_env_vars if not os.environ.get(var)]
+
+    if missing_vars:
+        app.logger.warning(f"Missing environment variables: {', '.join(missing_vars)}")
 
 
     import click
@@ -137,8 +146,47 @@ def create_app(config_name=None):
     db.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
-    mail.init_app(app)
+
+    # Initialize mail only if MAIL_USERNAME is configured
+    if app.config.get('MAIL_USERNAME'):
+        mail.init_app(app)
+        app.logger.info("Flask-Mail initialized")
+    else:
+        app.logger.warning("MAIL_USERNAME not configured, email features disabled")
+
     csrf.init_app(app)
+
+    # --- Initialize Cache ---
+    # Configure cache based on environment
+    redis_url = os.environ.get('REDIS_URL')
+    if redis_url and not app.config.get('TESTING'):
+        # Use Redis for production/development
+        app.config['CACHE_TYPE'] = 'RedisCache'
+        app.config['CACHE_REDIS_URL'] = redis_url
+        app.config['CACHE_DEFAULT_TIMEOUT'] = 300  # 5 minutes default
+        app.config['CACHE_KEY_PREFIX'] = 'sdg_'
+    elif app.config.get('TESTING'):
+        # Use simple cache for testing (in-memory)
+        app.config['CACHE_TYPE'] = 'SimpleCache'
+        app.config['CACHE_DEFAULT_TIMEOUT'] = 60
+    else:
+        # Fallback to simple cache for development without Redis
+        app.config['CACHE_TYPE'] = 'SimpleCache'
+        app.config['CACHE_DEFAULT_TIMEOUT'] = 300
+        app.logger.warning("Redis not configured, using SimpleCache (in-memory)")
+
+    cache.init_app(app)
+    app.logger.info(f"Cache initialized: {app.config['CACHE_TYPE']}")
+
+    @app.before_request
+    def check_db_connection():
+        """Verify database connection before each request."""
+        try:
+            db.session.execute(text('SELECT 1'))
+        except Exception as e:
+            app.logger.error(f"Database connection error: {str(e)}")
+            db.session.rollback()
+            db.session.remove()
 
     # Register filters (if filters.py exists)
     try:

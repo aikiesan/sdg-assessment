@@ -350,3 +350,19 @@ def initialize_database(secret_key):
 @main_bp.route('/ping')
 def ping():
     return "pong"
+
+@main_bp.route('/health')
+def health_check():
+    """Health check endpoint for monitoring."""
+    try:
+        # Check database connection
+        db.session.execute(text('SELECT 1'))
+        return jsonify({
+            'status': 'healthy',
+            'database': 'connected'
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e)
+        }), 503

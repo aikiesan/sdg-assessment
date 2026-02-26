@@ -1,17 +1,11 @@
 /* ==========================
-   Landing Page Specific Styles
+   Landing Page Specific Styles - UIA Design System
    ========================== */
 
 /* Enhanced Hero Section */
 .hero-section-enhanced {
-    /* Example Gradient - Replace with your preference */
-    background: linear-gradient(135deg, #00689d, #3f7e44); /* Example: SDG Blue to Green */
-    /* Or use a background image:
-    background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('../images/sustainable-architecture-bg.jpg');
-    background-size: cover;
-    background-position: center center;
-    */
-    min-height: 70vh; /* Ensure it takes significant height */
+    background: #000000; /* UIA: Black/white, no gradient */
+    min-height: 70vh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -43,8 +37,9 @@
 
 /* How It Works - Step Indicator */
 .step-indicator {
-    color: var(--bs-primary); /* Use Bootstrap primary color */
-    background-color: var(--bs-white);
+    color: #ffffff;
+    background-color: var(--uia-blue);
+    border-radius: 50% !important;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -69,10 +64,7 @@
 
 /* Final CTA Section */
 .final-cta-enhanced {
-     /* Example Gradient - Match Hero or use another */
-    background: linear-gradient(135deg, #3f7e44, #00689d); /* Example: Green to Blue */
-     /* Or solid color:
-     background-color: #19486A; /* Dark SDG Blue */
+    background: #32373c; /* UIA dark grey (official button pattern) */
 }
 
 

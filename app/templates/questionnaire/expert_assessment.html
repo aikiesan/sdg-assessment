@@ -16,6 +16,90 @@
         .question-block { margin-top: 1.5rem; }
         fieldset { margin-top: 1.5rem; margin-bottom: 1.5rem; border: 1px solid #e2e8f0; border-radius: 0.375rem; padding: 1rem; }
         legend { padding: 0 0.5rem; font-weight: 600; color: #4a5568; }
+
+        /* Navigation Container - Grey Background Section */
+        .form-navigation-wrapper {
+            background-color: #F7F6F6;
+            border-top: 1px solid #6C6B69;
+            margin-top: 2rem;
+            padding: 1.5rem 0;
+        }
+
+        .form-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* Base Navigation Button - Atlas 3+3 Style */
+        .nav-btn-base {
+            background-color: white;
+            color: #6C6B69;
+            border: 1px solid #6C6B69;
+            border-radius: 0;
+            padding: 0.75rem 1.5rem;
+            font-family: 'Oswald', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        /* Previous Button */
+        .nav-btn-prev:hover {
+            background-color: white;
+            color: #AF201C;
+            border-color: #AF201C;
+        }
+
+        .nav-btn-prev:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* Next Button */
+        .nav-btn-next:hover {
+            background-color: #577CB3;
+            color: white;
+            border-color: #577CB3;
+        }
+
+        /* Submit Button - Blue by default to stand out */
+        .nav-btn-submit {
+            background-color: #577CB3;
+            color: white;
+            border-color: #577CB3;
+        }
+
+        .nav-btn-submit:hover {
+            background-color: #484675;
+            border-color: #484675;
+        }
+
+        @media (max-width: 768px) {
+            .form-navigation {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .nav-btn-base {
+                width: 100%;
+                min-height: 44px;
+            }
+
+            .nav-btn-prev {
+                order: 1;
+            }
+
+            .nav-btn-next,
+            .nav-btn-submit {
+                order: 2;
+            }
+        }
+
         @media print {
             body { background-color: white; }
             header, footer, .no-print, #progress-container { display: none !important; }
@@ -98,11 +182,13 @@
                     <div class="mb-6 mt-8"><label for="sdg1-baseline-cost" class="block text-sm font-medium text-gray-700 mb-1" data-translate-key="sdg1_baseline_question">What is the "usual" baseline cost in your state/Country and what is the observed cost of the project?</label><input type="text" id="sdg1-baseline-cost" name="sdg1_baseline_cost" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm" data-translate-key="sdg1_baseline_placeholder" placeholder="e.g., Baseline: X, Project: Y"></div>
                     <div class="mb-4"><label for="sdg1-notes" class="block text-sm font-medium text-gray-700 mb-1" data-translate-key="sdg1_comments_label">COMMENTS : Briefly list the key cost reduction solutions implemented.</label><textarea id="sdg1-notes" name="sdg1_notes" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm" placeholder="..."></textarea></div>
                     <!-- Navigation -->
-                    <div class="flex justify-end mt-8">
-                        <button type="button" class="next-btn bg-green-700 text-white px-8 py-3 rounded-md shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 font-medium" data-next="sdg-2">
-                            <span data-translate-key="continue_button">Continue to SDG 2</span>
-                            <i class="fas fa-arrow-right ml-2"></i>
-                        </button>
+                    <div class="form-navigation-wrapper">
+                        <div class="form-navigation" style="justify-content: flex-end;">
+                            <button type="button" class="nav-btn-base nav-btn-next" data-next="sdg-2">
+                                <span data-translate-key="continue_button">Continue to SDG 2</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
                     </div>
                 </section>
 
@@ -144,15 +230,17 @@
                     </div>
                      <div class="mb-4 mt-8"><label for="sdg2-notes" class="block text-sm font-medium text-gray-700 mb-1" data-translate-key="sdg2_comments_label">COMMENTS : Briefly describe the solutions adopted</label><textarea id="sdg2-notes" name="sdg2_notes" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm" placeholder="..."></textarea></div>
                      <!-- Navigation -->
-                     <div class="flex justify-between mt-8">
-                         <button type="button" class="prev-btn bg-gray-600 text-white px-8 py-3 rounded-md shadow-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 font-medium" data-prev="sdg-1">
-                             <i class="fas fa-arrow-left mr-2"></i> 
-                             <span data-translate-key="back_button">Back to SDG 1</span>
-                         </button>
-                         <button type="button" class="next-btn bg-green-700 text-white px-8 py-3 rounded-md shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 font-medium" data-next="sdg-3">
-                             <span data-translate-key="continue_button">Continue to SDG 3</span> 
-                             <i class="fas fa-arrow-right ml-2"></i>
-                         </button>
+                     <div class="form-navigation-wrapper">
+                         <div class="form-navigation">
+                             <button type="button" class="nav-btn-base nav-btn-prev" data-prev="sdg-1">
+                                 <i class="fas fa-arrow-left"></i>
+                                 <span data-translate-key="back_button">Back to SDG 1</span>
+                             </button>
+                             <button type="button" class="nav-btn-base nav-btn-next" data-next="sdg-3">
+                                 <span data-translate-key="continue_button">Continue to SDG 3</span>
+                                 <i class="fas fa-arrow-right"></i>
+                             </button>
+                         </div>
                      </div>
                 </section>
 
@@ -200,15 +288,17 @@
                      </div>
                      <div class="mb-4 mt-8"><label for="sdg3-notes" class="block text-sm font-medium text-gray-700 mb-1" data-translate-key="sdg3_comments_label">COMMENTS : Briefly list the solutions implemented to create an healthy architecture.</label><textarea id="sdg3-notes" name="sdg3_notes" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm" placeholder="..."></textarea></div>
                      <!-- Navigation -->
-                     <div class="flex justify-between mt-8">
-                         <button type="button" class="prev-btn bg-gray-600 text-white px-8 py-3 rounded-md shadow-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 font-medium" data-prev="sdg-2">
-                             <i class="fas fa-arrow-left mr-2"></i> 
-                             <span data-translate-key="back_button">Back to SDG 2</span>
-                         </button>
-                         <button type="button" class="next-btn bg-green-700 text-white px-8 py-3 rounded-md shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 font-medium" data-next="sdg-4">
-                             <span data-translate-key="continue_button">Continue to SDG 4</span> 
-                             <i class="fas fa-arrow-right ml-2"></i>
-                         </button>
+                     <div class="form-navigation-wrapper">
+                         <div class="form-navigation">
+                             <button type="button" class="nav-btn-base nav-btn-prev" data-prev="sdg-2">
+                                 <i class="fas fa-arrow-left"></i>
+                                 <span data-translate-key="back_button">Back to SDG 2</span>
+                             </button>
+                             <button type="button" class="nav-btn-base nav-btn-next" data-next="sdg-4">
+                                 <span data-translate-key="continue_button">Continue to SDG 4</span>
+                                 <i class="fas fa-arrow-right"></i>
+                             </button>
+                         </div>
                      </div>
                 </section>
 
@@ -250,15 +340,17 @@
                      </div>
                      <div class="mb-4 mt-8"><label for="sdg4-notes" class="block text-sm font-medium text-gray-700 mb-1" data-translate-key="sdg4_comments_label">COMMENTS : Briefly list the solutions implemented for the adaptability/accessibility in the project.</label><textarea id="sdg4-notes" name="sdg4_notes" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm" placeholder="..."></textarea></div>
                     <!-- Navigation -->
-                    <div class="flex justify-between mt-8">
-                        <button type="button" class="prev-btn bg-gray-600 text-white px-8 py-3 rounded-md shadow-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 font-medium" data-prev="sdg-3">
-                            <i class="fas fa-arrow-left mr-2"></i> 
-                            <span data-translate-key="back_button">Back to SDG 3</span>
-                        </button>
-                        <button type="button" class="next-btn bg-green-700 text-white px-8 py-3 rounded-md shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 font-medium" data-next="sdg-5">
-                            <span data-translate-key="continue_button">Continue to SDG 5</span> 
-                            <i class="fas fa-arrow-right ml-2"></i>
-                        </button>
+                    <div class="form-navigation-wrapper">
+                        <div class="form-navigation">
+                            <button type="button" class="nav-btn-base nav-btn-prev" data-prev="sdg-3">
+                                <i class="fas fa-arrow-left"></i>
+                                <span data-translate-key="back_button">Back to SDG 3</span>
+                            </button>
+                            <button type="button" class="nav-btn-base nav-btn-next" data-next="sdg-5">
+                                <span data-translate-key="continue_button">Continue to SDG 5</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
                     </div>
                 </section>
 
@@ -306,15 +398,17 @@
                      </div>
                      <div class="mb-4 mt-8"><label for="sdg5-notes" class="block text-sm font-medium text-gray-700 mb-1" data-translate-key="sdg5_comments_label">COMMENTS : Briefly list the measures respected during the conceptual and building phases :</label><textarea id="sdg5-notes" name="sdg5_notes" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm" placeholder="..."></textarea></div>
                      <!-- Navigation -->
-                     <div class="flex justify-between mt-8">
-                         <button type="button" class="prev-btn bg-gray-600 text-white px-8 py-3 rounded-md shadow-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 font-medium" data-prev="sdg-4">
-                             <i class="fas fa-arrow-left mr-2"></i> 
-                             <span data-translate-key="back_button">Back to SDG 4</span>
-                         </button>
-                         <button type="button" class="next-btn bg-green-700 text-white px-8 py-3 rounded-md shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 font-medium" data-next="sdg-6">
-                             <span data-translate-key="continue_button">Continue to SDG 6</span> 
-                             <i class="fas fa-arrow-right ml-2"></i>
-                         </button>
+                     <div class="form-navigation-wrapper">
+                         <div class="form-navigation">
+                             <button type="button" class="nav-btn-base nav-btn-prev" data-prev="sdg-4">
+                                 <i class="fas fa-arrow-left"></i>
+                                 <span data-translate-key="back_button">Back to SDG 4</span>
+                             </button>
+                             <button type="button" class="nav-btn-base nav-btn-next" data-next="sdg-6">
+                                 <span data-translate-key="continue_button">Continue to SDG 6</span>
+                                 <i class="fas fa-arrow-right"></i>
+                             </button>
+                         </div>
                      </div>
                 </section>
 
@@ -370,15 +464,17 @@
                      </div>
                      <div class="mb-4 mt-8"><label for="sdg6-notes" class="block text-sm font-medium text-gray-700 mb-1" data-translate-key="sdg6_comments_label">COMMENT : Briefly list the solutions implemented for water access and management.</label><textarea id="sdg6-notes" name="sdg6_notes" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm" placeholder="..."></textarea></div>
                      <!-- Navigation -->
-                     <div class="flex justify-between mt-8">
-                         <button type="button" class="prev-btn bg-gray-600 text-white px-8 py-3 rounded-md shadow-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 font-medium" data-prev="sdg-5">
-                             <i class="fas fa-arrow-left mr-2"></i> 
-                             <span data-translate-key="back_button">Back to SDG 5</span>
-                         </button>
-                         <button type="button" class="next-btn bg-green-700 text-white px-8 py-3 rounded-md shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 font-medium" data-next="sdg-7">
-                             <span data-translate-key="continue_button">Continue to SDG 7</span> 
-                             <i class="fas fa-arrow-right ml-2"></i>
-                         </button>
+                     <div class="form-navigation-wrapper">
+                         <div class="form-navigation">
+                             <button type="button" class="nav-btn-base nav-btn-prev" data-prev="sdg-5">
+                                 <i class="fas fa-arrow-left"></i>
+                                 <span data-translate-key="back_button">Back to SDG 5</span>
+                             </button>
+                             <button type="button" class="nav-btn-base nav-btn-next" data-next="sdg-7">
+                                 <span data-translate-key="continue_button">Continue to SDG 7</span>
+                                 <i class="fas fa-arrow-right"></i>
+                             </button>
+                         </div>
                      </div>
                  </section>
 
@@ -419,15 +515,17 @@
                      </div>
                      <div class="mb-4 mt-8"><label for="sdg7-notes" class="block text-sm font-medium text-gray-700 mb-1" data-translate-key="sdg7_comments_label">COMMENT : Briefly list the solutions implemented to reduce energy consumption cost and energy used.</label><textarea id="sdg7-notes" name="sdg7_notes" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm" placeholder="..."></textarea></div>
                      <!-- Navigation -->
-                     <div class="flex justify-between mt-8">
-                         <button type="button" class="prev-btn bg-gray-600 text-white px-8 py-3 rounded-md shadow-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 font-medium" data-prev="sdg-6">
-                             <i class="fas fa-arrow-left mr-2"></i> 
-                             <span data-translate-key="back_button">Back to SDG 6</span>
-                         </button>
-                         <button type="button" class="next-btn bg-green-700 text-white px-8 py-3 rounded-md shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 font-medium" data-next="sdg-8">
-                             <span data-translate-key="continue_button">Continue to SDG 8</span> 
-                             <i class="fas fa-arrow-right ml-2"></i>
-                         </button>
+                     <div class="form-navigation-wrapper">
+                         <div class="form-navigation">
+                             <button type="button" class="nav-btn-base nav-btn-prev" data-prev="sdg-6">
+                                 <i class="fas fa-arrow-left"></i>
+                                 <span data-translate-key="back_button">Back to SDG 6</span>
+                             </button>
+                             <button type="button" class="nav-btn-base nav-btn-next" data-next="sdg-8">
+                                 <span data-translate-key="continue_button">Continue to SDG 8</span>
+                                 <i class="fas fa-arrow-right"></i>
+                             </button>
+                         </div>
                      </div>
                  </section>
 
@@ -494,15 +592,17 @@
                      </fieldset>
                      <div class="mb-4 mt-8"><label for="sdg8-notes" class="block text-sm font-medium text-gray-700 mb-1" data-translate-key="sdg8_comments_label">COMMENT : Briefly list the solutions implemented to Promote inclusive and sustainable economic growth, employment and decent work for all.</label><textarea id="sdg8-notes" name="sdg8_notes" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm" placeholder="..."></textarea></div>
                      <!-- Navigation -->
-                     <div class="flex justify-between mt-8">
-                         <button type="button" class="prev-btn bg-gray-600 text-white px-8 py-3 rounded-md shadow-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 font-medium" data-prev="sdg-7">
-                             <i class="fas fa-arrow-left mr-2"></i> 
-                             <span data-translate-key="back_button">Back to SDG 7</span>
-                         </button>
-                         <button type="button" class="next-btn bg-green-700 text-white px-8 py-3 rounded-md shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 font-medium" data-next="sdg-9">
-                             <span data-translate-key="continue_button">Continue to SDG 9</span> 
-                             <i class="fas fa-arrow-right ml-2"></i>
-                         </button>
+                     <div class="form-navigation-wrapper">
+                         <div class="form-navigation">
+                             <button type="button" class="nav-btn-base nav-btn-prev" data-prev="sdg-7">
+                                 <i class="fas fa-arrow-left"></i>
+                                 <span data-translate-key="back_button">Back to SDG 7</span>
+                             </button>
+                             <button type="button" class="nav-btn-base nav-btn-next" data-next="sdg-9">
+                                 <span data-translate-key="continue_button">Continue to SDG 9</span>
+                                 <i class="fas fa-arrow-right"></i>
+                             </button>
+                         </div>
                      </div>
                  </section>
 
@@ -551,15 +651,17 @@
                      </div>
                      <div class="mb-4 mt-8"><label for="sdg9-notes" class="block text-sm font-medium text-gray-700 mb-1" data-translate-key="sdg9_comments_label">COMMENT : Briefly list the solutions implemented to Promote inclusive and sustainable economic growth, employment and decent work for all.</label><textarea id="sdg9-notes" name="sdg9_notes" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm" placeholder="..."></textarea></div>
                      <!-- Navigation -->
-                     <div class="flex justify-between mt-8">
-                         <button type="button" class="prev-btn bg-gray-600 text-white px-8 py-3 rounded-md shadow-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 font-medium" data-prev="sdg-8">
-                             <i class="fas fa-arrow-left mr-2"></i> 
-                             <span data-translate-key="back_button">Back to SDG 8</span>
-                         </button>
-                         <button type="button" class="next-btn bg-green-700 text-white px-8 py-3 rounded-md shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 font-medium" data-next="sdg-10">
-                             <span data-translate-key="continue_button">Continue to SDG 10</span> 
-                             <i class="fas fa-arrow-right ml-2"></i>
-                         </button>
+                     <div class="form-navigation-wrapper">
+                         <div class="form-navigation">
+                             <button type="button" class="nav-btn-base nav-btn-prev" data-prev="sdg-8">
+                                 <i class="fas fa-arrow-left"></i>
+                                 <span data-translate-key="back_button">Back to SDG 8</span>
+                             </button>
+                             <button type="button" class="nav-btn-base nav-btn-next" data-next="sdg-10">
+                                 <span data-translate-key="continue_button">Continue to SDG 10</span>
+                                 <i class="fas fa-arrow-right"></i>
+                             </button>
+                         </div>
                      </div>
                  </section>
 
@@ -606,15 +708,17 @@
                      </div>
                      <div class="mb-4 mt-8"><label for="sdg10-notes" class="block text-sm font-medium text-gray-700 mb-1" data-translate-key="sdg10_comments_label">COMMENT : Briefly list the solutions implemented to Promote inclusive and sustainable economic growth, employment and decent work for all.</label><textarea id="sdg10-notes" name="sdg10_notes" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm" placeholder="..."></textarea></div>
                     <!-- Navigation -->
-                    <div class="flex justify-between mt-8">
-                        <button type="button" class="prev-btn bg-gray-600 text-white px-8 py-3 rounded-md shadow-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 font-medium" data-prev="sdg-9">
-                            <i class="fas fa-arrow-left mr-2"></i> 
-                            <span data-translate-key="back_button">Back to SDG 9</span>
-                        </button>
-                        <button type="button" class="next-btn bg-green-700 text-white px-8 py-3 rounded-md shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 font-medium" data-next="sdg-11">
-                            <span data-translate-key="continue_button">Continue to SDG 11</span> 
-                            <i class="fas fa-arrow-right ml-2"></i>
-                        </button>
+                    <div class="form-navigation-wrapper">
+                        <div class="form-navigation">
+                            <button type="button" class="nav-btn-base nav-btn-prev" data-prev="sdg-9">
+                                <i class="fas fa-arrow-left"></i>
+                                <span data-translate-key="back_button">Back to SDG 9</span>
+                            </button>
+                            <button type="button" class="nav-btn-base nav-btn-next" data-next="sdg-11">
+                                <span data-translate-key="continue_button">Continue to SDG 11</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
                     </div>
                 </section>
 
@@ -672,15 +776,17 @@
                      </div>
                      <div class="mb-4 mt-8"><label for="sdg11-notes" class="block text-sm font-medium text-gray-700 mb-1" data-translate-key="sdg11_comments_label">COMMENT : Briefly list the solutions implemented to make the operation an element of a more inclusive, safe, resilient and sustainable cities.</label><textarea id="sdg11-notes" name="sdg11_notes" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm" placeholder="..."></textarea></div>
                     <!-- Navigation -->
-                    <div class="flex justify-between mt-8">
-                        <button type="button" class="prev-btn bg-gray-600 text-white px-8 py-3 rounded-md shadow-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 font-medium" data-prev="sdg-10">
-                            <i class="fas fa-arrow-left mr-2"></i> 
-                            <span data-translate-key="back_button">Back to SDG 10</span>
-                        </button>
-                        <button type="button" class="next-btn bg-green-700 text-white px-8 py-3 rounded-md shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 font-medium" data-next="sdg-12">
-                            <span data-translate-key="continue_button">Continue to SDG 12</span> 
-                            <i class="fas fa-arrow-right ml-2"></i>
-                        </button>
+                    <div class="form-navigation-wrapper">
+                        <div class="form-navigation">
+                            <button type="button" class="nav-btn-base nav-btn-prev" data-prev="sdg-10">
+                                <i class="fas fa-arrow-left"></i>
+                                <span data-translate-key="back_button">Back to SDG 10</span>
+                            </button>
+                            <button type="button" class="nav-btn-base nav-btn-next" data-next="sdg-12">
+                                <span data-translate-key="continue_button">Continue to SDG 12</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
                     </div>
                 </section>
 
@@ -741,15 +847,17 @@
                       </div>
                      <div class="mb-4 mt-8"><label for="sdg12-notes" class="block text-sm font-medium text-gray-700 mb-1" data-translate-key="sdg12_comments_label">COMMENT : Briefly list the solutions implemented to ensure sustainable construction and use in your operation.</label><textarea id="sdg12-notes" name="sdg12_notes" rows="4" class="w-full p-3 border border-gray-300 rounded-md shadow-sm" placeholder="..."></textarea></div>
                     <!-- Navigation -->
-                    <div class="flex justify-between mt-8">
-                        <button type="button" class="prev-btn bg-gray-600 text-white px-8 py-3 rounded-md shadow-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 font-medium" data-prev="sdg-11">
-                            <i class="fas fa-arrow-left mr-2"></i> 
-                            <span data-translate-key="back_button">Back to SDG 11</span>
-                        </button>
-                        <button type="button" class="next-btn bg-green-700 text-white px-8 py-3 rounded-md shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 font-medium" data-next="sdg-13">
-                            <span data-translate-key="continue_button">Continue to SDG 13</span> 
-                            <i class="fas fa-arrow-right ml-2"></i>
-                        </button>
+                    <div class="form-navigation-wrapper">
+                        <div class="form-navigation">
+                            <button type="button" class="nav-btn-base nav-btn-prev" data-prev="sdg-11">
+                                <i class="fas fa-arrow-left"></i>
+                                <span data-translate-key="back_button">Back to SDG 11</span>
+                            </button>
+                            <button type="button" class="nav-btn-base nav-btn-next" data-next="sdg-13">
+                                <span data-translate-key="continue_button">Continue to SDG 13</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
                     </div>
                 </section>
 
@@ -831,15 +939,17 @@
                       <div class="mb-6"><label for="sdg13-notes" class="block text-sm font-medium text-gray-700 mb-1" data-translate-key="sdg13_comments_label">COMMENT : Specify the method used to calculate the carbon balance (standard, private reference...) and transmit the detail of the result obtained.</label><textarea id="sdg13-notes" name="sdg13_notes" rows="3" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" placeholder="..."></textarea></div>
                       <div class="mb-4"><label for="sdg13-baseline-footprint" class="block text-sm font-medium text-gray-700 mb-1" data-translate-key="sdg13_baseline_question">ONE MORE INFORMATION : What is the "usual" baseline FOOTPRINT in your state/Country and what is the calculated cost of the project ?</label><input type="text" id="sdg13-baseline-footprint" name="sdg13_baseline_footprint" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm" placeholder="..."></div>
                       <!-- Navigation -->
-                      <div class="flex justify-between mt-8">
-                          <button type="button" class="prev-btn bg-gray-600 text-white px-8 py-3 rounded-md shadow-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 font-medium" data-prev="sdg-12">
-                              <i class="fas fa-arrow-left mr-2"></i> 
-                              <span data-translate-key="back_button">Back to SDG 12</span>
-                          </button>
-                          <button type="button" class="next-btn bg-green-700 text-white px-8 py-3 rounded-md shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 font-medium" data-next="sdg-14">
-                              <span data-translate-key="continue_button">Continue to SDG 14</span> 
-                              <i class="fas fa-arrow-right ml-2"></i>
-                          </button>
+                      <div class="form-navigation-wrapper">
+                          <div class="form-navigation">
+                              <button type="button" class="nav-btn-base nav-btn-prev" data-prev="sdg-12">
+                                  <i class="fas fa-arrow-left"></i>
+                                  <span data-translate-key="back_button">Back to SDG 12</span>
+                              </button>
+                              <button type="button" class="nav-btn-base nav-btn-next" data-next="sdg-14">
+                                  <span data-translate-key="continue_button">Continue to SDG 14</span>
+                                  <i class="fas fa-arrow-right"></i>
+                              </button>
+                          </div>
                       </div>
                  </section>
 
@@ -891,15 +1001,17 @@
                      </div>
                      <div class="mb-4 mt-8"><label for="sdg14-notes" class="block text-sm font-medium text-gray-700 mb-1" data-translate-key="sdg14_comments_label">COMMENT : Briefly describe the most original/main solution implemented to reduce marine pollution (direct and indirect) in building your operation.</label><textarea id="sdg14-notes" name="sdg14_notes" rows="3" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" placeholder="..."></textarea></div>
                      <!-- Navigation -->
-                     <div class="flex justify-between mt-8">
-                        <button type="button" class="prev-btn bg-gray-600 text-white px-8 py-3 rounded-md shadow-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 font-medium" data-prev="sdg-13">
-                            <i class="fas fa-arrow-left mr-2"></i> 
-                            <span data-translate-key="back_button">Back to SDG 13</span>
-                        </button>
-                        <button type="button" class="next-btn bg-green-700 text-white px-8 py-3 rounded-md shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 font-medium" data-next="sdg-15">
-                            <span data-translate-key="continue_button">Continue to SDG 15</span> 
-                            <i class="fas fa-arrow-right ml-2"></i>
-                        </button>
+                     <div class="form-navigation-wrapper">
+                        <div class="form-navigation">
+                            <button type="button" class="nav-btn-base nav-btn-prev" data-prev="sdg-13">
+                                <i class="fas fa-arrow-left"></i>
+                                <span data-translate-key="back_button">Back to SDG 13</span>
+                            </button>
+                            <button type="button" class="nav-btn-base nav-btn-next" data-next="sdg-15">
+                                <span data-translate-key="continue_button">Continue to SDG 15</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
                      </div>
                 </section>
 
@@ -980,15 +1092,17 @@
                      </fieldset>
                      <div class="mb-4 mt-8"><label for="sdg15-notes" class="block text-sm font-medium text-gray-700 mb-1" data-translate-key="sdg15_comments_label">COMMENT : Briefly describe the most original/main solution implemented to protect, restore and promote sustainable use of terrestrial ecosystems in building your operation.</label><textarea id="sdg15-notes" name="sdg15_notes" rows="3" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" placeholder="..."></textarea></div>
                      <!-- Navigation -->
-                     <div class="flex justify-between mt-8">
-                        <button type="button" class="prev-btn bg-gray-600 text-white px-8 py-3 rounded-md shadow-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 font-medium" data-prev="sdg-14">
-                            <i class="fas fa-arrow-left mr-2"></i> 
-                            <span data-translate-key="back_button">Back to SDG 14</span>
-                        </button>
-                        <button type="button" class="next-btn bg-green-700 text-white px-8 py-3 rounded-md shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 font-medium" data-next="sdg-16">
-                            <span data-translate-key="continue_button">Continue to SDG 16</span> 
-                            <i class="fas fa-arrow-right ml-2"></i>
-                        </button>
+                     <div class="form-navigation-wrapper">
+                        <div class="form-navigation">
+                            <button type="button" class="nav-btn-base nav-btn-prev" data-prev="sdg-14">
+                                <i class="fas fa-arrow-left"></i>
+                                <span data-translate-key="back_button">Back to SDG 14</span>
+                            </button>
+                            <button type="button" class="nav-btn-base nav-btn-next" data-next="sdg-16">
+                                <span data-translate-key="continue_button">Continue to SDG 16</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
                      </div>
                 </section>
 
@@ -1045,15 +1159,17 @@
                      </div>
                      <div class="mb-4 mt-8"><label for="sdg16-notes" class="block text-sm font-medium text-gray-700 mb-1" data-translate-key="sdg16_comments_label">COMMENT : Briefly describe the most original/main action implemented to promote peaceful/inclusive societies provide access to justice for all and build effective, accountable and inclusive institutions at all levels</label><textarea id="sdg16-notes" name="sdg16_notes" rows="3" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" placeholder="..."></textarea></div>
                      <!-- Navigation -->
-                     <div class="flex justify-between mt-8">
-                        <button type="button" class="prev-btn bg-gray-600 text-white px-8 py-3 rounded-md shadow-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 font-medium" data-prev="sdg-15">
-                            <i class="fas fa-arrow-left mr-2"></i> 
-                            <span data-translate-key="back_button">Back to SDG 15</span>
-                        </button>
-                        <button type="button" class="next-btn bg-green-700 text-white px-8 py-3 rounded-md shadow-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 font-medium" data-next="sdg-17">
-                            <span data-translate-key="continue_button">Continue to SDG 17</span> 
-                            <i class="fas fa-arrow-right ml-2"></i>
-                        </button>
+                     <div class="form-navigation-wrapper">
+                        <div class="form-navigation">
+                            <button type="button" class="nav-btn-base nav-btn-prev" data-prev="sdg-15">
+                                <i class="fas fa-arrow-left"></i>
+                                <span data-translate-key="back_button">Back to SDG 15</span>
+                            </button>
+                            <button type="button" class="nav-btn-base nav-btn-next" data-next="sdg-17">
+                                <span data-translate-key="continue_button">Continue to SDG 17</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
                      </div>
                 </section>
 
@@ -1114,12 +1230,17 @@
                      </div>
                      <div class="mb-4 mt-8"><label for="sdg17-notes" class="block text-sm font-medium text-gray-700 mb-1" data-translate-key="sdg17_comments_label">COMMENT : Briefly describe the main action partnership for sustainable development you developed.</label><textarea id="sdg17-notes" name="sdg17_notes" rows="3" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" placeholder="..."></textarea></div>
                     <!-- Navigation & Submit -->
-                    <div class="flex justify-between mt-8">
-                        <button type="button" class="prev-btn bg-gray-600 text-white px-8 py-3 rounded-md shadow-lg hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 font-medium" data-prev="sdg-16">
-                            <i class="fas fa-arrow-left mr-2"></i> 
-                            <span data-translate-key="back_button">Back to SDG 16</span>
-                        </button>
-                        <button type="submit" class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-8 py-3 rounded-md shadow-md hover:from-blue-700 hover:to-indigo-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" id="submit-assessment"><span data-translate-key="complete_button">Complete Assessment</span> <i class="fas fa-check-circle ml-2"></i></button>
+                    <div class="form-navigation-wrapper">
+                        <div class="form-navigation">
+                            <button type="button" class="nav-btn-base nav-btn-prev" data-prev="sdg-16">
+                                <i class="fas fa-arrow-left"></i>
+                                <span data-translate-key="back_button">Back to SDG 16</span>
+                            </button>
+                            <button type="submit" class="nav-btn-base nav-btn-submit" id="submit-assessment">
+                                <span data-translate-key="complete_button">Complete Assessment</span>
+                                <i class="fas fa-check-circle"></i>
+                            </button>
+                        </div>
                     </div>
                  </section>
 

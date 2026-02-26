@@ -7,24 +7,20 @@
 <style>
     /* --- Project List Page Enhancements --- */
     .projects-page-header {
-        background: linear-gradient(135deg, var(--primary-color) 0%, #004494 100%);
+        background: linear-gradient(135deg, var(--uia-blue) 0%, var(--uia-violet) 100%);
         color: white;
-        border-radius: var(--border-radius-lg, 0.75rem);
+        border-radius: 0;
         padding: 2rem;
         margin-bottom: 2rem;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 8px 20px rgba(0, 86, 179, 0.15);
+        box-shadow: none;
         z-index: 1;
+        border-bottom: 4px solid var(--uia-red);
     }
-    .projects-page-header::before {
-        content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0;
-        background-image: url("data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4s4-1.79 4-4h2c0 3.314-2.686 6-6 6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        opacity: 0.4; z-index: -1;
-    }
-    .projects-page-title { font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem; }
-    .projects-page-subtitle { opacity: 0.9; margin-bottom: 1.25rem; font-size: 1rem; }
-    .btn-new-project-header { padding: 0.7rem 1.3rem; font-weight: 600; font-size:0.95rem; } /* Adjusted size */
+    .projects-page-title { font-size: 2rem; font-weight: 800; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .projects-page-subtitle { opacity: 0.8; margin-bottom: 1.25rem; font-size: 1rem; }
+    .btn-new-project-header { padding: 0.7rem 1.5rem; font-weight: 700; font-size: 0.85rem; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.05em; }
     .btn-new-project-header i { font-size: 1.1em; }
 
     /* Controls Toolbar */
@@ -32,29 +28,30 @@
     .search-sort-wrapper { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; } /* Reduced gap */
     .projects-search-form { flex-grow: 1; min-width: 200px; max-width: 320px; } /* Adjusted max-width */
     .projects-search-input {
-        padding: 0.5rem 1rem 0.5rem 2.5rem; /* Adjusted padding */
-        border-radius: var(--bs-border-radius-pill);
-        border: 1px solid var(--bs-border-color); height: 42px; /* Adjusted height */
+        padding: 0.5rem 1rem 0.5rem 2.5rem;
+        border-radius: 0;
+        border: 1px solid #ccc; height: 42px;
         box-shadow: none; font-size: 0.9rem;
     }
     .projects-search-input:focus {
-        border-color: var(--bs-primary);
-        box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.2);
+        border-color: var(--uia-blue);
+        box-shadow: 0 0 0 2px rgba(87, 124, 179, 0.15);
     }
     .projects-search-icon {
         position: absolute; left: 0.9rem; top: 50%;
         transform: translateY(-50%); color: var(--bs-secondary-color); font-size: 0.9rem; /* Adjusted size */
     }
     .sort-dropdown .btn {
-        border-radius: var(--bs-border-radius-pill); padding: 0.5rem 1rem; /* Adjusted padding */
-        font-weight: 500; border: 1px solid var(--bs-border-color);
-        background-color: var(--bs-body-bg); font-size: 0.9rem;
-        color: var(--bs-body-color); height: 42px; /* Matched search input height */
+        border-radius: 0; padding: 0.5rem 1rem;
+        font-weight: 700; border: 1px solid #ccc;
+        background-color: #fff; font-size: 0.85rem;
+        color: var(--uia-blue); height: 42px;
+        text-transform: uppercase; letter-spacing: 0.03em;
     }
     .sort-dropdown .dropdown-menu {
-        border: 1px solid var(--bs-border-color-translucent);
-        border-radius: var(--bs-border-radius-lg);
-        box-shadow: var(--bs-box-shadow); padding: 0.5rem 0;
+        border: 2px solid #000;
+        border-radius: 0;
+        box-shadow: 4px 4px 0 rgba(0,0,0,0.1); padding: 0.5rem 0;
     }
     .sort-dropdown .dropdown-item { font-size: 0.9rem; padding: 0.5rem 1rem; }
     .sort-dropdown .dropdown-item.active, .sort-dropdown .dropdown-item:active {
@@ -191,7 +188,7 @@
     <div class="row align-items-center">
         <div class="col-md-7 col-lg-8 mb-3 mb-md-0">
             <h1 class="projects-page-title">
-                My Projects 
+                My Projects
                 {% if projects is defined %}
                 <span class="project-count-badge">{{ projects.total }}</span>
                 {% endif %}
@@ -206,38 +203,38 @@
     </div>
 </div>
 
-<!-- Controls Toolbar: Search and Sort -->
-<div class="controls-toolbar d-flex flex-column flex-md-row justify-content-md-between align-items-md-center mb-4">
-    {% if projects.items|length > 0 or search_term %}
-    <form action="{{ url_for('projects.index') }}" method="GET" class="projects-search-form mb-3 mb-md-0 me-md-2" role="search">
-        <div class="position-relative">
+<div class="container-lg py-4">
+  <div class="row gx-md-5">
+    <!-- Sidebar: Search & Filter -->
+    <div class="col-12 col-lg-2">
+      <div class="sticky-top pt-2">
+        <span class="sdg-section-header d-block mb-3">Filter</span>
+        {% if projects.items|length > 0 or search_term %}
+        <form action="{{ url_for('projects.index') }}" method="GET" role="search" class="mb-3">
+          <div class="position-relative">
             <i class="bi bi-search projects-search-icon"></i>
-            <input type="search" class="form-control projects-search-input" 
-                   id="projectSearchInput" name="search" placeholder="Search projects..." 
+            <input type="search" class="form-control projects-search-input w-100"
+                   id="projectSearchInput" name="search" placeholder="Search..."
                    value="{{ search_term|default('') }}" aria-label="Search projects">
-        </div>
-        <button type="submit" class="visually-hidden">Search</button>
-    </form>
-    {% endif %}
+          </div>
+          <button type="submit" class="btn btn-uia-outline w-100 mt-2">Search</button>
+        </form>
+        {% endif %}
 
-    {% if projects.items|length > 1 %}
-    <div class="dropdown sort-dropdown">
-        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-          <i class="bi bi-arrow-down-up me-1"></i> Sort By: <span class="current-sort-label fw-semibold">{{ current_sort|default('name')|replace('_', ' ')|title }}</span>
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="sortDropdown">
-          <li><h6 class="dropdown-header small text-muted">Sort Projects By</h6></li>
-          <li><a class="dropdown-item sort-option {% if current_sort == 'name' %}active{% endif %}" href="#" data-sort="name">Name (A-Z)</a></li>
-          <li><a class="dropdown-item sort-option {% if current_sort == 'name_desc' %}active{% endif %}" href="#" data-sort="name_desc">Name (Z-A)</a></li>
-          <li><a class="dropdown-item sort-option {% if current_sort == 'date_desc' %}active{% endif %}" href="#" data-sort="date_desc">Date Created (Newest)</a></li>
-          <li><a class="dropdown-item sort-option {% if current_sort == 'date_asc' %}active{% endif %}" href="#" data-sort="date_asc">Date Created (Oldest)</a></li>
-          <li><hr class="dropdown-divider"></li>
-          <li><a class="dropdown-item sort-option {% if current_sort == 'assessment_count_desc' %}active{% endif %}" href="#" data-sort="assessment_count_desc">Assessments (Most)</a></li>
-          <li><a class="dropdown-item sort-option {% if current_sort == 'assessment_count_asc' %}active{% endif %}" href="#" data-sort="assessment_count_asc">Assessments (Fewest)</a></li>
-        </ul>
+        {% if projects.items|length > 1 %}
+        <span class="sdg-section-header d-block mb-2 mt-3">Sort By</span>
+        <div class="d-flex flex-column gap-1">
+          <a class="btn btn-sm btn-uia-outline text-start sort-option {% if current_sort == 'name' %}active{% endif %}" href="#" data-sort="name">Name (A-Z)</a>
+          <a class="btn btn-sm btn-uia-outline text-start sort-option {% if current_sort == 'name_desc' %}active{% endif %}" href="#" data-sort="name_desc">Name (Z-A)</a>
+          <a class="btn btn-sm btn-uia-outline text-start sort-option {% if current_sort == 'date_desc' %}active{% endif %}" href="#" data-sort="date_desc">Newest First</a>
+          <a class="btn btn-sm btn-uia-outline text-start sort-option {% if current_sort == 'date_asc' %}active{% endif %}" href="#" data-sort="date_asc">Oldest First</a>
+          <a class="btn btn-sm btn-uia-outline text-start sort-option {% if current_sort == 'assessment_count_desc' %}active{% endif %}" href="#" data-sort="assessment_count_desc">Most Assessed</a>
+        </div>
+        {% endif %}
+      </div>
     </div>
-    {% endif %}
-</div>
+    <!-- Main Content: Project Grid -->
+    <div class="col-12 col-lg-10">
 
 
 {% if projects.items|length > 0 %}
@@ -323,6 +320,10 @@
     </a>
 </div>
 {% endif %}
+
+    </div><!-- end col-lg-10 -->
+  </div><!-- end row -->
+</div><!-- end container-lg -->
 
 {% endblock %}
 

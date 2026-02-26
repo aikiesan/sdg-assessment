@@ -6,6 +6,7 @@ Provides analytics, user management, and admin functionality.
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session
 from flask_login import login_required, current_user
 from app.utils.db import get_db
+from app import cache
 from functools import wraps
 
 dashboard_bp = Blueprint('dashboard', __name__)
@@ -31,23 +32,30 @@ def admin_required(f):
 @dashboard_bp.route('/')
 @login_required
 @admin_required
+@cache.cached(timeout=60, key_prefix='dashboard_index')  # 1-minute cache
 def index():
     """Dashboard home page with overall statistics."""
     conn = get_db()
-    
-    # Get counts for main entities
-    user_count = conn.execute('SELECT COUNT(*) FROM users').fetchone()[0]
-    project_count = conn.execute('SELECT COUNT(*) FROM projects').fetchone()[0]
-    assessment_count = conn.execute('SELECT COUNT(*) FROM assessments').fetchone()[0]
-    completed_assessment_count = conn.execute(
-        "SELECT COUNT(*) FROM assessments WHERE status = 'completed'"
-    ).fetchone()[0]
-    
-    # Get average overall score
-    avg_score = conn.execute(
-        'SELECT AVG(overall_score) FROM assessments WHERE overall_score IS NOT NULL'
-    ).fetchone()[0]
-    
+
+    # Consolidate all counts and average into a single query using CTEs
+    stats_query = '''
+        WITH stats AS (
+            SELECT
+                (SELECT COUNT(*) FROM users) as user_count,
+                (SELECT COUNT(*) FROM projects) as project_count,
+                (SELECT COUNT(*) FROM assessments) as assessment_count,
+                (SELECT COUNT(*) FROM assessments WHERE status = 'completed') as completed_count,
+                (SELECT AVG(overall_score) FROM assessments WHERE overall_score IS NOT NULL) as avg_score
+        )
+        SELECT * FROM stats
+    '''
+    stats = conn.execute(stats_query).fetchone()
+    user_count = stats[0]
+    project_count = stats[1]
+    assessment_count = stats[2]
+    completed_assessment_count = stats[3]
+    avg_score = stats[4]
+
     # Get average scores per SDG
     sdg_scores = conn.execute('''
         SELECT g.number, g.name, AVG(s.total_score) as avg_score, g.color_code
@@ -56,16 +64,19 @@ def index():
         GROUP BY g.id
         ORDER BY g.number
     ''').fetchall()
-    
-    # Recent activity
-    recent_projects = conn.execute('''
-        SELECT p.*, u.name as user_name
+
+    # Get recent activity in a single query with UNION ALL
+    recent_data = conn.execute('''
+        SELECT 'project' as type, p.id, p.name, p.created_at, u.name as user_name,
+               NULL as project_name, p.description, p.project_type, p.location, p.size_sqm,
+               p.user_id, p.updated_at, p.start_date, p.end_date, p.budget, p.sector, p.status
         FROM projects p
         JOIN users u ON p.user_id = u.id
         ORDER BY p.created_at DESC
         LIMIT 5
     ''').fetchall()
-    
+    recent_projects = [dict(row) for row in recent_data]
+
     recent_assessments = conn.execute('''
         SELECT a.*, p.name as project_name, u.name as user_name
         FROM assessments a
@@ -83,7 +94,7 @@ def index():
         completed_assessment_count=completed_assessment_count,
         avg_score=avg_score,
         sdg_scores=[dict(score) for score in sdg_scores],
-        recent_projects=[dict(project) for project in recent_projects],
+        recent_projects=recent_projects,
         recent_assessments=[dict(assessment) for assessment in recent_assessments]
     )
 
@@ -93,18 +104,19 @@ def index():
 def users():
     """User management dashboard."""
     conn = get_db()
-    
-    # Get all users with some statistics
+
+    # Optimized query using LEFT JOINs instead of correlated subqueries
     users_data = conn.execute('''
-        SELECT u.*, 
-               (SELECT COUNT(*) FROM projects WHERE user_id = u.id) as project_count,
-               (SELECT COUNT(*) FROM assessments a 
-                JOIN projects p ON a.project_id = p.id 
-                WHERE p.user_id = u.id) as assessment_count
+        SELECT u.*,
+               COALESCE(COUNT(DISTINCT p.id), 0) as project_count,
+               COALESCE(COUNT(DISTINCT a.id), 0) as assessment_count
         FROM users u
+        LEFT JOIN projects p ON p.user_id = u.id
+        LEFT JOIN assessments a ON a.project_id = p.id
+        GROUP BY u.id
         ORDER BY u.name
     ''').fetchall()
-    
+
     return render_template(
         'dashboard/users.html',
         users=[dict(user) for user in users_data]
@@ -124,12 +136,14 @@ def user_detail(user_id):
         flash('User not found', 'danger')
         return redirect(url_for('dashboard.users'))
     
-    # Get user's projects
+    # Get user's projects with optimized query (LEFT JOIN instead of subquery)
     projects = conn.execute('''
-        SELECT p.*, 
-               (SELECT COUNT(*) FROM assessments WHERE project_id = p.id) as assessment_count
+        SELECT p.*,
+               COALESCE(COUNT(a.id), 0) as assessment_count
         FROM projects p
+        LEFT JOIN assessments a ON a.project_id = p.id
         WHERE p.user_id = ?
+        GROUP BY p.id
         ORDER BY p.created_at DESC
     ''', (user_id,)).fetchall()
     
@@ -200,16 +214,18 @@ def edit_user(user_id):
 def projects():
     """Project management dashboard."""
     conn = get_db()
-    
-    # Get all projects with user info
+
+    # Optimized query using LEFT JOIN instead of correlated subquery
     projects_data = conn.execute('''
         SELECT p.*, u.name as user_name,
-               (SELECT COUNT(*) FROM assessments WHERE project_id = p.id) as assessment_count
+               COALESCE(COUNT(a.id), 0) as assessment_count
         FROM projects p
         JOIN users u ON p.user_id = u.id
+        LEFT JOIN assessments a ON a.project_id = p.id
+        GROUP BY p.id
         ORDER BY p.created_at DESC
     ''').fetchall()
-    
+
     return render_template(
         'dashboard/projects.html',
         projects=[dict(project) for project in projects_data]
@@ -239,6 +255,7 @@ def assessments():
 @dashboard_bp.route('/analytics')
 @login_required
 @admin_required
+@cache.cached(timeout=300, key_prefix='dashboard_analytics')  # 5-minute cache
 def analytics():
     """Analytics dashboard with charts and statistics."""
     conn = get_db()

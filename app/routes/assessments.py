@@ -846,6 +846,62 @@ def populate_questions():
     return final_success
 
 
+@assessments_bp.route('/projects/<int:project_id>/assessments/<int:assessment_id>/share', methods=['POST'])
+@login_required
+def share_assessment(project_id, assessment_id):
+    """Generate shareable link for assessment results."""
+    import secrets
+    from datetime import timedelta
+
+    project = db.session.get(Project, project_id)
+    if not project or project.user_id != current_user.id:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+
+    assessment = db.session.get(Assessment, assessment_id)
+    if not assessment or assessment.project_id != project_id:
+        return jsonify({'success': False, 'message': 'Assessment not found'}), 404
+
+    # Generate unique share token
+    share_token = secrets.token_urlsafe(32)
+
+    # Store token in assessment
+    assessment.share_token = share_token
+    assessment.share_expires = datetime.utcnow() + timedelta(days=30)  # 30-day expiry
+    db.session.commit()
+
+    # Generate shareable URL
+    share_url = url_for('assessments.view_shared', token=share_token, _external=True)
+
+    return jsonify({
+        'success': True,
+        'share_url': share_url,
+        'expires_at': assessment.share_expires.isoformat()
+    })
+
+
+@assessments_bp.route('/shared/<token>')
+def view_shared(token):
+    """View shared assessment results (public, no login required)."""
+    assessment = Assessment.query.filter_by(share_token=token).first()
+
+    if not assessment:
+        flash('Invalid or expired share link.', 'error')
+        return redirect(url_for('main.index'))
+
+    # Check expiry
+    if assessment.share_expires and assessment.share_expires < datetime.utcnow():
+        flash('This share link has expired.', 'error')
+        return redirect(url_for('main.index'))
+
+    # Render results page in read-only mode
+    return render_template(
+        'questionnaire/results_shared.html',
+        assessment=assessment,
+        project=assessment.project,
+        read_only=True
+    )
+
+
 def populate_sdg_relationships():
     """Populate the sdg_relationships table with relationships between SDGs."""
     try:

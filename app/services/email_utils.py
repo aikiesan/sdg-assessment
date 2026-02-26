@@ -5,7 +5,11 @@ from threading import Thread
 
 def send_async_email(app, msg):
     with app.app_context():
-        mail.send(msg)
+        try:
+            mail.send(msg)
+        except Exception as e:
+            app.logger.error(f"Failed to send email: {str(e)}")
+            # Don't raise - email failure shouldn't block the app
 
 def send_email(subject, recipients, html_body, text_body=None):
     msg = Message(subject, recipients=recipients)

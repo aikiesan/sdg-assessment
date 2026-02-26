@@ -105,10 +105,12 @@ matplotlib==3.8.0           # Plotting library for generating charts and graphs
 #
 # Task Queue (for background jobs):
 # celery==5.3.4             # Distributed task queue
-# redis==5.0.1              # Redis client for Celery broker
-#
+
+# Redis (for caching and optional Celery broker)
+redis==5.0.1                # Redis client for caching
+
 # Caching:
-# Flask-Caching==2.1.0      # Caching extension for Flask
+Flask-Caching==2.1.0        # Caching extension for Flask
 #
 # API Rate Limiting:
 # Flask-Limiter==3.5.0      # Rate limiting extension for Flask APIs
